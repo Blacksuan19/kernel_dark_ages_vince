@@ -975,6 +975,11 @@ static void xpad_led_set(struct led_classdev *led_cdev,
 
 static int xpad_led_probe(struct usb_xpad *xpad)
 {
+<<<<<<< HEAD
+=======
+	static atomic_t led_seq	= ATOMIC_INIT(-1);
+	unsigned long led_no;
+>>>>>>> 69700b23ee00... Input: initialize device counter variables with -1
 	struct xpad_led *led;
 	struct led_classdev *led_cdev;
 	int error;
@@ -986,6 +991,7 @@ static int xpad_led_probe(struct usb_xpad *xpad)
 	if (!led)
 		return -ENOMEM;
 
+<<<<<<< HEAD
 	xpad->pad_nr = ida_simple_get(&xpad_pad_seq, 0, 0, GFP_KERNEL);
 	if (xpad->pad_nr < 0) {
 		error = xpad->pad_nr;
@@ -993,6 +999,11 @@ static int xpad_led_probe(struct usb_xpad *xpad)
 	}
 
 	snprintf(led->name, sizeof(led->name), "xpad%d", xpad->pad_nr);
+=======
+	led_no = atomic_inc_return(&led_seq);
+
+	snprintf(led->name, sizeof(led->name), "xpad%lu", led_no);
+>>>>>>> 69700b23ee00... Input: initialize device counter variables with -1
 	led->xpad = xpad;
 
 	led_cdev = &led->led_cdev;
