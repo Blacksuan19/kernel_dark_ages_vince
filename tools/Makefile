@@ -59,13 +59,8 @@ liblockdep: FORCE
 libapi: FORCE
 	$(call descend,lib/api)
 
-# The perf build does not follow the descend function setup,
-# invoking it via it's own make rule.
-PERF_O   = $(if $(O),$(O)/tools/perf,)
-
 perf: FORCE
-	$(Q)mkdir -p $(PERF_O) .
-	$(Q)$(MAKE) --no-print-directory -C perf O=$(PERF_O) subdir=
+	$(call descend,$@)
 
 selftests: FORCE
 	$(call descend,testing/$@)
