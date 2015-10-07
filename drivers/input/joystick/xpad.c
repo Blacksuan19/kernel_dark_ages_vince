@@ -344,11 +344,15 @@ struct usb_xpad {
 	int mapping;			/* map d-pad to buttons or to axes */
 	int xtype;			/* type of xbox device */
 <<<<<<< HEAD
+<<<<<<< HEAD
 	int pad_nr;			/* the order x360 pads were attached */
 	const char *name;		/* name of the device */
 =======
 	unsigned long led_no;		/* led to lit on xbox360 controllers */
 >>>>>>> b92cf9056938... Input: xpad - re-send LED command on present event
+=======
+	unsigned long pad_nr;		/* the order x360 pads were attached */
+>>>>>>> a9040f812372... Input: xpad - clarify LED enumeration
 };
 
 /*
@@ -984,9 +988,13 @@ struct xpad_led {
 
 /**
 <<<<<<< HEAD
+<<<<<<< HEAD
  * set the LEDs on Xbox360 / Wireless Controllers
 =======
 >>>>>>> 30221037921b... Input: xpad - set the LEDs properly on XBox Wireless controllers
+=======
+ * set the LEDs on Xbox360 / Wireless Controllers
+>>>>>>> a9040f812372... Input: xpad - clarify LED enumeration
  * @param command
  *  0: off
  *  1: all blink, then previous setting
@@ -1051,10 +1059,13 @@ static void xpad_identify_controller(struct usb_xpad *xpad)
 >>>>>>> 30221037921b... Input: xpad - set the LEDs properly on XBox Wireless controllers
 }
 
+/*
+ * Light up the segment corresponding to the pad number on
+ * Xbox 360 Controllers.
+ */
 static void xpad_identify_controller(struct usb_xpad *xpad)
 {
-	/* Light up the segment corresponding to controller number */
-	xpad_send_led_command(xpad, (xpad->led_no % 4) + 2);
+	xpad_send_led_command(xpad, (xpad->pad_nr % 4) + 2);
 }
 
 static void xpad_led_set(struct led_classdev *led_cdev,
@@ -1090,6 +1101,7 @@ static int xpad_led_probe(struct usb_xpad *xpad)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	xpad->pad_nr = ida_simple_get(&xpad_pad_seq, 0, 0, GFP_KERNEL);
 	if (xpad->pad_nr < 0) {
 		error = xpad->pad_nr;
@@ -1107,6 +1119,11 @@ static int xpad_led_probe(struct usb_xpad *xpad)
 
 	snprintf(led->name, sizeof(led->name), "xpad%lu", xpad->led_no);
 >>>>>>> b92cf9056938... Input: xpad - re-send LED command on present event
+=======
+	xpad->pad_nr = atomic_inc_return(&led_seq);
+
+	snprintf(led->name, sizeof(led->name), "xpad%lu", xpad->pad_nr);
+>>>>>>> a9040f812372... Input: xpad - clarify LED enumeration
 	led->xpad = xpad;
 
 	led_cdev = &led->led_cdev;
