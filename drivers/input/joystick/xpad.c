@@ -532,9 +532,12 @@ static void xpad360w_process_packet(struct usb_xpad *xpad, u16 cmd, unsigned cha
 		if (data[1] & 0x80) {
 			xpad->pad_present = 1;
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 			usb_submit_urb(xpad->bulk_out, GFP_ATOMIC);
 >>>>>>> b92cf9056938... Input: xpad - re-send LED command on present event
+=======
+>>>>>>> e2e233d1a986... Input: xpad - remove needless bulk out URB used for LED setup
 			/*
 			 * Light up the segment corresponding to
 			 * controller number.
@@ -1439,10 +1442,13 @@ static int xpad_probe(struct usb_interface *intf, const struct usb_device_id *id
 
 	usb_set_intfdata(intf, xpad);
 
+<<<<<<< HEAD
 	error = xpad_init_input(xpad);
 	if (error)
 		goto err_deinit_output;
 
+=======
+>>>>>>> e2e233d1a986... Input: xpad - remove needless bulk out URB used for LED setup
 	if (xpad->xtype == XTYPE_XBOX360W) {
 		/*
 		 * Submit the int URB immediately rather than waiting for open
@@ -1454,7 +1460,12 @@ static int xpad_probe(struct usb_interface *intf, const struct usb_device_id *id
 		xpad->irq_in->dev = xpad->udev;
 		error = usb_submit_urb(xpad->irq_in, GFP_KERNEL);
 		if (error)
+<<<<<<< HEAD
 			goto err_deinit_input;
+=======
+			goto fail7;
+	}
+>>>>>>> e2e233d1a986... Input: xpad - remove needless bulk out URB used for LED setup
 
 		/*
 		 * Send presence packet.
@@ -1469,6 +1480,7 @@ static int xpad_probe(struct usb_interface *intf, const struct usb_device_id *id
 	}
 	return 0;
 
+<<<<<<< HEAD
 err_kill_in_urb:
 	usb_kill_urb(xpad->irq_in);
 err_deinit_input:
@@ -1480,6 +1492,17 @@ err_free_in_urb:
 err_free_idata:
 	usb_free_coherent(udev, XPAD_PKT_LEN, xpad->idata, xpad->idata_dma);
 err_free_mem:
+=======
+ fail7:	input_unregister_device(input_dev);
+	input_dev = NULL;
+ fail6:	xpad_led_disconnect(xpad);
+ fail5:	if (input_dev)
+		input_ff_destroy(input_dev);
+ fail4:	xpad_deinit_output(xpad);
+ fail3:	usb_free_urb(xpad->irq_in);
+ fail2:	usb_free_coherent(udev, XPAD_PKT_LEN, xpad->idata, xpad->idata_dma);
+ fail1:	input_free_device(input_dev);
+>>>>>>> e2e233d1a986... Input: xpad - remove needless bulk out URB used for LED setup
 	kfree(xpad);
 	return error;
 
