@@ -822,6 +822,7 @@ static int xpad_play_effect(struct input_dev *dev, void *data, struct ff_effect 
 	struct usb_xpad *xpad = input_get_drvdata(dev);
 	__u16 strong;
 	__u16 weak;
+<<<<<<< HEAD
 
 <<<<<<< HEAD
 	if (effect->type != FF_RUMBLE)
@@ -869,6 +870,54 @@ static int xpad_play_effect(struct input_dev *dev, void *data, struct ff_effect 
 		xpad->irq_out->transfer_buffer_length = 12;
 		break;
 
+=======
+
+	if (effect->type != FF_RUMBLE)
+		return 0;
+
+	strong = effect->u.rumble.strong_magnitude;
+	weak = effect->u.rumble.weak_magnitude;
+
+	switch (xpad->xtype) {
+	case XTYPE_XBOX:
+		xpad->odata[0] = 0x00;
+		xpad->odata[1] = 0x06;
+		xpad->odata[2] = 0x00;
+		xpad->odata[3] = strong / 256;	/* left actuator */
+		xpad->odata[4] = 0x00;
+		xpad->odata[5] = weak / 256;	/* right actuator */
+		xpad->irq_out->transfer_buffer_length = 6;
+		break;
+
+	case XTYPE_XBOX360:
+		xpad->odata[0] = 0x00;
+		xpad->odata[1] = 0x08;
+		xpad->odata[2] = 0x00;
+		xpad->odata[3] = strong / 256;  /* left actuator? */
+		xpad->odata[4] = weak / 256;	/* right actuator? */
+		xpad->odata[5] = 0x00;
+		xpad->odata[6] = 0x00;
+		xpad->odata[7] = 0x00;
+		xpad->irq_out->transfer_buffer_length = 8;
+		break;
+
+	case XTYPE_XBOX360W:
+		xpad->odata[0] = 0x00;
+		xpad->odata[1] = 0x01;
+		xpad->odata[2] = 0x0F;
+		xpad->odata[3] = 0xC0;
+		xpad->odata[4] = 0x00;
+		xpad->odata[5] = strong / 256;
+		xpad->odata[6] = weak / 256;
+		xpad->odata[7] = 0x00;
+		xpad->odata[8] = 0x00;
+		xpad->odata[9] = 0x00;
+		xpad->odata[10] = 0x00;
+		xpad->odata[11] = 0x00;
+		xpad->irq_out->transfer_buffer_length = 12;
+		break;
+
+>>>>>>> 9a249a885bb8... Input: xpad - factor out URB submission in xpad_play_effect
 	case XTYPE_XBOXONE:
 		xpad->odata[0] = 0x09; /* activate rumble */
 		xpad->odata[1] = 0x08;
@@ -890,6 +939,7 @@ static int xpad_play_effect(struct input_dev *dev, void *data, struct ff_effect 
 			"%s - rumble command sent to unsupported xpad type: %d\n",
 			__func__, xpad->xtype);
 		return -EINVAL;
+<<<<<<< HEAD
 =======
 	if (effect->type == FF_RUMBLE) {
 		__u16 strong = effect->u.rumble.strong_magnitude;
@@ -962,6 +1012,8 @@ static int xpad_play_effect(struct input_dev *dev, void *data, struct ff_effect 
 			return -1;
 		}
 >>>>>>> 70d7e0cb4248... Input: xpad - add rumble support for Xbox One controller
+=======
+>>>>>>> 9a249a885bb8... Input: xpad - factor out URB submission in xpad_play_effect
 	}
 
 	return usb_submit_urb(xpad->irq_out, GFP_ATOMIC);
