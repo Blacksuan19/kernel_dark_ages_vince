@@ -1566,10 +1566,26 @@ err_kill_in_urb:
 	usb_kill_urb(xpad->irq_in);
 =======
 			goto err_deinit_input;
+
+		/*
+		 * Send presence packet.
+		 * This will force the controller to resend connection packets.
+		 * This is useful in the case we activate the module after the
+		 * adapter has been plugged in, as it won't automatically
+		 * send us info about the controllers.
+		 */
+		error = xpad_inquiry_pad_presence(xpad);
+		if (error)
+			goto err_kill_in_urb;
 	}
 	return 0;
 
+<<<<<<< HEAD
 >>>>>>> 7e0f79ac7989... Input: xpad - move the input device creation to a new function
+=======
+err_kill_in_urb:
+	usb_kill_urb(xpad->irq_in);
+>>>>>>> 80426963a312... Input: xpad - query wireless controller state at init
 err_deinit_input:
 	xpad_deinit_input(xpad);
 err_deinit_output:
