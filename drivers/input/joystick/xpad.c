@@ -345,6 +345,7 @@ struct usb_xpad {
 	int xtype;			/* type of xbox device */
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	int pad_nr;			/* the order x360 pads were attached */
 	const char *name;		/* name of the device */
 =======
@@ -353,6 +354,9 @@ struct usb_xpad {
 =======
 	unsigned long pad_nr;		/* the order x360 pads were attached */
 >>>>>>> a9040f812372... Input: xpad - clarify LED enumeration
+=======
+	int pad_nr;			/* the order x360 pads were attached */
+>>>>>>> 12a85e058d8c... Input: xpad - use ida() for finding the pad_nr
 };
 
 /*
@@ -1081,6 +1085,7 @@ static int xpad_led_probe(struct usb_xpad *xpad)
 {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 	static atomic_t led_seq	= ATOMIC_INIT(-1);
 	unsigned long led_no;
@@ -1088,6 +1093,8 @@ static int xpad_led_probe(struct usb_xpad *xpad)
 =======
 	static atomic_t led_seq = ATOMIC_INIT(-1);
 >>>>>>> b92cf9056938... Input: xpad - re-send LED command on present event
+=======
+>>>>>>> 12a85e058d8c... Input: xpad - use ida() for finding the pad_nr
 	struct xpad_led *led;
 	struct led_classdev *led_cdev;
 	int error;
@@ -1102,11 +1109,15 @@ static int xpad_led_probe(struct usb_xpad *xpad)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 12a85e058d8c... Input: xpad - use ida() for finding the pad_nr
 	xpad->pad_nr = ida_simple_get(&xpad_pad_seq, 0, 0, GFP_KERNEL);
 	if (xpad->pad_nr < 0) {
 		error = xpad->pad_nr;
 		goto err_free_mem;
 	}
+<<<<<<< HEAD
 
 	snprintf(led->name, sizeof(led->name), "xpad%d", xpad->pad_nr);
 =======
@@ -1124,6 +1135,10 @@ static int xpad_led_probe(struct usb_xpad *xpad)
 
 	snprintf(led->name, sizeof(led->name), "xpad%lu", xpad->pad_nr);
 >>>>>>> a9040f812372... Input: xpad - clarify LED enumeration
+=======
+
+	snprintf(led->name, sizeof(led->name), "xpad%d", xpad->pad_nr);
+>>>>>>> 12a85e058d8c... Input: xpad - use ida() for finding the pad_nr
 	led->xpad = xpad;
 
 	led_cdev = &led->led_cdev;
@@ -1146,8 +1161,11 @@ static int xpad_led_probe(struct usb_xpad *xpad)
 =======
 	/* Light up the segment corresponding to controller number */
 	xpad_identify_controller(xpad);
+<<<<<<< HEAD
 >>>>>>> b92cf9056938... Input: xpad - re-send LED command on present event
 
+=======
+>>>>>>> 12a85e058d8c... Input: xpad - use ida() for finding the pad_nr
 	return 0;
 
 err_free_id:
