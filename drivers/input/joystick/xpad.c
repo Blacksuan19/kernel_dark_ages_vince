@@ -1208,6 +1208,9 @@ static int xpad_led_probe(struct usb_xpad *xpad)
 		goto err_free_id;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d6d5f0290ba6... Input: xpad - fix clash of presence handling with LED setting
 	if (xpad->xtype == XTYPE_XBOX360) {
 		/*
 		 * Light up the segment corresponding to controller
@@ -1216,6 +1219,7 @@ static int xpad_led_probe(struct usb_xpad *xpad)
 		 */
 		xpad_identify_controller(xpad);
 	}
+<<<<<<< HEAD
 =======
 	/* Light up the segment corresponding to controller number */
 	xpad_identify_controller(xpad);
@@ -1224,6 +1228,9 @@ static int xpad_led_probe(struct usb_xpad *xpad)
 
 =======
 >>>>>>> 12a85e058d8c... Input: xpad - use ida() for finding the pad_nr
+=======
+
+>>>>>>> d6d5f0290ba6... Input: xpad - fix clash of presence handling with LED setting
 	return 0;
 
 err_free_id:
