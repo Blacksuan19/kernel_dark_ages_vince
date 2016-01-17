@@ -33,16 +33,17 @@
 #define INTERNAL_SEED 0
 #define EXTERNAL_SEED 1
 
-#define NR_FRANDOM_DEVS 2
+#define FRANDOM_MAJOR 235
+#define FRANDOM_MINOR 11 
+#define ERANDOM_MINOR 12 
 
 static struct file_operations frandom_fops; /* Values assigned below */
 
 static int erandom_seeded = 0; /* Internal flag */
 
-static dev_t frandom_devt;
-static dev_t erandom_devt;
-static int frandom_minor;
-static int erandom_minor;
+static int frandom_major = FRANDOM_MAJOR;
+static int frandom_minor = FRANDOM_MINOR;
+static int erandom_minor = ERANDOM_MINOR;
 static int frandom_bufsize = 256;
 static int frandom_chunklimit = 0; /* =0 means unlimited */
 
@@ -55,8 +56,12 @@ struct device *erandom_device;
 MODULE_DESCRIPTION("Fast pseudo-random number generator");
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Eli Billauer");
+module_param(frandom_major, int, 0);
+module_param(frandom_minor, int, 0);
+module_param(erandom_minor, int, 0);
 module_param(frandom_bufsize, int, 0);
 module_param(frandom_chunklimit, int, 0);
+
 
 MODULE_PARM_DESC(frandom_bufsize,"Internal buffer size in bytes. Default is 256. Must be >= 256");
 MODULE_PARM_DESC(frandom_chunklimit,"Limit for read() blocks size. 0 (default) is unlimited, otherwise must be >= 256");
@@ -181,10 +186,14 @@ static int frandom_open(struct inode *inode, struct file *filp)
 	int num = iminor(inode);
 
 	/* This should never happen, now when the minors are regsitered
-	 * explicitly (or dynamically)
+	 * explicitly
 	 */
 	if ((num != frandom_minor) && (num != erandom_minor)) return -ENODEV;
+<<<<<<< HEAD:drivers/staging/frandom/frandom.c
   
+=======
+
+>>>>>>> 81dbd37bcae2... upgrade frandom to latest:drivers/char/frandom.c
 	state = kmalloc(sizeof(struct frandom_state), GFP_KERNEL);
 	if (!state)
 		return -ENOMEM;
@@ -281,11 +290,18 @@ static struct file_operations frandom_fops = {
 };
 
 static void frandom_cleanup_module(void) {
+<<<<<<< HEAD:drivers/staging/frandom/frandom.c
 	device_destroy(frandom_class, erandom_devt);
+=======
+	unregister_chrdev_region(MKDEV(frandom_major, erandom_minor), 1);
+>>>>>>> 81dbd37bcae2... upgrade frandom to latest:drivers/char/frandom.c
 	cdev_del(&erandom_cdev);
-	device_destroy(frandom_class, frandom_devt);
+	device_destroy(frandom_class, MKDEV(frandom_major, erandom_minor));
+
+	unregister_chrdev_region(MKDEV(frandom_major, frandom_minor), 1);
 	cdev_del(&frandom_cdev);
-	unregister_chrdev_region(frandom_devt, NR_FRANDOM_DEVS);
+	device_destroy(frandom_class, MKDEV(frandom_major, frandom_minor));
+	class_destroy(frandom_class);
 
 	kfree(erandom_state->buf);
 	kfree(erandom_state);
@@ -337,6 +353,7 @@ static int frandom_init_module(void)
 	 * fops in frandom_cleanup_module()
 	 */
 
+<<<<<<< HEAD:drivers/staging/frandom/frandom.c
 	result = alloc_chrdev_region(&frandom_devt, 0, NR_FRANDOM_DEVS, "frandom");
 	if (result < 0) {
 		printk(KERN_WARNING "frandom: failed to alloc frandom region\n");
@@ -347,15 +364,30 @@ static int frandom_init_module(void)
 	erandom_minor = frandom_minor + 1;
 	erandom_devt = MKDEV(MAJOR(frandom_devt), erandom_minor);
 
+=======
+>>>>>>> 81dbd37bcae2... upgrade frandom to latest:drivers/char/frandom.c
 	cdev_init(&frandom_cdev, &frandom_fops);
 	frandom_cdev.owner = THIS_MODULE;
-	result = cdev_add(&frandom_cdev, frandom_devt, 1);
+	result = cdev_add(&frandom_cdev, MKDEV(frandom_major, frandom_minor), 1);
 	if (result) {
 	  printk(KERN_WARNING "frandom: Failed to add cdev for /dev/frandom\n");
+<<<<<<< HEAD:drivers/staging/frandom/frandom.c
 	  goto error2;
 	}
 
 	frandom_device = device_create(frandom_class, NULL, frandom_devt, NULL, "frandom");
+=======
+	  goto error1;
+	}
+
+	result = register_chrdev_region(MKDEV(frandom_major, frandom_minor), 1, "/dev/frandom");
+	if (result < 0) {
+		printk(KERN_WARNING "frandom: can't get major/minor %d/%d\n", frandom_major, frandom_minor);
+	  goto error2;
+	}
+
+	frandom_device = device_create(frandom_class, NULL, MKDEV(frandom_major, frandom_minor), NULL, "frandom");
+>>>>>>> 81dbd37bcae2... upgrade frandom to latest:drivers/char/frandom.c
 
 	if (IS_ERR(frandom_device)) {
 		printk(KERN_WARNING "frandom: Failed to create frandom device\n");
@@ -364,10 +396,11 @@ static int frandom_init_module(void)
 
 	cdev_init(&erandom_cdev, &frandom_fops);
 	erandom_cdev.owner = THIS_MODULE;
-	result = cdev_add(&erandom_cdev, erandom_devt, 1);
+	result = cdev_add(&erandom_cdev, MKDEV(frandom_major, erandom_minor), 1);
 	if (result) {
 	  printk(KERN_WARNING "frandom: Failed to add cdev for /dev/erandom\n");
 	  goto error4;
+<<<<<<< HEAD:drivers/staging/frandom/frandom.c
 	}
 
 	erandom_device = device_create(frandom_class, NULL, erandom_devt, NULL, "erandom");
@@ -375,27 +408,57 @@ static int frandom_init_module(void)
 	if (IS_ERR(erandom_device)) {
 		printk(KERN_WARNING "frandom: Failed to create erandom device\n");
 		goto error5;
+=======
+	}
+
+	result = register_chrdev_region(MKDEV(frandom_major, erandom_minor), 1, "/dev/erandom");
+	if (result < 0) {
+		printk(KERN_WARNING "frandom: can't get major/minor %d/%d\n", frandom_major, erandom_minor);
+		goto error5;
+	}
+
+	erandom_device = device_create(frandom_class, NULL, MKDEV(frandom_major, erandom_minor), NULL, "erandom");
+
+	if (IS_ERR(erandom_device)) {
+		printk(KERN_WARNING "frandom: Failed to create erandom device\n");
+		goto error6;
+>>>>>>> 81dbd37bcae2... upgrade frandom to latest:drivers/char/frandom.c
 	}
 	return 0; /* succeed */
 
-error5:
+ error6:
+	unregister_chrdev_region(MKDEV(frandom_major, erandom_minor), 1);
+ error5:
 	cdev_del(&erandom_cdev);
-error4:
-	device_destroy(frandom_class, frandom_devt);
-error3:
+ error4:
+	device_destroy(frandom_class, MKDEV(frandom_major, frandom_minor));
+ error3:
+	unregister_chrdev_region(MKDEV(frandom_major, frandom_minor), 1);
+ error2:
 	cdev_del(&frandom_cdev);
-error2:
-	unregister_chrdev_region(frandom_devt, NR_FRANDOM_DEVS);
-error1:
+ error1:
 	class_destroy(frandom_class);
-error0:
+ error0:
 	kfree(erandom_state->buf);
 	kfree(erandom_state);
 
+<<<<<<< HEAD:drivers/staging/frandom/frandom.c
     return result;
+=======
+	return result;	
+>>>>>>> 81dbd37bcae2... upgrade frandom to latest:drivers/char/frandom.c
 }
 
 module_init(frandom_init_module);
 module_exit(frandom_cleanup_module);
 
 EXPORT_SYMBOL(erandom_get_random_bytes);
+<<<<<<< HEAD:drivers/staging/frandom/frandom.c
+=======
+
+MODULE_AUTHOR("Eli Billauer <eli@billauer.co.il>");
+MODULE_DESCRIPTION("'char_random_frandom' - A fast random generator for "
+"general usage");
+MODULE_LICENSE("GPL");
+ 
+>>>>>>> 81dbd37bcae2... upgrade frandom to latest:drivers/char/frandom.c
