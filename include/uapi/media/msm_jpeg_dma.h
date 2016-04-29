@@ -17,5 +17,6 @@
 
 /* msm jpeg dma control ID's */
 #define V4L2_CID_JPEG_DMA_SPEED (V4L2_CID_PRIVATE_BASE)
+#define V4L2_CID_JPEG_DMA_MAX_DOWN_SCALE (V4L2_CID_PRIVATE_BASE + 1)
 
 #endif /* __UAPI_MSM_JPEG_DMA__ */
