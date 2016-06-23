@@ -1701,6 +1701,7 @@ static int xpad_probe(struct usb_interface *intf, const struct usb_device_id *id
 	}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 	if (xpad_device[i].xtype == XTYPE_XBOXONE &&
 	    intf->cur_altsetting->desc.bInterfaceNumber != 0) {
@@ -1713,6 +1714,8 @@ static int xpad_probe(struct usb_interface *intf, const struct usb_device_id *id
 	}
 
 >>>>>>> 7e0f79ac7989... Input: xpad - move the input device creation to a new function
+=======
+>>>>>>> 40b3de594d27... Input: xpad - fix oops when attaching an unknown Xbox One gamepad
 	xpad = kzalloc(sizeof(struct usb_xpad), GFP_KERNEL);
 	if (!xpad)
 		return -ENOMEM;
@@ -1745,10 +1748,15 @@ static int xpad_probe(struct usb_interface *intf, const struct usb_device_id *id
 			if (intf->cur_altsetting->desc.bInterfaceProtocol == 129)
 				xpad->xtype = XTYPE_XBOX360W;
 <<<<<<< HEAD
+<<<<<<< HEAD
 			else if (intf->cur_altsetting->desc.bInterfaceProtocol == 208)
 				xpad->xtype = XTYPE_XBOXONE;
 =======
 >>>>>>> 7e0f79ac7989... Input: xpad - move the input device creation to a new function
+=======
+			else if (intf->cur_altsetting->desc.bInterfaceProtocol == 208)
+				xpad->xtype = XTYPE_XBOXONE;
+>>>>>>> 40b3de594d27... Input: xpad - fix oops when attaching an unknown Xbox One gamepad
 			else
 				xpad->xtype = XTYPE_XBOX360;
 		} else {
@@ -1764,6 +1772,9 @@ static int xpad_probe(struct usb_interface *intf, const struct usb_device_id *id
 	}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 40b3de594d27... Input: xpad - fix oops when attaching an unknown Xbox One gamepad
 	if (xpad->xtype == XTYPE_XBOXONE &&
 	    intf->cur_altsetting->desc.bInterfaceNumber != 0) {
 		/*
@@ -1775,8 +1786,11 @@ static int xpad_probe(struct usb_interface *intf, const struct usb_device_id *id
 		goto err_free_in_urb;
 	}
 
+<<<<<<< HEAD
 =======
 >>>>>>> 7e0f79ac7989... Input: xpad - move the input device creation to a new function
+=======
+>>>>>>> 40b3de594d27... Input: xpad - fix oops when attaching an unknown Xbox One gamepad
 	error = xpad_init_output(intf, xpad);
 	if (error)
 		goto err_free_in_urb;
