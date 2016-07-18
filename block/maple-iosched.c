@@ -14,7 +14,9 @@
 #include <linux/slab.h>
 #include <linux/display_state.h>
 
+
 #define MAPLE_IOSCHED_PATCHLEVEL	(7)
+
 
 enum maple_sync { ASYNC, SYNC };
 
@@ -148,30 +150,28 @@ maple_expired_request(struct maple_data *mdata, int ddir, int rqtype)
 static struct request *
 maple_check_fifo(struct maple_data *mdata)
 {
-        struct request *rq_sync_read = maple_expired_request(mdata, SYNC, READ);
-				struct request *rq_sync_write = maple_expired_request(mdata, SYNC, WRITE);
-        struct request *rq_async_read = maple_expired_request(mdata, ASYNC, READ);
-				struct request *rq_async_write = maple_expired_request(mdata, ASYNC, WRITE);
+	/* Increase (non-expired-)batch-counter */
+	mdata->batched++;
 
-        if (rq_async_read && rq_sync_read) {
-        	if (time_after(rq_fifo_time(rq_async_read), rq_fifo_time(rq_async_read)))
-                	return rq_sync_read;
-        } else if (rq_sync_read) {
-                return rq_sync_read;
-				} else if (rq_async_read) {
-								return rq_async_read;
-				}
+	struct list_head *sync = mdata->fifo_list[SYNC];
+	struct list_head *async = mdata->fifo_list[ASYNC];
 
-				if (rq_async_write && rq_sync_write) {
-					if (time_after(rq_fifo_time(rq_async_write), rq_fifo_time(rq_sync_write)))
-									return rq_sync_write;
-				} else if (rq_sync_write) {
-								return rq_sync_write;
-				} else if (rq_async_write) {
-								return rq_async_write;
-				}
+	/*
+	 * Retrieve request from available fifo list.
+	 * Asynchronous requests have priority over synchronous.
+	 * Read requests have priority over write.
+	 */
+	if (!list_empty(&async[data_dir]))
+		return rq_entry_fifo(async[data_dir].next);
+	if (!list_empty(&sync[data_dir]))
+		return rq_entry_fifo(sync[data_dir].next);
 
-        return 0;
+	if (!list_empty(&async[!data_dir]))
+			return rq_entry_fifo(async[!data_dir].next);
+	if (!list_empty(&sync[!data_dir]))
+		return rq_entry_fifo(sync[!data_dir].next);
+
+	return NULL;
 }
 
 static struct request *
@@ -254,10 +254,7 @@ static void maple_exit_queue(struct elevator_queue *e)
 {
 	struct maple_data *mdata = e->elevator_data;
 
-	BUG_ON(!list_empty(&mdata->fifo_list[SYNC][READ]));
-	BUG_ON(!list_empty(&mdata->fifo_list[SYNC][WRITE]));
-	BUG_ON(!list_empty(&mdata->fifo_list[ASYNC][READ]));
-	BUG_ON(!list_empty(&mdata->fifo_list[ASYNC][WRITE]));
+	/* Free structure */
 	kfree(mdata);
 }
 
@@ -367,4 +364,3 @@ MODULE_AUTHOR("Joe Maples <joe@frap129.org>");
 MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("Maple I/O Scheduler");
 MODULE_VERSION("1.0");
-
