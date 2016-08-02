@@ -22,6 +22,7 @@
 #include <media/videobuf2-core.h>
 #include <media/v4l2-mem2mem.h>
 #include <media/msm_jpeg_dma.h>
+#include <linux/clk/msm-clk.h>
 
 #include "msm_jpeg_dma_dev.h"
 #include "msm_jpeg_dma_hw.h"
@@ -1260,6 +1261,7 @@ static int jpegdma_probe(struct platform_device *pdev)
 {
 	struct msm_jpegdma_device *jpegdma;
 	int ret;
+	int i;
 
 	dev_dbg(&pdev->dev, "jpeg v4l2 DMA probed\n");
 	/* Jpeg dma device struct */
@@ -1294,6 +1296,19 @@ static int jpegdma_probe(struct platform_device *pdev)
 		&jpegdma->clk, &jpegdma->num_clk);
 	if (ret < 0)
 		goto error_get_clocks;
+
+	/*set memcore and mem periphery logic flags to 0*/
+	for (i = 0; i < jpegdma->num_clk; i++) {
+		if ((strcmp(jpegdma->jpeg_clk_info[i].clk_name,
+				"core_clk") == 0) ||
+			(strcmp(jpegdma->jpeg_clk_info[i].clk_name,
+				"mmss_camss_jpeg_axi_clk") == 0)) {
+			msm_camera_set_clk_flags(jpegdma->clk[i],
+				CLKFLAG_NORETAIN_MEM);
+			msm_camera_set_clk_flags(jpegdma->clk[i],
+				CLKFLAG_NORETAIN_PERIPH);
+		}
+	}
 
 	ret = msm_jpegdma_hw_get_qos(jpegdma);
 	if (ret < 0)
