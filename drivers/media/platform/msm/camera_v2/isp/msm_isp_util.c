@@ -20,6 +20,7 @@
 #include "msm_isp_stats_util.h"
 #include "msm_camera_io_util.h"
 #include "cam_smmu_api.h"
+#include "msm_isp48.h"
 #define CREATE_TRACE_POINTS
 #include "trace/events/msm_cam.h"
 
@@ -1879,6 +1880,9 @@ void msm_isp_process_overflow_irq(
 	uint32_t overflow_mask;
 	unsigned long flags;
 	struct msm_isp_event_data error_event;
+	uint32_t val = 0;
+	int i;
+	struct msm_vfe_axi_shared_data *axi_data = &vfe_dev->axi_data;
 
 	/* if there are no active streams - do not start recovery */
 	if (!vfe_dev->axi_data.num_active_stream)
@@ -1922,6 +1926,16 @@ void msm_isp_process_overflow_irq(
 		spin_unlock_irqrestore(&vfe_dev->common_data->
 			common_dev_data_lock, flags);
 		return;
+		}
+		if (msm_vfe_is_vfe48(vfe_dev))
+			val = msm_camera_io_r(vfe_dev->vfe_base + 0xC94);
+		pr_err("%s: vfe %d overflow mask %x, bus_error %x\n",
+			__func__, vfe_dev->pdev->id, overflow_mask, val);
+		for (i = 0; i < axi_data->hw_info->num_wm; i++) {
+			if (!axi_data->free_wm[i])
+				continue;
+			pr_err("%s: wm %d assigned to stream handle %x\n",
+				__func__, i, axi_data->free_wm[i]);
 	}
 	ISP_DBG("%s: VFE%d Bus overflow detected: start recovery!\n",
 		__func__, vfe_dev->pdev->id);
