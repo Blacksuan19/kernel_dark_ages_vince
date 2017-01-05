@@ -1301,10 +1301,8 @@ static void msm_fd_wq_handler(struct work_struct *work)
 	fd_event->frame_id = ctx->sequence;
 	v4l2_event_queue_fh(&ctx->fh, &event);
 
-	if (fd->state == MSM_FD_DEVICE_RUNNING) {
-		/* Release buffer from the device */
-		msm_fd_hw_buffer_done(fd, active_buf, 0);
-	}
+	/* Release buffer from the device */
+	msm_fd_hw_buffer_done(fd, active_buf, 0);
 
 	MSM_FD_SPIN_UNLOCK(fd->slock, 1);
 }
