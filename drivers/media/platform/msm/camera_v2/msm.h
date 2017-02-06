@@ -20,6 +20,7 @@
 #include <linux/pm_qos.h>
 #include <linux/msm_ion.h>
 #include <linux/iommu.h>
+#include <linux/msm_kgsl.h>
 #include <media/v4l2-dev.h>
 #include <media/v4l2-ioctl.h>
 #include <media/v4l2-device.h>
@@ -112,6 +113,7 @@ struct msm_session {
 	struct mutex lock_q;
 	struct mutex close_lock;
 	rwlock_t stream_rwlock;
+	struct kgsl_pwr_limit *sysfs_pwr_limit;
 };
 
 static inline bool msm_is_daemon_present(void)
