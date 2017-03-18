@@ -1243,7 +1243,7 @@ void msm_isp_get_avtimer_ts(
 	if (avtimer_func.fptr_avtimer_get_time) {
 		rc = avtimer_func.fptr_avtimer_get_time(&avtimer_tick);
 		if (rc < 0) {
-			pr_err("%s: Error: Invalid AVTimer Tick, rc=%d\n",
+			pr_err_ratelimited("%s: Error: Invalid AVTimer Tick, rc=%d\n",
 				   __func__, rc);
 			/* In case of error return zero AVTimer Tick Value */
 			time_stamp->vt_time.tv_sec = 0;

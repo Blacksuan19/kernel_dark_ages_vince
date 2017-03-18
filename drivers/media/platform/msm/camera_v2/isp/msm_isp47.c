@@ -506,7 +506,7 @@ void msm_vfe47_process_violation_status(
 		return;
 	}
 
-	pr_err("%s: VFE pipeline violation status %d\n", __func__,
+	pr_err_ratelimited("%s: VFE pipeline violation status %d\n", __func__,
 		violation_status);
 }
 
