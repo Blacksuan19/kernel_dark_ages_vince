@@ -724,6 +724,7 @@ struct vfe_device {
 	size_t num_clk;
 	size_t num_rates;
 	enum cam_ahb_clk_vote ahb_vote;
+	enum cam_ahb_clk_vote user_requested_ahb_vote;
 
 	/* Sync variables*/
 	struct completion reset_complete;
