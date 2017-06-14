@@ -215,6 +215,10 @@ int snd_pcm_info(struct snd_pcm_substream *substream, struct snd_pcm_info *info)
 	info->subdevices_count = pstr->substream_count;
 	info->subdevices_avail = pstr->substream_count - pstr->substream_opened;
 	strlcpy(info->subname, substream->name, sizeof(info->subname));
+<<<<<<< HEAD
+=======
+	runtime = substream->runtime;
+>>>>>>> 50ebcbade88d... ALSA: pcm: remove SNDRV_PCM_IOCTL1_INFO internal command
 
 	return 0;
 }
