@@ -490,7 +490,6 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 
 		if ((panel_suspend_reset_flag == 2) || ((panel_suspend_reset_flag == 3) && (ft8716_gesture_func_on == 0))) {
 			if (ft8716_suspend || (panel_suspend_reset_flag == 2)) {
-				printk("set rst \n");
 				gpio_set_value((ctrl_pdata->rst_gpio), 1);
 				mdelay(10);
 				gpio_set_value((ctrl_pdata->rst_gpio), 0);

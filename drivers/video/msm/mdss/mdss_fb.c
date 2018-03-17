@@ -146,9 +146,7 @@ static void prim_panel_off_delayed_work(struct work_struct *work)
 #endif
 		return;
 	}
-	printk("linson prim_panel_off_delayed_work close FB\n");
 	if (atomic_read(&prim_panel_is_on)) {
-	printk("linson2 prim_panel_is_on = %d \n", atomic_read(&prim_panel_is_on));
 		fb_blank(prim_fbi, FB_BLANK_POWERDOWN);
 		atomic_set(&prim_panel_is_on, false);
 		wake_unlock(&prim_panel_wakelock);
@@ -2194,13 +2192,11 @@ static int mdss_fb_blank(int blank_mode, struct fb_info *info)
 	struct mdss_panel_data *pdata;
 	struct msm_fb_data_type *mfd = (struct msm_fb_data_type *)info->par;
 
-	printk("SXF Enter %s_ %d blank_mode =%d , prim_panel_is_on =%d \n", __func__, __LINE__, blank_mode, atomic_read(&prim_panel_is_on));
 	if ((info == prim_fbi) && (blank_mode == FB_BLANK_UNBLANK) &&
 		atomic_read(&prim_panel_is_on)) {
 		atomic_set(&prim_panel_is_on, false);
 		wake_unlock(&prim_panel_wakelock);
 		cancel_delayed_work_sync(&prim_panel_work);
-		printk("SXF Exit %s_ %d\n", __func__, __LINE__);
 		return 0;
 	}
 
@@ -5275,7 +5271,6 @@ int mdss_prim_panel_fb_unblank(int timeout)
 	int ret = 0;
 	struct msm_fb_data_type *mfd = NULL;
 
-		 printk("SXF Enter %s\n", __func__);
 	if (prim_fbi) {
 		mfd = (struct msm_fb_data_type *)prim_fbi->par;
 		ret = wait_event_timeout(mfd->resume_wait_q,
@@ -5292,7 +5287,6 @@ int mdss_prim_panel_fb_unblank(int timeout)
 #ifdef CONFIG_FRAMEBUFFER_CONSOLE
 			console_unlock();
 #endif
-			printk("SXF  !lock_fb_info(prim_fbi) %s_%d\n", __func__, __LINE__);
 			return -ENODEV;
 		}
 		if (prim_fbi->blank == FB_BLANK_UNBLANK) {
@@ -5300,16 +5294,13 @@ int mdss_prim_panel_fb_unblank(int timeout)
 #ifdef CONFIG_FRAMEBUFFER_CONSOLE
 			console_unlock();
 #endif
-			printk("SXF  %s_%d\n", __func__, __LINE__);
 			return 0;
 		}
 		wake_lock(&prim_panel_wakelock);
 		ret = fb_blank(prim_fbi, FB_BLANK_UNBLANK);
-		printk("SXF fb_blank(prim_fbi, FB_BLANK_UNBLANK) %s , ret  = %d\n", __func__, ret);
 		if (!ret) {
 			atomic_set(&prim_panel_is_on, true);
 			if (timeout > 0) {
-				printk("SXF %s , timeout  = %d\n", __func__, timeout);
 				schedule_delayed_work(&prim_panel_work, msecs_to_jiffies(timeout));
 			} else
 				wake_unlock(&prim_panel_wakelock);
@@ -5319,7 +5310,6 @@ int mdss_prim_panel_fb_unblank(int timeout)
 #ifdef CONFIG_FRAMEBUFFER_CONSOLE
 		console_unlock();
 #endif
-		printk("SXF Exit %s\n", __func__);
 		return ret;
 	}
 

@@ -310,15 +310,12 @@ int acc_vreg = 0;
 			pr_debug("reset disable: pinctrl not enabled\n");
 
 #if 1
-	printk("SXF D2 msm_dss_disable_vreg \n ");
 
-		 dump_stack();
 	if ((panel_suspend_power_flag != 3) && acc_vreg) {
 		ret = msm_dss_enable_vreg(
 		ctrl_pdata->panel_power_data.vreg_config,
 		ctrl_pdata->panel_power_data.num_vreg, 0);
 		acc_vreg--;
-		printk("SXF set 5V low : panel_suspend_power_flag : %d acc_vreg : %d\n", panel_suspend_power_flag, acc_vreg);
 		if (ret)
 			pr_err("%s: failed to disable vregs for %s\n",
 			__func__, __mdss_dsi_pm_name(DSI_PANEL_PM));
@@ -327,9 +324,7 @@ int acc_vreg = 0;
 			ret = msm_dss_enable_vreg(
 					ctrl_pdata->panel_power_data.vreg_config,
 					ctrl_pdata->panel_power_data.num_vreg, 0);
-			printk("set 5V low : panel_suspend_power_flag : %d acc_vreg : %d\n", panel_suspend_power_flag, acc_vreg);
 			acc_vreg--;
-			printk("%s acc_vreg : %d\n", __func__, acc_vreg);
 			if (ret)
 				pr_err("%s: failed to disable vregs for %s\n",
 					 __func__, __mdss_dsi_pm_name(DSI_PANEL_PM));
@@ -338,7 +333,6 @@ int acc_vreg = 0;
 
 	}
 #elif defined CONFIG_PROJECT_VINCE
-	printk("E7 msm_dss_disable_vreg \n ");
 	if ((!synaptics_gesture_func_on) || (!synaptics_gesture_func_on_lansi) || (!NVT_gesture_func_on)) {
 		ret = msm_dss_enable_vreg(
 				ctrl_pdata->panel_power_data.vreg_config,
@@ -348,7 +342,6 @@ int acc_vreg = 0;
 				__func__, __mdss_dsi_pm_name(DSI_PANEL_PM));
 	}
 #else
-	printk("mido lite msm_dss_disable_vreg \n ");
 
 	if (!panel_suspend_power_flag) {
 		ret = msm_dss_enable_vreg(
@@ -374,8 +367,6 @@ static int mdss_dsi_panel_power_on(struct mdss_panel_data *pdata)
 		pr_err("%s: Invalid input data\n", __func__);
 		return -EINVAL;
 	}
-	printk("SXF enter %s\n", __func__);
-	dump_stack();
 
 	ctrl_pdata = container_of(pdata, struct mdss_dsi_ctrl_pdata,
 				panel_data);
@@ -385,7 +376,6 @@ static int mdss_dsi_panel_power_on(struct mdss_panel_data *pdata)
 		ctrl_pdata->panel_power_data.vreg_config,
 		ctrl_pdata->panel_power_data.num_vreg, 1);
 		acc_vreg++ ;
-		printk("%s SXF acc_vreg : %d\n", __func__, acc_vreg);
 		if (ret) {
 			pr_err("%s: failed to enable vregs for %s\n",
 				__func__, __mdss_dsi_pm_name(DSI_PANEL_PM));
@@ -475,7 +465,6 @@ int mdss_dsi_panel_power_ctrl(struct mdss_panel_data *pdata,
 	struct mdss_panel_info *pinfo;
 	struct mdss_dsi_ctrl_pdata *ctrl_pdata = NULL;
 
-	printk("SXF Enter %s\n", __func__);
 	if (pdata == NULL) {
 		pr_err("%s: Invalid input data\n", __func__);
 		return -EINVAL;
@@ -1474,7 +1463,6 @@ int mdss_dsi_on(struct mdss_panel_data *pdata)
 	struct mdss_dsi_ctrl_pdata *ctrl_pdata = NULL;
 	int cur_power_state;
 
-	printk("SXF Enter %s \n", __func__);
 	if (pdata == NULL) {
 		pr_err("%s: Invalid input data\n", __func__);
 		return -EINVAL;
@@ -2712,10 +2700,8 @@ static int mdss_dsi_event_handler(struct mdss_panel_data *pdata,
 							pdata);
 		break;
 	case MDSS_EVENT_UNBLANK:
-		printk("lcd-time event unblank begin\n");
 		if (ctrl_pdata->on_cmds.link_state == DSI_LP_MODE)
 			rc = mdss_dsi_unblank(pdata);
-		printk("lcd-time event unblank finish\n");
 		break;
 	case MDSS_EVENT_POST_PANEL_ON:
 		rc = mdss_dsi_post_panel_on(pdata);
@@ -2727,11 +2713,9 @@ static int mdss_dsi_event_handler(struct mdss_panel_data *pdata,
 		pdata->panel_info.esd_rdy = true;
 		break;
 	case MDSS_EVENT_BLANK:
-		printk("lcd-time event blank begin\n");
 		power_state = (int) (unsigned long) arg;
 		if (ctrl_pdata->off_cmds.link_state == DSI_HS_MODE)
 			rc = mdss_dsi_blank(pdata, power_state);
-		printk("lcd-time event blank finish\n");
 		break;
 	case MDSS_EVENT_PANEL_OFF:
 		power_state = (int) (unsigned long) arg;

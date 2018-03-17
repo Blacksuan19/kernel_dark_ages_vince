@@ -1058,7 +1058,6 @@ fb_blank(struct fb_info *info, int blank)
 	struct fb_event event;
 	int ret = -EINVAL, early_ret;
 
-	printk("SXF %s fb_blank = %d\n", __func__, blank);
  	if (blank > FB_BLANK_POWERDOWN)
 	blank = FB_BLANK_POWERDOWN;
 	if (info->blank == blank) {
@@ -1075,7 +1074,6 @@ fb_blank(struct fb_info *info, int blank)
 	if (info->fbops->fb_blank)
  		ret = info->fbops->fb_blank(blank, info);
 
-	printk("SXF ret = %d\n", ret);
 	if (!ret) {
 		fb_notifier_call_chain(FB_EVENT_BLANK, &event);
 	}
