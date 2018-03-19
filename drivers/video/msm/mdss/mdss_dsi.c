@@ -2947,30 +2947,16 @@ static struct device_node *mdss_dsi_find_panel_of_node(
 		if (!strcmp(panel_name, NONE_PANEL))
 			goto exit;
 
-		if (!strcmp(panel_name, "qcom,mdss_dsi_td4310_fhd_video")) {
-			panel_suspend_reset_flag = 1;
-			panel_suspend_power_flag = 1;
-			hq_regiser_hw_info(HWID_LCM, "incell, vendor:tianma, IC:td4310(synaptics)");
-		} else if (!strcmp(panel_name, "qcom,mdss_dsi_otm1911_fhd_video")) {
+		if (!strcmp(panel_name, "qcom,mdss_dsi_otm1911_fhd_video")) {
 			panel_suspend_reset_flag = 2;
 			panel_suspend_power_flag = 2;
 			hq_regiser_hw_info(HWID_LCM, "GFF, vendor:tianma, IC:otm1911(focal)");
-			} else if (!strcmp(panel_name, "qcom,mdss_dsi_ft8716_fhd_video")) {
-				panel_suspend_reset_flag = 3;
-				panel_suspend_power_flag = 3;
-				hq_regiser_hw_info(HWID_LCM, "incell, vendor:sharp, IC:ft8716(focal)");
-			} else if (!strcmp(panel_name, "qcom,mdss_dsi_ili7807_fhd_video")) {
-				hq_regiser_hw_info(HWID_LCM, "GFF, vendor:EBBG, IC:ili7807(ilitek)");
-			} else if (!strcmp(panel_name, "qcom,mdss_dsi_nt35596_tianma_fhd_video_c6lite")) {
-				hq_regiser_hw_info(HWID_LCM, "GFF, vendor:Tianma, IC:NT35596(novatek)");
-		} else if (!strcmp(panel_name, "qcom,mdss_dsi_td4310_fhdplus_video_e7")) {
-			hq_regiser_hw_info(HWID_LCM, "incell, vendor:Tianma, IC:TD4310(synaptics)");
-		} else if (!strcmp(panel_name, "qcom,mdss_dsi_td4310_ebbg_fhdplus_video_e7")) {
-			hq_regiser_hw_info(HWID_LCM, "incell, vendor:EBBG, IC:TD4310(synaptics)");
-		} else if (!strcmp(panel_name, "qcom,mdss_dsi_nt36672_tianma_fhdplus_video_e7")) {
-			hq_regiser_hw_info(HWID_LCM, "incell, vendor:Tianma, IC:NT36672(novatek)");
-		} else if (!strcmp(panel_name, "qcom,mdss_dsi_nt36672_csot_fhdplus_video_e7")) {
-			hq_regiser_hw_info(HWID_LCM, "incell, vendor:CSOT, IC:NT36672(novatek)");
+		} else if (!strcmp(panel_name, "qcom,mdss_dsi_ft8716_fhd_video")) {
+			panel_suspend_reset_flag = 3;
+			panel_suspend_power_flag = 3;
+			hq_regiser_hw_info(HWID_LCM, "incell, vendor:sharp, IC:ft8716(focal)");
+		} else if (!strcmp(panel_name, "qcom,mdss_dsi_ili7807_fhd_video")) {
+			hq_regiser_hw_info(HWID_LCM, "GFF, vendor:EBBG, IC:ili7807(ilitek)");
 		}
 
 		mdss_node = of_parse_phandle(pdev->dev.of_node,
