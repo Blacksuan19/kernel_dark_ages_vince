@@ -261,7 +261,6 @@ static void aw2013_brightness_set(struct aw2013_led *led)
 			return;
 		}
 	}
-	pr_err("aw2013----brightness = %d    led_id = %d\n", led->cdev.brightness , led->id);
 	if (led->cdev.brightness > 0) {
 		if (led->cdev.brightness > led->cdev.max_brightness)
 			led->cdev.brightness = led->cdev.max_brightness;
@@ -308,7 +307,6 @@ static void aw2013_led_blink_set(struct aw2013_led *led, unsigned long blinking)
 
 	led->cdev.brightness = blinking ? led->cdev.max_brightness : 0;
 
-	pr_err("aw2013----blink = %d    led_id = %d\n", (int)blinking , led->id);
 	if (blinking > 0) {
 		aw2013_write(led, AW_REG_GLOBAL_CONTROL,
 			AW_LED_MOUDLE_ENABLE_MASK);
