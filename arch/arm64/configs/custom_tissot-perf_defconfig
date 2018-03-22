@@ -1,7 +1,8 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/arm64 3.18.100 Kernel Configuration
+# Linux/arm64 3.18.101 Kernel Configuration
 #
+CONFIG_CUSTOM=y
 CONFIG_ARM64=y
 CONFIG_64BIT=y
 CONFIG_ARCH_PHYS_ADDR_T_64BIT=y
