@@ -90,7 +90,11 @@ obj-$(CONFIG_TOUCHSCREEN_ZFORCE)	+= zforce_ts.o
 #obj-$(CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_RMI4_DEV)	+= synaptics_rmi_dev.o
 #obj-$(CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_FW_UPDATE) 	+= synaptics_fw_update.o
 obj-$(CONFIG_TOUCHSCREEN_GT9XX)		+= gt9xx/
-obj-$(CONFIG_TOUCHSCREEN_FT5435)	+= ft5435/
+ifeq ($(CONFIG_CUSTOM),y)
+obj-$(CONFIG_TOUCHSCREEN_FT5435)	+= ft5435_custom/
+else
+obj-$(CONFIG_TOUCHSCREEN_FT5435)        += ft5435/
+endif
 obj-$(CONFIG_TOUCHSCREEN_FTS)		+= ft8716/
 obj-$(CONFIG_TOUCHSCREEN_TD4310)    += td4310/
 obj-$(CONFIG_VITURALSAR)		+= vituralsar_driver.o
