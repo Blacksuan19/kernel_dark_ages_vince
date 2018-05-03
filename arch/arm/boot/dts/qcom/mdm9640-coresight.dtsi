@@ -1,4 +1,5 @@
 /* Copyright (c) 2014-2016, The Linux Foundation. All rights reserved.
+ * Copyright (C) 2018 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -159,7 +160,7 @@
 	};
 
 	rpm_etm0 {
-		compatible = "qcom,coresight-remote-etm";
+		compatible = "qcom,coresight-rpm-etm";
 
 		coresight-id = <7>;
 		coresight-name = "coresight-rpm-etm0";
@@ -172,7 +173,7 @@
 	};
 
 	modem_etm0 {
-		compatible = "qcom,coresight-remote-etm";
+		compatible = "qcom,coresight-modem-etm";
 
 		coresight-id = <8>;
 		coresight-name = "coresight-modem-etm0";

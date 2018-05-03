@@ -119,7 +119,9 @@ struct afe_ctl {
 	struct aanc_data aanc_info;
 	struct mutex afe_cmd_lock;
 	int set_custom_topology;
+#ifdef CONFIG_SND_SOC_MAX98927
 	uint8_t *dsm_payload;
+#endif
 };
 
 #define MAD_SLIMBUS_PORT_COUNT ((SLIMBUS_PORT_LAST - SLIMBUS_0_RX) + 1)
@@ -256,6 +258,7 @@ static int32_t sp_make_afe_callback(uint32_t *payload, uint32_t payload_size)
 			atomic_set(&this_afe.state, -1);
 		}
 	}
+#ifdef CONFIG_SND_SOC_MAX98927
 	if (param_id == AFE_PARAM_ID_DSM_CFG) {
 		struct afe_dsm_get_resp *dsm_resp =
 			(struct afe_dsm_get_resp *) payload;
@@ -277,7 +280,7 @@ static int32_t sp_make_afe_callback(uint32_t *payload, uint32_t payload_size)
 			atomic_set(&this_afe.state, -1);
 		}
 	}
-
+#endif
 	return 0;
 }
 
@@ -911,7 +914,7 @@ fail_cmd:
 		__func__, config.pdata.param_id, ret);
 return ret;
 }
-
+#ifdef CONFIG_SND_SOC_MAX98927
 int afe_dsm_setget_params(uint8_t *payload, int size, int dir)
 {
 	struct afe_dsm_set_command *set = NULL;
@@ -1013,7 +1016,7 @@ fail_cmd:
 
 	return ret;
 }
-
+#endif
 
 static int afe_spk_prot_prepare(int src_port, int dst_port, int param_id,
 		union afe_spkr_prot_config *prot_config)

@@ -1,4 +1,5 @@
-/* Copyright (c) 2015-2017, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
+ * Copyright (C) 2018 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -415,7 +416,7 @@
 };
 
 &pcie2 {
-	/delete-property/ qcom,boot-option;
+	/delete-property/ qcom,ep-wakeirq;
 };
 
 &pm8994_mpps {
@@ -484,7 +485,6 @@
 		wlan-bootstrap-gpio = <&tlmm 46 0>;
 		wlan-en-gpio = <&pm8994_gpios 8 0>;
 		vdd-wlan-io-supply = <&pm8994_s4>;
-		// removing unneeded regulators
 		/delete-property/ vdd-wlan-supply;
 		/delete-property/ vdd-wlan-xtal-supply;
 		/delete-property/ vdd-wlan-core-supply;
@@ -648,7 +648,7 @@
 		};
 
 		qcom,leds@a300 { /* BT LED */
-		    compatible = "qcom,leds-qpnp";
+			compatible = "qcom,leds-qpnp";
 			reg = <0xa300 0x100>;
 			status = "okay";
 			qcom,led_mpp_4 {

@@ -1,3 +1,0 @@
-obj-$(CONFIG_TOUCHSCREEN_FT5435) += ft5435_ts.o
-
-

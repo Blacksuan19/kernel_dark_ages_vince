@@ -227,9 +227,7 @@ extern struct device dsi_dev;
 extern u32 dsi_irq;
 extern struct mdss_dsi_ctrl_pdata *ctrl_list[];
 
-#if 1
-extern int ft8716_gesture_func_on ;
-#endif
+extern bool synaptics_gesture_func_on;
 
 enum {
 	DSI_CTRL_0,

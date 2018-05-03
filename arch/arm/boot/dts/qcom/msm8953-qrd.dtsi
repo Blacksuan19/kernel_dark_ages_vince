@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
+ * Copyright (C) 2018 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -54,6 +55,7 @@
 		pinctrl-2 = <&goodix_reset_active>;
 		pinctrl-3 = <&goodix_irq_active>;
 	};
+
 	fpc1020 {
 		compatible = "fpc,fpc1020";
 		spi-max-frequency = <1000000>;
@@ -79,6 +81,7 @@
 		pinctrl-3 = <&fpc_irq_active>;
 	};
 
+
 	i2c@78b7000 { /* BLSP1 QUP3 */
 		status = "okay";
 		focaltech@38 {
@@ -88,9 +91,8 @@
 			interrupts = <65 0x2>;
 			vdd-supply = <&pm8953_l10>;
 			vcc_i2c-supply = <&pm8953_l6>;
-			/* pins used by touchscreen */
 			pinctrl-names = "pmx_ts_active","pmx_ts_suspend",
-						"pmx_ts_release";
+			                        "pmx_ts_release";
 			pinctrl-0 = <&ts_int_active &ts_reset_active>;
 			pinctrl-1 = <&ts_int_suspend &ts_reset_suspend>;
 			pinctrl-2 = <&ts_release>;
@@ -150,7 +152,6 @@
 			interrupts = <65 0x2>;
 			vdd-supply = <&pm8953_l10>;
 			vcc_i2c-supply = <&pm8953_l6>;
-			/* pins used by touchscreen */
 			pinctrl-names = "pmx_ts_active","pmx_ts_suspend",
 					"pmx_ts_release";
 			pinctrl-0 = <&ts_int_active &ts_reset_active>;
@@ -161,69 +162,84 @@
 			imagis,i2c-pull-up;
 		};
 	synaptics_dsx@20 {
-			compatible = "synaptics,dsx-i2c";
-			reg = <0x20>;
-			interrupt-parent = <&tlmm>;
-			interrupts = <65 0x2>;
-			vdd-supply = <&pm8953_l10>;
-			avdd-supply = <&pm8953_l6>;
-			pinctrl-names = "pmx_ts_active", "pmx_ts_suspend";
-			pinctrl-0 = <&ts_int_active &ts_reset_active>;
-			pinctrl-1 = <&synaptic_int_suspend &synaptic_reset_suspend>;
-			synaptics,pwr-reg-name = "avdd";
-			synaptics,bus-reg-name = "vdd";
-			synaptics,ub-i2c-addr = <0x2c>;
-			synaptics,irq-gpio = <&tlmm 65 0x2008>; /* IRQF_ONESHOT | IRQF_TRIGGER_LOW */
-			synaptics,rst-gpio = <&tlmm 64 0x0>;
-			synaptics,irq-on-state = <0>;
-			synaptics,power-delay-ms = <200>;
-			synaptics,reset-delay-ms = <200>;
-			synaptics,reset-on-state = <0>;
-			synaptics,reset-active-ms = <20>;
-			synaptics,cap-button-codes = <139 172 158>;
-		};
+		compatible = "synaptics,dsx-i2c";
+		reg = <0x20>;
+		interrupt-parent = <&tlmm>;
+		interrupts = <65 0x2>;
+		vdd-supply = <&pm8953_l10>;
+		avdd-supply = <&pm8953_l6>;
+		pinctrl-names = "pmx_ts_active", "pmx_ts_suspend";
+		pinctrl-0 = <&ts_int_active &ts_reset_active>;
+		pinctrl-1 = <&synaptic_int_suspend &synaptic_reset_suspend>;
+		synaptics,pwr-reg-name = "avdd";
+		synaptics,bus-reg-name = "vdd";
+		synaptics,ub-i2c-addr = <0x2c>;
+		synaptics,irq-gpio = <&tlmm 65 0x2008>;
+		synaptics,rst-gpio = <&tlmm 64 0x0>;
+		synaptics,irq-on-state = <0>;
+		synaptics,power-delay-ms = <200>;
+		synaptics,reset-delay-ms = <200>;
+		synaptics,reset-on-state = <0>;
+		synaptics,reset-active-ms = <20>;
+		synaptics,cap-button-codes = <139 172 158>;
+			};
 	};
 
 	i2c@78b6000 { /* BLSP1 QUP3 */
+		status = "okay";
+		spkamp@3a {/* max98927 smartpa device*/
+			compatible = "maxim,max98927L";
+			status = "okay";
+			reg = <0x3a>;
+			mono_stereo_mode = <0>;
+			interleave_mode = <0>;
+			vmon-l-slot = <1>;
+			imon-l-slot = <1>;
+			vmon-r-slot = <1>;
+			imon-r-slot = <1>;
+			maxim,98927-reset-gpio = <&tlmm 86 0>;
+		};
 		aw2013@45 {
 			compatible = "awinic";
 			reg = <0x45>;
 			vdd-supply = <&pm8953_l10>;
 			vcc-supply = <&pm8953_l5>;
 
-			aw2013,red {
-				aw2013,name = "red";
-				aw2013,id = <0>;
-				aw2013,max-brightness = <150>;
-				aw2013,max-current = <1>;
-				aw2013,rise-time-ms = <3>;
-				aw2013,hold-time-ms = <1>;
-				aw2013,fall-time-ms = <3>;
-				aw2013,off-time-ms = <3>;
+		aw2013,red {
+			aw2013,name = "red";
+			aw2013,id = <0>;
+			aw2013,max-brightness = <255>;
+			aw2013,max-current = <1>;
+			aw2013,rise-time-ms = <3>;
+			aw2013,hold-time-ms = <1>;
+			aw2013,fall-time-ms = <3>;
+			aw2013,off-time-ms = <3>;
 			};
-			aw2013,green {
-				aw2013,name = "green";
-				aw2013,id = <1>;
-				aw2013,max-brightness = <150>;
-				aw2013,max-current = <1>;
-				aw2013,rise-time-ms = <3>;
-				aw2013,hold-time-ms = <1>;
-				aw2013,fall-time-ms = <3>;
-				aw2013,off-time-ms = <3>;
+
+		aw2013,green {
+			aw2013,name = "green";
+			aw2013,id = <1>;
+			aw2013,max-brightness = <150>;
+			aw2013,max-current = <1>;
+			aw2013,rise-time-ms = <3>;
+			aw2013,hold-time-ms = <1>;
+			aw2013,fall-time-ms = <3>;
+			aw2013,off-time-ms = <3>;
 			};
-			aw2013,blue {
-				aw2013,name = "blue";
-				aw2013,id = <2>;
-				aw2013,max-brightness = <150>;
-				aw2013,max-current = <1>;
-				aw2013,rise-time-ms = <3>;
-				aw2013,hold-time-ms = <1>;
-				aw2013,fall-time-ms = <3>;
-				aw2013,off-time-ms = <3>;
+
+		aw2013,blue {
+			aw2013,name = "blue";
+			aw2013,id = <2>;
+			aw2013,max-brightness = <150>;
+			aw2013,max-current = <1>;
+			aw2013,rise-time-ms = <3>;
+			aw2013,hold-time-ms = <1>;
+			aw2013,fall-time-ms = <3>;
+			aw2013,off-time-ms = <3>;
 			};
 		};
-	};
-	vdd_vreg: vdd_vreg {
+		};
+		vdd_vreg: vdd_vreg {
 		compatible = "regulator-fixed";
 		status = "ok";
 		regulator-name = "vdd_vreg";
@@ -294,7 +310,7 @@
 &pmi8940_charger {
 	qcom,battery-data = <&qrd_batterydata>;
 	qcom,float-voltage-mv = <4400>;
-	qcom,thermal-mitigation = <3000 2500 2000 1000 1000 500 0>;
+	qcom,thermal-mitigation = <3000 2500 2000 2000 1000 500 0>;
 	status = "okay";
 };
 
@@ -306,7 +322,6 @@
 	qcom,warm-bat-decidegc = <450>;
 	qcom,hot-bat-decidegc = <550>;
 	qcom,bad-battery-detection-enable;
-	qcom,hold-soc-while-full;
 };
 
 &blsp1_uart0 {
@@ -416,7 +431,6 @@
 	qcom,flash-source = <&pmi8940_flash0 &pmi8940_flash1>;
 	qcom,torch-source = <&pmi8940_torch0 &pmi8940_torch1>;
 };
-
 
 &pm8953_vadc {
 	/delete-node/ chan@11;

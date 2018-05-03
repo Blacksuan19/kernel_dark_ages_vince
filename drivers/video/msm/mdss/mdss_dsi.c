@@ -34,11 +34,7 @@
 #include "mdss_dsi_phy.h"
 #include "mdss_dba_utils.h"
 #include <linux/hqsysfs.h>
-
-#ifdef CONFIG_PROJECT_VINCE
-#include <linux/string.h>
-#include "dsi_access.h"
-#endif
+#include "mdss_livedisplay.h"
 
 #define XO_CLK_RATE	19200000
 #define CMDLINE_DSI_CTL_NUM_STRING_LEN 2
@@ -281,14 +277,7 @@ static int mdss_dsi_regulator_init(struct platform_device *pdev,
 	return rc;
 }
 
-
-#if 1
-extern int ft8716_suspend;
-extern int  ft8716_gesture_func_on;
-int acc_vreg = 0;
-#endif
-
- int mdss_dsi_panel_power_off(struct mdss_panel_data *pdata)
+int mdss_dsi_panel_power_off(struct mdss_panel_data *pdata)
 {
 	int ret = 0;
 	struct mdss_dsi_ctrl_pdata *ctrl_pdata = NULL;
@@ -309,31 +298,7 @@ int acc_vreg = 0;
 	if (mdss_dsi_pinctrl_set_state(ctrl_pdata, false))
 			pr_debug("reset disable: pinctrl not enabled\n");
 
-#if 1
-
-	if ((panel_suspend_power_flag != 3) && acc_vreg) {
-		ret = msm_dss_enable_vreg(
-		ctrl_pdata->panel_power_data.vreg_config,
-		ctrl_pdata->panel_power_data.num_vreg, 0);
-		acc_vreg--;
-		if (ret)
-			pr_err("%s: failed to disable vregs for %s\n",
-			__func__, __mdss_dsi_pm_name(DSI_PANEL_PM));
-	} else {
-		if (!ft8716_gesture_func_on && ft8716_suspend && acc_vreg) {
-			ret = msm_dss_enable_vreg(
-					ctrl_pdata->panel_power_data.vreg_config,
-					ctrl_pdata->panel_power_data.num_vreg, 0);
-			acc_vreg--;
-			if (ret)
-				pr_err("%s: failed to disable vregs for %s\n",
-					 __func__, __mdss_dsi_pm_name(DSI_PANEL_PM));
-
-		}
-
-	}
-#elif defined CONFIG_PROJECT_VINCE
-	if ((!synaptics_gesture_func_on) || (!synaptics_gesture_func_on_lansi) || (!NVT_gesture_func_on)) {
+	if (!synaptics_gesture_func_on) {
 		ret = msm_dss_enable_vreg(
 				ctrl_pdata->panel_power_data.vreg_config,
 				ctrl_pdata->panel_power_data.num_vreg, 0);
@@ -341,18 +306,6 @@ int acc_vreg = 0;
 			pr_err("%s: failed to disable vregs for %s\n",
 				__func__, __mdss_dsi_pm_name(DSI_PANEL_PM));
 	}
-#else
-
-	if (!panel_suspend_power_flag) {
-		ret = msm_dss_enable_vreg(
-				ctrl_pdata->panel_power_data.vreg_config,
-				ctrl_pdata->panel_power_data.num_vreg, 0);
-	if (ret)
-		pr_err("%s: failed to disable vregs for %s\n",
-				__func__, __mdss_dsi_pm_name(DSI_PANEL_PM));
-	}
-
-#endif
 
 end:
 	return ret;
@@ -370,17 +323,14 @@ static int mdss_dsi_panel_power_on(struct mdss_panel_data *pdata)
 
 	ctrl_pdata = container_of(pdata, struct mdss_dsi_ctrl_pdata,
 				panel_data);
-	pr_err("%s SXF before acc_vreg : %d\n", __func__, acc_vreg);
-	if (!acc_vreg) {
-		ret = msm_dss_enable_vreg(
+
+	ret = msm_dss_enable_vreg(
 		ctrl_pdata->panel_power_data.vreg_config,
 		ctrl_pdata->panel_power_data.num_vreg, 1);
-		acc_vreg++ ;
-		if (ret) {
-			pr_err("%s: failed to enable vregs for %s\n",
-				__func__, __mdss_dsi_pm_name(DSI_PANEL_PM));
-			return ret;
-		}
+	if (ret) {
+		pr_err("%s: failed to enable vregs for %s\n",
+			__func__, __mdss_dsi_pm_name(DSI_PANEL_PM));
+		return ret;
 	}
 
 	/*
@@ -393,6 +343,7 @@ static int mdss_dsi_panel_power_on(struct mdss_panel_data *pdata)
 		!pdata->panel_info.mipi.lp11_init) {
 		if (mdss_dsi_pinctrl_set_state(ctrl_pdata, true))
 			pr_debug("reset enable: pinctrl not enabled\n");
+
 		ret = mdss_dsi_panel_reset(pdata, 1);
 		if (ret)
 			pr_err("%s: Panel reset failed. rc=%d\n",
@@ -2814,6 +2765,9 @@ static int mdss_dsi_event_handler(struct mdss_panel_data *pdata,
 					&ctrl_pdata->dba_work, HZ);
 		}
 		break;
+	case MDSS_EVENT_UPDATE_LIVEDISPLAY:
+		rc = mdss_livedisplay_update(ctrl_pdata, (int)(unsigned long) arg);
+		break;
 	default:
 		pr_debug("%s: unhandled event=%d\n", __func__, event);
 		break;
@@ -2947,16 +2901,20 @@ static struct device_node *mdss_dsi_find_panel_of_node(
 		if (!strcmp(panel_name, NONE_PANEL))
 			goto exit;
 
-		if (!strcmp(panel_name, "qcom,mdss_dsi_otm1911_fhd_video")) {
-			panel_suspend_reset_flag = 2;
-			panel_suspend_power_flag = 2;
-			hq_regiser_hw_info(HWID_LCM, "GFF, vendor:tianma, IC:otm1911(focal)");
-		} else if (!strcmp(panel_name, "qcom,mdss_dsi_ft8716_fhd_video")) {
-			panel_suspend_reset_flag = 3;
-			panel_suspend_power_flag = 3;
-			hq_regiser_hw_info(HWID_LCM, "incell, vendor:sharp, IC:ft8716(focal)");
-		} else if (!strcmp(panel_name, "qcom,mdss_dsi_ili7807_fhd_video")) {
-			hq_regiser_hw_info(HWID_LCM, "GFF, vendor:EBBG, IC:ili7807(ilitek)");
+		if (!strcmp(panel_name, "qcom,mdss_dsi_td4310_fhd_video")) {
+		panel_suspend_reset_flag = 1;
+		panel_suspend_power_flag = 1;
+		hq_regiser_hw_info(HWID_LCM, "incell, vendor:tianma, IC:td4310(synaptics)");
+		} else if (!strcmp(panel_name, "qcom,mdss_dsi_td4310_fhdplus_video_e7")) {
+			hq_regiser_hw_info(HWID_LCM, "incell, vendor:Tianma, IC:TD4310(synaptics)");
+		} else if (!strcmp(panel_name, "qcom,mdss_dsi_td4310_fhdplus_video_e7_g55")) {
+			hq_regiser_hw_info(HWID_LCM, "incell, vendor:Tianma_G55, IC:TD4310(synaptics)");
+		} else if (!strcmp(panel_name, "qcom,mdss_dsi_td4310_ebbg_fhdplus_video_e7")) {
+			hq_regiser_hw_info(HWID_LCM, "incell, vendor:EBBG, IC:TD4310(synaptics)");
+		} else if (!strcmp(panel_name, "qcom,mdss_dsi_nt36672_tianma_fhdplus_video_e7")) {
+			hq_regiser_hw_info(HWID_LCM, "incell, vendor:Tianma, IC:NT36672(novatek)");
+		} else if (!strcmp(panel_name, "qcom,mdss_dsi_nt36672_csot_fhdplus_video_e7")) {
+			hq_regiser_hw_info(HWID_LCM, "incell, vendor:CSOT, IC:NT36672(novatek)");
 		}
 
 		mdss_node = of_parse_phandle(pdev->dev.of_node,

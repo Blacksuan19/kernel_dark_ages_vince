@@ -1,4 +1,5 @@
 /* Copyright (c) 2014-2016, The Linux Foundation. All rights reserved.
+ * Copyright (C) 2018 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -26,8 +27,10 @@
 
 &qusb_phy {
 	reg = <0x00079000 0x180>,
+	      <0x08af8800 0x400>,
 	      <0x000580d4 0x4>;
 	reg-names = "qusb_phy_base",
+		    "qscratch_base",
 		    "tune2_efuse_addr";
 	qcom,tune2-efuse-bit-pos = <20>;
 	qcom,tune2-efuse-num-bits = <4>;

@@ -2666,7 +2666,7 @@ static struct snd_soc_dai_driver msm_fe_dais[] = {
 		.name = "MultiMedia29",
 		.probe = fe_dai_probe,
 	},
- #if (defined CONFIG_SND_SOC_MAX98927)
+#ifdef CONFIG_SND_SOC_TAS2557
 	{
 		.capture = {
 			.stream_name = "Quinary MI2S_TX Hostless Capture",

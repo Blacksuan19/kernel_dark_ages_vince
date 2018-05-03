@@ -13,8 +13,8 @@ config MACH_XIAOMI_MSM8953
 	help
 	  Support for MSM8953 Xiaomi variants
 
-config MACH_XIAOMI_TISSOT
-	bool "Tissot board"
+config MACH_XIAOMI_VINCE
+	bool "Vince board"
 	select MACH_XIAOMI_MSM8953
 	help
-	  Support for Xiaomi Mi A1 (Tissot)
+	  Support for Xiaomi Redmi 5 Plus (vince)

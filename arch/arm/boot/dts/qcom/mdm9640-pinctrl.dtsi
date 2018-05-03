@@ -1,4 +1,5 @@
 /* Copyright (c) 2014-2016, The Linux Foundation. All rights reserved.
+ * Copyright (C) 2018 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -319,50 +320,6 @@
 
 				config {
 					pins = "gpio65";
-					drive-strength = <2>;
-					bias-disable;		/* NO pull */
-				};
-			};
-		};
-
-		pcie_ep0 {
-			/* pcie_ep_clkreq_groups */
-			pcie_ep0_clkreq_default: pcie_ep_clkreq_default {
-				mux {
-					pins = "gpio64";
-					function = "pcie_clkreq";
-				};
-
-				config {
-					pins = "gpio64";
-					drive-strength = <2>;
-					bias-pull-up;
-				};
-			};
-
-			/* pcie_ep_rst_groups */
-			pcie_ep0_perst_default: pcie_ep0_perst_default {
-				mux {
-					pins = "gpio65";
-					function = "gpio";
-				};
-
-				config {
-					pins = "gpio65";
-					drive-strength = <2>;
-					bias-pull-down;
-				};
-			};
-
-			/* pcie_ep_wake_groups */
-			pcie_ep0_wake_default: pcie_ep0_wake_default {
-				mux {
-					pins = "gpio61";
-					function = "gpio";
-				};
-
-				config {
-					pins = "gpio61";
 					drive-strength = <2>;
 					bias-disable;		/* NO pull */
 				};
