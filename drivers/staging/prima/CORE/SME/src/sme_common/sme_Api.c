@@ -483,7 +483,7 @@ tSmeCmd *smeGetCommandBuffer( tpAniSirGlobal pMac )
         else
         {
            /* Trigger SSR */
-           vos_wlanRestart();
+           vos_wlanRestart(VOS_GET_MSG_BUFF_FAILURE);
         }
     }
 
@@ -898,6 +898,38 @@ static void smeProcessNanReq(tpAniSirGlobal pMac, tSmeCmd *pCommand )
     else
     {
         smsLog(pMac, LOG1, FL("posted WDA_NAN_REQUEST command"));
+    }
+}
+
+
+/**
+ * sme_set_vowifi_mode() - Set VOWIFI mode
+ * @pMac - context handler
+ * @enable - boolean value that determines the state
+ *
+ * The function sends the VOWIFI to firmware received
+ * via driver command
+ */
+void sme_set_vowifi_mode(tpAniSirGlobal pMac, bool enable)
+{
+    tSirMsgQ msgQ;
+    tSirRetStatus retCode = eSIR_SUCCESS;
+
+    vos_mem_zero(&msgQ, sizeof(tSirMsgQ));
+    msgQ.type = WDA_VOWIFI_MODE;
+    msgQ.reserved = 0;
+    msgQ.bodyval = enable;
+
+    retCode = wdaPostCtrlMsg(pMac, &msgQ);
+    if(eSIR_SUCCESS != retCode)
+    {
+        smsLog(pMac, LOGE,
+           FL("Posting WDA_VOWIFI_MODE to WDA failed, reason=%X"),
+           retCode);
+    }
+    else
+    {
+        smsLog(pMac, LOG1, FL("posted WDA_VOWIFI_MODE command"));
     }
 }
 
@@ -6938,7 +6970,6 @@ VOS_STATUS sme_DbgWriteMemory(tHalHandle hHal, v_U32_t memAddr, v_U8_t *pBuf, v_
    return (status);
 }
 
-
 #ifdef WLAN_DEBUG
 void pmcLog(tpAniSirGlobal pMac, tANI_U32 loglevel, const char *pString, ...)
 {
@@ -12803,7 +12834,7 @@ void activeListCmdTimeoutHandle(void *userData)
        if (!(vos_isLoadUnloadInProgress() ||
            vos_is_logp_in_progress(VOS_MODULE_ID_SME, NULL)))
        {
-          vos_wlanRestart();
+          vos_wlanRestart(VOS_ACTIVE_LIST_TIMEOUT);
        }
     }
 }
@@ -15243,4 +15274,11 @@ sme_get_connect_strt_time(tHalHandle hal, uint8_t session_id)
    }
    session = CSR_GET_SESSION(mac_ctx, session_id);
    return session->connect_req_start_time;
+}
+
+void sme_request_imps(tHalHandle hal)
+{
+   tpAniSirGlobal mac_ctx = PMAC_STRUCT(hal);
+
+   csrScanStartIdleScan(mac_ctx);
 }

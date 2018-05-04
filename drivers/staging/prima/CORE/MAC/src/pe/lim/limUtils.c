@@ -2551,7 +2551,7 @@ limDecideStaProtection(tpAniSirGlobal pMac,
                 ( tANI_U8 ) htInfo.rifsMode )
         {
             pBeaconParams->fRIFSMode = 
-                psessionEntry->beaconParams.fRIFSMode  = 
+                psessionEntry->beaconParams.fRIFSMode  =
                 ( tANI_U8 ) htInfo.rifsMode;
             pBeaconParams->paramChangeBitmap |= PARAM_RIFS_MODE_CHANGED;
         }
@@ -2569,8 +2569,8 @@ limDecideStaProtection(tpAniSirGlobal pMac,
         if ( psessionEntry->beaconParams.fLsigTXOPProtectionFullSupport != 
                 ( tANI_U8 )htInfo.lsigTXOPProtectionFullSupport )
         {
-            pBeaconParams->fLsigTXOPProtectionFullSupport =  
-                psessionEntry->beaconParams.fLsigTXOPProtectionFullSupport = 
+            pBeaconParams->fLsigTXOPProtectionFullSupport = 
+                psessionEntry->beaconParams.fLsigTXOPProtectionFullSupport =
                 ( tANI_U8 )htInfo.lsigTXOPProtectionFullSupport;
             pBeaconParams->paramChangeBitmap |= 
                 PARAM_LSIG_TXOP_FULL_SUPPORT_CHANGED;
@@ -3482,7 +3482,7 @@ void limSwitchChannelCback(tpAniSirGlobal pMac, eHalStatus status,
    tSirMsgQ    mmhMsg = {0};
    tSirSmeSwitchChannelInd *pSirSmeSwitchChInd;
 
-   psessionEntry->currentOperChannel = psessionEntry->currentReqChannel; 
+   psessionEntry->currentOperChannel = psessionEntry->currentReqChannel;
    
    /* We need to restore pre-channelSwitch state on the STA */
    if (limRestorePreChannelSwitchState(pMac, psessionEntry) != eSIR_SUCCESS)
@@ -4085,7 +4085,6 @@ limEnable11aProtection(tpAniSirGlobal pMac, tANI_U8 enable,
                     psessionEntry->htOperMode = eSIR_HT_OP_MODE_MIXED;
                     limEnableHtRifsProtection(pMac, true, overlap, pBeaconParams,psessionEntry);
                     limEnableHtOBSSProtection(pMac,  true, overlap, pBeaconParams,psessionEntry);         
-                    
                 }
             }
         }
@@ -7451,7 +7450,7 @@ void limProcessAddStaRsp(tpAniSirGlobal pMac,tpSirMsgQ limMsgQ)
 //    tANI_U8             sessionId;
     tpAddStaParams      pAddStaParams;
 
-    pAddStaParams = (tpAddStaParams)limMsgQ->bodyptr;    
+    pAddStaParams = (tpAddStaParams)limMsgQ->bodyptr;
     
     if((psessionEntry = peFindSessionBySessionId(pMac,pAddStaParams->sessionId))==NULL)
     {
@@ -8721,6 +8720,7 @@ eHalStatus limAssocRspTxCompleteCnf(tpAniSirGlobal pMac, void *pData)
                 pNode, &pNext );
         pNode = pNext;
         pNext = NULL;
+        tmp_tx_context = NULL;
       }
       else
       {
@@ -8730,7 +8730,7 @@ eHalStatus limAssocRspTxCompleteCnf(tpAniSirGlobal pMac, void *pData)
       }
     }
 
-    if (!tmp_tx_context) {
+    if (!pNode) {
         limLog(pMac, LOGE, FL("context is NULL"));
         return eHAL_STATUS_SUCCESS;
     }
@@ -9044,6 +9044,11 @@ _sap_offload_parse_sta_vht(tpAniSirGlobal pmac,
         tpSirAssocReq assoc_req)
 {
     tpPESession session_entry = limIsApSessionActive(pmac);
+    if (session_entry == NULL)
+    {
+        limLog(pmac, LOGE, FL("Invalid Session Entry"));
+        goto error;
+    }
 
     if (IS_DOT11_MODE_HT(session_entry->dot11mode) &&
             assoc_req->HTCaps.present && assoc_req->wmeInfoPresent)
@@ -9168,7 +9173,11 @@ static void
     tHalBitVal qos_mode;
     tHalBitVal wsm_mode, wme_mode;
     tpPESession session_entry = limIsApSessionActive(pmac);
-
+    if (session_entry == NULL)
+    {
+        limLog(pmac, LOGE, FL("Invalid Session Entry"));
+        return;
+    }
     limGetQosMode(session_entry, &qos_mode);
     sta_ds->qosMode    = eANI_BOOLEAN_FALSE;
     sta_ds->lleEnabled = eANI_BOOLEAN_FALSE;
