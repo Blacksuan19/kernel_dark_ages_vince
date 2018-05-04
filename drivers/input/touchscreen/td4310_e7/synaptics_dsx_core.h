@@ -435,6 +435,7 @@ struct synaptics_rmi4_data {
 			bool enable);
 	void (*report_touch)(struct synaptics_rmi4_data *rmi4_data,
 			struct synaptics_rmi4_fn *fhandler);
+
 };
 
 struct synaptics_dsx_bus_access {
