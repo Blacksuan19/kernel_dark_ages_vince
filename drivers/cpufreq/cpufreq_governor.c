@@ -144,7 +144,7 @@ void dbs_check_cpu(struct dbs_data *dbs_data, int cpu)
 			load = j_cdbs->prev_load;
 
 			if (periods < deferred_periods)
-+				deferred_periods = periods;
+				deferred_periods = periods;
 
 			/*
 			 * Perform a destructive copy, to ensure that we copy
