@@ -13,13 +13,12 @@ enum FP_MODE {
 };
 
 #define SUPPORT_NAV_EVENT
-#if defined(SUPPORT_NAV_EVENT)
 
+#if defined(SUPPORT_NAV_EVENT)
 #define GF_NAV_INPUT_DOUBLE_CLICK	KEY_VOLUMEUP
 #define GF_NAV_INPUT_LONG_PRESS		KEY_SEARCH
 #define GF_NAV_INPUT_HEAVY		KEY_CHAT
 #endif
-
 
 #if defined(SUPPORT_NAV_EVENT)
 typedef enum gf_nav_event {
@@ -96,16 +95,10 @@ struct gf_ioc_chip_info {
 #define  GF_IOC_MAXNR    14  /* THIS MACRO IS NOT USED NOW... */
 #endif
 
-
-#define  USE_PLATFORM_BUS     1
-
-
-#define GF_NETLINK_ENABLE 1
 #define GF_NET_EVENT_IRQ 1
 #define GF_NET_EVENT_FB_BLACK 2
 #define GF_NET_EVENT_FB_UNBLACK 3
 #define NETLINK_TEST 25
-
 
 static const char * const pctl_names[] = {
 
@@ -117,17 +110,11 @@ static const char * const pctl_names[] = {
 struct gf_dev {
 	dev_t devt;
 	struct list_head device_entry;
-#if defined(USE_SPI_BUS)
-	struct spi_device *spi;
-#elif defined(USE_PLATFORM_BUS)
 	struct platform_device *spi;
-#endif
 	struct clk *core_clk;
 	struct clk *iface_clk;
-
 	struct pinctrl *fingerprint_pinctrl;
 	struct pinctrl_state *pinctrl_state[ARRAY_SIZE(pctl_names)];
-
 	struct input_dev *input;
 	/* buffer is NULL unless this device is open (users > 0) */
 	unsigned users;
@@ -137,15 +124,9 @@ struct gf_dev {
 	int irq;
 	int irq_enabled;
 	int clk_enabled;
-#ifdef GF_FASYNC
-	struct fasync_struct *async;
-#endif
 	struct notifier_block notifier;
 	char device_available;
 	char fb_black;
-	char wait_finger_down;
-	struct work_struct work;
-
 };
 
 int gf_parse_dts(struct gf_dev *gf_dev);
@@ -158,6 +139,6 @@ int gf_hw_reset(struct gf_dev *gf_dev, unsigned int delay_ms);
 int gf_irq_num(struct gf_dev *gf_dev);
 
 void sendnlmsg(char *message);
-int netlink_init(void);
+void netlink_init(void);
 void netlink_exit(void);
 #endif /*__GF_SPI_H*/
