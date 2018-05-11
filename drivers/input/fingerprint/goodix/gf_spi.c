@@ -87,6 +87,9 @@ static struct wake_lock fp_wakelock;
 static int driver_init_partial (struct gf_dev *gf_dev);
 static void nav_event_input (struct gf_dev *gf_dev, gf_nav_event_t nav_event);
 
+static unsigned int report_home_events = 1;
+module_param(report_home_events, uint, S_IRUGO | S_IWUSR);
+
 static void gf_enable_irq (struct gf_dev *gf_dev) {
 	if (gf_dev->irq_enabled) {
 		 pr_warn ("IRQ has been enabled.\n");
@@ -188,7 +191,9 @@ static long gf_ioctl (struct file *filp, unsigned int cmd, unsigned long arg) {
 		 }
 
 		 if (GF_KEY_HOME == gf_key.key) {
-			key_event = KEY_SELECT;
+		 if (!report_home_events)
+			return;
+			key_event = GF_INPUT_HOME_KEY;
 		 } else if (GF_KEY_POWER == gf_key.key) {
 			key_event = GF_INPUT_FF_KEY;
 		 } else if (GF_KEY_CAPTURE == gf_key.key) {
