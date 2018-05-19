@@ -7794,7 +7794,7 @@ err:
 }
 
 #define DEFAULT_VLED_MAX_UV		3500000
-#define DEFAULT_FCC_MA			2000
+#define DEFAULT_FCC_MA			2500
 static int smb_parse_dt(struct smbchg_chip *chip)
 {
 	int rc = 0, ocp_thresh = -EINVAL;

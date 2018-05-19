@@ -203,14 +203,14 @@
 			compatible = "qcom,qpnp-smbcharger";
 			#address-cells = <1>;
 			#size-cells = <1>;
-
-			qcom,iterm-ma = <100>;
+			qcom,iterm-ma = <200>;
 			qcom,float-voltage-mv = <4400>;
-			qcom,resume-delta-mv = <200>;
+			qcom,resume-delta-mv = <50>;
 			qcom,chg-inhibit-fg;
 			qcom,rparasitic-uohm = <100000>;
 			qcom,bms-psy-name = "bms";
 			qcom,thermal-mitigation = <1500 700 600 0>;
+			qcom,fastchg-current-ma = <2500>;
 			qcom,parallel-usb-min-current-ma = <1400>;
 			qcom,parallel-usb-9v-min-current-ma = <900>;
 			qcom,parallel-allowed-lowering-ma = <500>;
@@ -318,16 +318,20 @@
 			compatible = "qcom,qpnp-fg";
 			#address-cells = <1>;
 			#size-cells = <1>;
-			qcom,resume-soc = <95>;
+			qcom,resume-soc-raw = <254>;
 			status = "okay";
 			qcom,bcl-lm-threshold-ma = <127>;
 			qcom,bcl-mh-threshold-ma = <405>;
-			qcom,fg-iterm-ma = <150>;
-			qcom,fg-chg-iterm-ma = <100>;
+			qcom,fg-iterm-ma = <300>;
+			qcom,fg-chg-iterm-ma = <200>;
 			qcom,pmic-revid = <&pmi8950_revid>;
 			qcom,fg-cutoff-voltage-mv = <3400>;
 			qcom,cycle-counter-en;
+			qcom,hold-soc-while-full;
 			qcom,capacity-learning-on;
+			qcom,fg-cc-cv-threshold-mv =<4390>;
+			qcom,fg-cc-cv-threshold-mv-global =<4370>;
+			qcom,vbat-estimate-diff-mv = <200>;
 			qcom,fg-soc@4000 {
 			status = "okay";
 				reg = <0x4000 0x100>;
