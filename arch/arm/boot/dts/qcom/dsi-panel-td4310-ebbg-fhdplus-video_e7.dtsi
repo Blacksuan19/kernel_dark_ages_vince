@@ -35,6 +35,12 @@
 		qcom,mdss-dsi-underflow-color = <0xff>;
 		qcom,mdss-dsi-border-color = <0>;
 
+		qcom,mdss-dsi-panel-hdr-enabled;
+		qcom,mdss-dsi-panel-hdr-color-primaries = <14500 15500 32000
+			17000 15500 30000 8000 3000>;
+		qcom,mdss-dsi-panel-peak-brightness = <4200000>;
+		qcom,mdss-dsi-panel-blackness-level = <3230>;
+
 		qcom,mdss-dsi-on-command = [
 			39 01 00 00 78 00 02 11 00
 			29 01 00 00 00 00 02 B0 04
@@ -74,6 +80,22 @@
 			39 01 00 00 00 00 02 84 00
 		];
 
+		qcom,mdss-dsi-sRGB_on-command = [
+			15 01 00 00 00 00 02 84 00
+			29 01 00 00 00 00 2C CA 1D FC DC 9C 17 EA F4 EF 30 EF DB 0C F6 67 4C 2C 38 2A 19 06 06 25 FF 00 00 F7 2E 19 FF 00 FF 00 4B FD 3D FF 00 00 FF 42 01 FC FF
+		];
+		qcom,mdss-dsi-sRGB_off-command = [
+			29 01 00 00 00 00 2C CA 1C FC FC FC 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+		];
+
+		cm,mdss-livedisplay-cabc-cmd = [
+			15 01 00 00 00 00 02 55 00
+		];
+
+		cm,mdss-livedisplay-cabc-ui-value = <0x01>;
+		cm,mdss-livedisplay-cabc-image-value = <0x02>;
+		cm,mdss-livedisplay-cabc-video-value = <0x03>;
+
 		qcom,mdss-dsi-on-command-state = "dsi_lp_mode";
 		qcom,mdss-dsi-off-command-state = "dsi_hs_mode";
 		qcom,mdss-dsi-CABC_on-command-state = "dsi_lp_mode";
@@ -83,6 +105,8 @@
 		qcom,mdss-dsi-cold_gamma-command-state = "dsi_lp_mode";
 		qcom,mdss-dsi-warm_gamma-command-state = "dsi_lp_mode";
 		qcom,mdss-dsi-default_gamma-command-state = "dsi_lp_mode";
+		qcom,mdss-dsi-sRGB_on-command-state = "dsi_lp_mode";
+		qcom,mdss-dsi-sRGB_off-command-state = "dsi_lp_mode";
 		qcom,mdss-dsi-h-sync-pulse = <1>;
 		qcom,mdss-dsi-traffic-mode = "burst_mode";
 		qcom,mdss-dsi-bllp-eof-power-mode;

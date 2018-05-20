@@ -34,6 +34,13 @@
 		qcom,mdss-dsi-bpp = <24>;
 		qcom,mdss-dsi-underflow-color = <0xff>;
 		qcom,mdss-dsi-border-color = <0>;
+
+		qcom,mdss-dsi-panel-hdr-enabled;
+		qcom,mdss-dsi-panel-hdr-color-primaries = <14500 15500 32000
+			17000 15500 30000 8000 3000>;
+		qcom,mdss-dsi-panel-peak-brightness = <4200000>;
+		qcom,mdss-dsi-panel-blackness-level = <3230>;
+
 		qcom,mdss-dsi-on-command = [29 01 00 00 01 00 02 ff 10
 					29 01 00 00 00 00 02 35 00
 					29 01 00 00 00 00 02 51 ff
@@ -47,6 +54,15 @@
 					05 01 00 00 14 00 02 28 00
 					05 01 00 00 78 00 02 10 00
 					];
+
+		cm,mdss-livedisplay-cabc-cmd = [
+			15 01 00 00 00 00 02 55 00
+		];
+
+		cm,mdss-livedisplay-cabc-ui-value = <0x01>;
+		cm,mdss-livedisplay-cabc-image-value = <0x02>;
+		cm,mdss-livedisplay-cabc-video-value = <0x03>;
+
 		qcom,mdss-dsi-on-command-state = "dsi_lp_mode";
 		qcom,mdss-dsi-off-command-state = "dsi_hs_mode";
 		qcom,mdss-dsi-h-sync-pulse = <1>;
