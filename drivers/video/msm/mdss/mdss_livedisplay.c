@@ -543,6 +543,8 @@ int mdss_livedisplay_parse_dt(struct device_node *np, struct mdss_panel_info *pi
 				&mlc->presets_len[mlc->num_presets]);
 		if (mlc->presets_len[mlc->num_presets] > 0)
 			mlc->num_presets++;
+		else
+			break;
 	}
 
 	if (mlc->num_presets)

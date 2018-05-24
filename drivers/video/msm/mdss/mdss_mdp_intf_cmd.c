@@ -79,7 +79,6 @@ struct mdss_mdp_cmd_ctx {
 	struct work_struct gate_clk_work;
 	struct delayed_work delayed_off_clk_work;
 	struct work_struct pp_done_work;
-	struct workqueue_struct *early_wakeup_clk_wq;
 	struct work_struct early_wakeup_clk_work;
 	atomic_t pp_done_cnt;
 	struct completion rdptr_done;
@@ -727,7 +726,7 @@ int mdss_mdp_resource_control(struct mdss_mdp_ctl *ctl, u32 sw_event)
 				schedule_work(&ctx->gate_clk_work);
 
 			/* start work item to shut down after delay */
-			queue_delayed_work(system_power_efficient_wq,
+			schedule_delayed_work(
 					&ctx->delayed_off_clk_work,
 					CMD_MODE_IDLE_TIMEOUT);
 		}
@@ -891,8 +890,7 @@ int mdss_mdp_resource_control(struct mdss_mdp_ctl *ctl, u32 sw_event)
 			 * reached. This is to prevent the case where early wake
 			 * up is called but no frame update is sent.
 			 */
-			queue_delayed_work(system_power_efficient_wq,
-				&ctx->delayed_off_clk_work,
+			schedule_delayed_work(&ctx->delayed_off_clk_work,
 				      CMD_MODE_IDLE_TIMEOUT);
 			pr_debug("off work scheduled\n");
 		}
@@ -3196,8 +3194,7 @@ static int mdss_mdp_cmd_early_wake_up(struct mdss_mdp_ctl *ctl)
 	 * Only schedule if the interface has not been stopped.
 	 */
 	if (ctx && !ctx->intf_stopped)
-		queue_work(ctx->early_wakeup_clk_wq,
-			&ctx->early_wakeup_clk_work);
+		schedule_work(&ctx->early_wakeup_clk_work);
 	return 0;
 }
 
@@ -3220,8 +3217,6 @@ static int mdss_mdp_cmd_ctx_setup(struct mdss_mdp_ctl *ctl,
 	ctx->aux_pp_num = aux_pp_num;
 	ctx->pingpong_split_slave = pingpong_split_slave;
 	ctx->pp_timeout_report_cnt = 0;
-	ctx->early_wakeup_clk_wq
-		= alloc_workqueue("early_wakeup_clk_wq", WQ_HIGHPRI, 0);
 	init_waitqueue_head(&ctx->pp_waitq);
 	init_waitqueue_head(&ctx->rdptr_waitq);
 	init_completion(&ctx->stop_comp);
