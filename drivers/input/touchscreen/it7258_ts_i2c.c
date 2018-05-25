@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2014 ITE Tech. Inc.
  * Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
+ * Copyright (C) 2018 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -180,17 +181,17 @@ struct it7260_ts_data {
 	const struct it7260_ts_platform_data *pdata;
 	struct regulator *vdd;
 	struct regulator *avdd;
-	struct work_struct work_pm_relax;
-	struct mutex fw_cfg_mutex;
 	bool in_low_power_mode;
 	bool suspended;
 	bool fw_upgrade_result;
 	bool cfg_upgrade_result;
 	bool fw_cfg_uploading;
+	struct work_struct work_pm_relax;
 	bool calibration_success;
 	bool had_finger_down;
 	char fw_name[MAX_BUFFER_SIZE];
 	char cfg_name[MAX_BUFFER_SIZE];
+	struct mutex fw_cfg_mutex;
 	u8 fw_ver[VER_BUFFER_SIZE];
 	u8 cfg_ver[VER_BUFFER_SIZE];
 #ifdef CONFIG_FB
@@ -1147,40 +1148,6 @@ static ssize_t sysfs_fw_name_show(struct device *dev,
 			"No firmware file name given\n");
 }
 
-static ssize_t sysfs_enable_wakeup_store(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t count)
-{
-	struct it7260_ts_data *ts_data = dev_get_drvdata(dev);
-	int mode = 0, ret;
-
-	if (ts_data->suspended) {
-		dev_err(dev, "Device is suspended, can't flash fw!!!\n");
-		return -EBUSY;
-	}
-
-	ret = kstrtoint(buf, 10, &mode);
-	if (ret) {
-		dev_err(dev, "failed to read input for sysfs\n");
-		return -EINVAL;
-	}
-
-	if (mode == 1)
-		device_init_wakeup(dev, true);
-	else if (mode == 0)
-		device_init_wakeup(dev, false);
-	else
-		dev_err(dev, "Wrong input, try again\n");
-
-	return count;
-}
-
-static ssize_t sysfs_enable_wakeup_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
-{
-	return scnprintf(buf, MAX_BUFFER_SIZE, "%s\n",
-			device_may_wakeup(dev) ? "true" : "false");
-}
-
 static DEVICE_ATTR(version, S_IRUGO | S_IWUSR,
 			sysfs_version_show, NULL);
 static DEVICE_ATTR(sleep, S_IRUGO | S_IWUSR,
@@ -1203,9 +1170,6 @@ static DEVICE_ATTR(force_fw_update, S_IRUGO | S_IWUSR,
 static DEVICE_ATTR(force_cfg_update, S_IRUGO | S_IWUSR,
 			sysfs_force_cfg_upgrade_show,
 			sysfs_force_cfg_upgrade_store);
-static DEVICE_ATTR(enable_wakeup, S_IRUGO | S_IWUSR,
-			sysfs_enable_wakeup_show,
-			sysfs_enable_wakeup_store);
 
 static struct attribute *it7260_attributes[] = {
 	&dev_attr_version.attr,
@@ -1218,7 +1182,6 @@ static struct attribute *it7260_attributes[] = {
 	&dev_attr_cfg_name.attr,
 	&dev_attr_force_fw_update.attr,
 	&dev_attr_force_cfg_update.attr,
-	&dev_attr_enable_wakeup.attr,
 	NULL
 };
 
@@ -1280,8 +1243,7 @@ static irqreturn_t it7260_ts_threaded_handler(int irq, void *devid)
 		 */
 		if ((pt_data.flags & PD_FLAGS_DATA_TYPE_BITS) ==
 				PD_FLAGS_IDLE_TO_ACTIVE &&
-				pt_data.gesture_id == 0 &&
-				device_may_wakeup(&ts_data->client->dev)) {
+				pt_data.gesture_id == 0) {
 			pm_stay_awake(&ts_data->client->dev);
 			input_report_key(input_dev, KEY_WAKEUP, 1);
 			input_sync(input_dev);
@@ -2164,15 +2126,6 @@ static int it7260_ts_resume(struct device *dev)
 		return 0;
 	}
 
-	if (regulator_is_enabled(ts_data->vdd) &&
-				regulator_is_enabled(ts_data->vdd)) {
-		retval = it7260_power_on(ts_data, true);
-		if (retval < 0) {
-			dev_err(dev, "Cannot enable regulators, %d\n", retval);
-			goto err_power_on;
-		}
-	}
-
 	if (ts_data->ts_pinctrl) {
 		retval = pinctrl_select_state(ts_data->ts_pinctrl,
 				ts_data->pinctrl_state_active);
@@ -2181,13 +2134,6 @@ static int it7260_ts_resume(struct device *dev)
 				retval);
 			goto err_pinctrl_select_suspend;
 		}
-	} else {
-		retval = it7260_gpio_configure(ts_data, true);
-		if (retval < 0) {
-			dev_err(dev, "Failed to configure gpios %d\n",
-								retval);
-			goto err_gpio_config;
-		}
 	}
 
 	enable_irq(ts_data->client->irq);
@@ -2195,10 +2141,6 @@ static int it7260_ts_resume(struct device *dev)
 	return 0;
 
 err_pinctrl_select_suspend:
-err_gpio_config:
-	if (it7260_power_on(ts_data, false))
-		dev_err(dev, "Cannot disable regulators, %d\n", retval);
-err_power_on:
 	return retval;
 }
 
@@ -2245,25 +2187,9 @@ static int it7260_ts_suspend(struct device *dev)
 		retval = pinctrl_select_state(ts_data->ts_pinctrl,
 				ts_data->pinctrl_state_suspend);
 		if (retval < 0) {
-			dev_err(dev, "Failed to get idle pinctrl state %d\n",
-								retval);
+			dev_err(dev, "Cannot get idle pinctrl state %d\n",
+				retval);
 			goto err_pinctrl_select_suspend;
-		}
-	} else {
-		retval = it7260_gpio_configure(ts_data, false);
-		if (retval < 0) {
-			dev_err(dev, "Failed to configure gpios %d\n", retval);
-			goto err_gpio_config;
-		}
-	}
-
-	if (!regulator_is_enabled(ts_data->vdd) &&
-				!regulator_is_enabled(ts_data->vdd)) {
-		retval = it7260_power_on(ts_data, false);
-		if (retval < 0) {
-			dev_err(dev, "Failed to disable regulators, %d\n",
-								retval);
-			goto err_power_on;
 		}
 	}
 
@@ -2271,17 +2197,7 @@ static int it7260_ts_suspend(struct device *dev)
 
 	return 0;
 
-err_power_on:
-	if (ts_data->ts_pinctrl) {
-		if (pinctrl_select_state(ts_data->ts_pinctrl,
-				ts_data->pinctrl_state_active))
-			dev_err(dev, "Cannot get active pinctrl state\n");
-	} else {
-		if (it7260_gpio_configure(ts_data, true))
-			dev_err(dev, "Failed to configure gpios\n");
-	}
 err_pinctrl_select_suspend:
-err_gpio_config:
 	return retval;
 }
 

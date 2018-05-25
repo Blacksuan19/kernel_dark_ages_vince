@@ -756,7 +756,6 @@ static struct device_attribute attrs[] = {
 	__ATTR (wake_gesture, (S_IRUGO | S_IWUSR | S_IWGRP),
 			synaptics_rmi4_wake_gesture_show,
 			synaptics_rmi4_wake_gesture_store),
-
 #ifdef USE_DATA_SERVER
 	__ATTR (synad_pid, (S_IWUSR | S_IWGRP),
 			synaptics_rmi4_show_error,
@@ -4208,6 +4207,9 @@ struct synaptics_rmi4_data *rmi4_data =
 
 }
 #endif
+
+
+
 
 static int synaptics_rmi4_probe (struct platform_device *pdev)
 {

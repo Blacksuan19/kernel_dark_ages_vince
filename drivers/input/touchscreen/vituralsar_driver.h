@@ -16,7 +16,9 @@ extern "C" {
 #include <asm/switch_to.h>
 #include <linux/gpio_keys.h>
 #include <linux/proc_fs.h>
-
+#include <linux/of_gpio.h>
+#include <asm/gpio.h>
+#include <linux/input.h>
 /*******************************************************************************
  * Platform-specific configuration data
  ******************************************************************************/
@@ -66,6 +68,13 @@ struct vituralsar_data {
 	s32 use_irq;
 };
 
+struct gpio_keys_button gpio_key = {
+		 .code              = KEY_F24,
+		 .type              = EV_KEY,
+		 .wakeup            = 1,
+		 .debounce_interval = 0,
+		 .can_disable       = true,
+};
 
 /* Defines our driver's name, device-tree match, and required driver callbacks */
 static struct i2c_driver virtualsar_driver = {
