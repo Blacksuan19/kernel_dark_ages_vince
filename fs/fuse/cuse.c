@@ -552,6 +552,9 @@ static int cuse_channel_release(struct inode *inode, struct file *file)
 		cdev_del(cc->cdev);
 	}
 
+	/* Base reference is now owned by "fud" */
+	fuse_conn_put(&cc->fc);
+
 	rc = fuse_dev_release(inode, file);	/* puts the base reference */
 
 	return rc;
