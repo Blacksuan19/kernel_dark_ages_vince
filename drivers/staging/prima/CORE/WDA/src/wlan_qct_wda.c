@@ -12061,6 +12061,27 @@ VOS_STATUS WDA_RemBeaconFilterReq(tWDA_CbContext *pWDA,
    return status;
 }
 
+VOS_STATUS WDA_set_qpower(tWDA_CbContext *pWDA,
+                 uint8_t enable)
+{
+    WDI_Status status;
+
+    VOS_TRACE( VOS_MODULE_ID_WDA, VOS_TRACE_LEVEL_INFO,
+                   FL("---> %s"), __func__);
+    status = WDI_set_qpower(enable);
+    if (status == WDI_STATUS_PENDING)
+    {
+       VOS_TRACE(VOS_MODULE_ID_WDA, VOS_TRACE_LEVEL_INFO,
+                 FL("pending status received "));
+    }
+    else if (status != WDI_STATUS_SUCCESS)
+    {
+       VOS_TRACE(VOS_MODULE_ID_WDA, VOS_TRACE_LEVEL_ERROR,
+               FL("Failure status %d"), status);
+    }
+    return CONVERT_WDI2VOS_STATUS(status);
+}
+
 VOS_STATUS WDA_set_vowifi_ind(tWDA_CbContext *pWDA,
                  tANI_BOOLEAN enable)
 {
@@ -17119,6 +17140,14 @@ VOS_STATUS WDA_McProcessMsg( v_CONTEXT_t pVosContext, vos_msg_t *pMsg )
                            "Handling msg type WDA_VOWIFI_MODE");
 
          WDA_set_vowifi_ind(pWDA, pMsg->bodyval);
+         break;
+      }
+
+      case WDA_QPOWER:
+      {
+         VOS_TRACE(VOS_MODULE_ID_WDA, VOS_TRACE_LEVEL_INFO_HIGH,
+                   "Handling msg type WDA_QPOWER");
+                   WDA_set_qpower(pWDA, pMsg->bodyval);
          break;
       }
 
@@ -22961,8 +22990,8 @@ void WDA_MonModeRspCallback(void *pEventData, void* pUserData)
       return ;
    }
    pData = (tSirMonModeReq *)pWdaParams->wdaMsgParam;
-   if (pData != NULL) {
-        pData->callback(pData->magic, pData->cmpVar);
+   if (pData != NULL && pData->callback != NULL) {
+        pData->callback(pData->context);
         vos_mem_free(pWdaParams->wdaMsgParam);
    }
    vos_mem_free(pWdaParams) ;

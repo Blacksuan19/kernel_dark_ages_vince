@@ -901,6 +901,36 @@ static void smeProcessNanReq(tpAniSirGlobal pMac, tSmeCmd *pCommand )
     }
 }
 
+/**
+ * sme_set_qpower() - Set Qpower
+ * @pMac - context handler
+ * @enable - uint8 value that needs to be sent to FW
+ *
+ * The function sends the qpower to firmware received
+ * via driver command
+ */
+void sme_set_qpower(tpAniSirGlobal pMac, uint8_t enable)
+{
+    tSirMsgQ msgQ;
+    tSirRetStatus retCode = eSIR_SUCCESS;
+
+    vos_mem_zero(&msgQ, sizeof(tSirMsgQ));
+    msgQ.type = WDA_QPOWER;
+    msgQ.reserved = 0;
+    msgQ.bodyval = enable;
+
+    retCode = wdaPostCtrlMsg(pMac, &msgQ);
+    if(eSIR_SUCCESS != retCode)
+    {
+        smsLog(pMac, LOGE,
+           FL("Posting WDA_QPOWER to WDA failed, reason=%X"),
+           retCode);
+    }
+    else
+    {
+        smsLog(pMac, LOG1, FL("posted WDA_QPOWER command"));
+    }
+}
 
 /**
  * sme_set_vowifi_mode() - Set VOWIFI mode
@@ -2709,6 +2739,7 @@ eHalStatus sme_ProcessMsg(tHalHandle hHal, vos_msg_t* pMsg)
 
                    if (pSmeCoexInd->coexIndType == SIR_COEX_IND_TYPE_DISABLE_AGGREGATION_IN_2p4)
                    {
+                       pMac->btc.agg_disabled = true;
                        smsLog( pMac, LOG1, FL("SIR_COEX_IND_TYPE_DISABLE_AGGREGATION_IN_2p4"));
                        sme_RequestFullPower(hHal, NULL, NULL, eSME_REASON_OTHER);
                        pMac->isCoexScoIndSet = 1;
@@ -2720,6 +2751,7 @@ eHalStatus sme_ProcessMsg(tHalHandle hHal, vos_msg_t* pMsg)
                    }
                    else if (pSmeCoexInd->coexIndType == SIR_COEX_IND_TYPE_ENABLE_AGGREGATION_IN_2p4)
                    {
+                       pMac->btc.agg_disabled = false;
                        smsLog( pMac, LOG1, FL("SIR_COEX_IND_TYPE_ENABLE_AGGREGATION_IN_2p4"));
                        pMac->isCoexScoIndSet = 0;
                        sme_RequestBmps(hHal, NULL, NULL);
@@ -6969,6 +7001,7 @@ VOS_STATUS sme_DbgWriteMemory(tHalHandle hHal, v_U32_t memAddr, v_U8_t *pBuf, v_
 
    return (status);
 }
+
 
 #ifdef WLAN_DEBUG
 void pmcLog(tpAniSirGlobal pMac, tANI_U32 loglevel, const char *pString, ...)
@@ -14261,7 +14294,7 @@ tANI_BOOLEAN sme_handleSetFccChannel(tHalHandle hHal, tANI_U8 fcc_constraint,
             pMac->scan.defer_update_channel_list = true;
         } else {
             /* update the channel list to the firmware */
-            csrUpdateChannelList(pMac);
+            csrUpdateFCCChannelList(pMac);
         }
     }
 
