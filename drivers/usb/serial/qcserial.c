@@ -146,7 +146,6 @@ static const struct usb_device_id id_table[] = {
 	{DEVICE_SWI(0x1199, 0x901e)},	/* Sierra Wireless EM7355 QDL */
 	{DEVICE_SWI(0x1199, 0x901f)},	/* Sierra Wireless EM7355 */
 	{DEVICE_SWI(0x1199, 0x9040)},	/* Sierra Wireless Modem */
-	{DEVICE_SWI(0x1199, 0x9041)},	/* Sierra Wireless MC7305/MC7355 */
 	{DEVICE_SWI(0x1199, 0x9051)},	/* Netgear AirCard 340U */
 	{DEVICE_SWI(0x1199, 0x9053)},	/* Sierra Wireless Modem */
 	{DEVICE_SWI(0x1199, 0x9054)},	/* Sierra Wireless Modem */
@@ -154,6 +153,13 @@ static const struct usb_device_id id_table[] = {
 	{DEVICE_SWI(0x1199, 0x9056)},	/* Sierra Wireless Modem */
 	{DEVICE_SWI(0x1199, 0x9060)},	/* Sierra Wireless Modem */
 	{DEVICE_SWI(0x1199, 0x9061)},	/* Sierra Wireless Modem */
+	{DEVICE_SWI(0x1199, 0x9063)},	/* Sierra Wireless EM7305 */
+	{DEVICE_SWI(0x1199, 0x9070)},	/* Sierra Wireless MC74xx */
+	{DEVICE_SWI(0x1199, 0x9071)},	/* Sierra Wireless MC74xx */
+	{DEVICE_SWI(0x1199, 0x9078)},	/* Sierra Wireless EM74xx */
+	{DEVICE_SWI(0x1199, 0x9079)},	/* Sierra Wireless EM74xx */
+	{DEVICE_SWI(0x1199, 0x907a)},	/* Sierra Wireless EM74xx QDL */
+	{DEVICE_SWI(0x1199, 0x907b)},	/* Sierra Wireless EM74xx */
 	{DEVICE_SWI(0x413c, 0x81a2)},	/* Dell Wireless 5806 Gobi(TM) 4G LTE Mobile Broadband Card */
 	{DEVICE_SWI(0x413c, 0x81a3)},	/* Dell Wireless 5570 HSPA+ (42Mbps) Mobile Broadband Card */
 	{DEVICE_SWI(0x413c, 0x81a4)},	/* Dell Wireless 5570e HSPA+ (42Mbps) Mobile Broadband Card */

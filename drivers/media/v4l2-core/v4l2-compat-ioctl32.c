@@ -384,12 +384,12 @@ static int get_v4l2_plane32(struct v4l2_plane __user *up,
 	compat_ulong_t p;
 
 	if (copy_in_user(up, up32, 2 * sizeof(__u32)) ||
-		copy_in_user(&up->data_offset, &up32->data_offset,
-				sizeof(up->data_offset)) ||
-		copy_in_user(up->reserved, up32->reserved,
-				sizeof(up->reserved)) ||
-		copy_in_user(&up->length, &up32->length,
-				sizeof(up->length)))
+	    copy_in_user(&up->data_offset, &up32->data_offset,
+			 sizeof(up->data_offset)) ||
+	    copy_in_user(up->reserved, up32->reserved,
+			 sizeof(up->reserved)) ||
+	    copy_in_user(&up->length, &up32->length,
+			 sizeof(up->length)))
 		return -EFAULT;
 
 	switch (memory) {
@@ -420,10 +420,10 @@ static int put_v4l2_plane32(struct v4l2_plane __user *up,
 	unsigned long p;
 
 	if (copy_in_user(up32, up, 2 * sizeof(__u32)) ||
-		copy_in_user(up->reserved, up->reserved,
-				sizeof(up->reserved)) ||
-		copy_in_user(&up32->data_offset, &up->data_offset,
-				sizeof(up->data_offset)))
+	    copy_in_user(up32->reserved, up->reserved,
+			 sizeof(up->reserved)) ||
+	    copy_in_user(&up32->data_offset, &up->data_offset,
+			 sizeof(up->data_offset)))
 		return -EFAULT;
 
 	switch (memory) {

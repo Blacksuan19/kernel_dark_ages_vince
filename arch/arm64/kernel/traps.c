@@ -425,7 +425,7 @@ static void cntpct_read_handler(unsigned int esr, struct pt_regs *regs)
 
 	isb();
 	if (rt != 31)
-		regs->regs[rt] = read_sysreg(cntpct_el0);
+		regs->regs[rt] = arch_counter_get_cntpct();
 	regs->pc += 4;
 }
 

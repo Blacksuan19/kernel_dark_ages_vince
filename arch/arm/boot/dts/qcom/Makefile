@@ -156,6 +156,45 @@ dtb-$(CONFIG_ARCH_MDMCALIFORNIUM) += mdmcalifornium-sim.dtb \
 	mdmcalifornium-v1.1-nand-mtp.dtb \
 	mdmcalifornium-v1.1-nand-dualwifi-mtp.dtb
 
+dtb-$(CONFIG_ARCH_MDM9650) += mdm9650-sim.dtb \
+	mdm9650-rumi.dtb \
+	mdm9650-emmc-cdp.dtb \
+	mdm9650-nand-cdp.dtb \
+	mdm9650-emmc-mtp.dtb \
+	mdm9650-nand-mtp.dtb \
+	mdm9650-ttp.dtb \
+	mdm9650-pcie-ep-ttp.dtb \
+	mdm9650-nand-dualwifi-mtp.dtb \
+	mdm9650-v1.1-emmc-cdp.dtb \
+	mdm9650-v1.1-nand-cdp.dtb \
+	mdm9650-v1.1-emmc-mtp.dtb \
+	mdm9650-v1.1-nand-mtp.dtb \
+	mdm9650-v1.1-nand-dualwifi-mtp.dtb \
+	mdm9650-v1.1-nand-ccard.dtb \
+	mdm9650-v1.1-nand-ccard-v2.dtb \
+	mdm9650-v1.1-emmc-pcie-ep-mtp.dtb \
+	mdm9650-v1.1-nand-pcie-ep-mtp.dtb \
+	mdm9650-v1.1-nand-cv2x.dtb \
+	mdm9650-v1.1-nand-rome-sdio-mtp.dtb
+
+dtb-$(CONFIG_ARCH_SDX20) += sdx20-emmc-cdp.dtb \
+	sdx20-emmc-mtp.dtb \
+	sdx20-nand-cdp.dtb \
+	sdx20-nand-mtp.dtb \
+	sdx20-nand-dualwifi-mtp.dtb \
+	sdx20-nand-dualwifi-cdp.dtb \
+	sdx20-v2-emmc-cdp.dtb \
+	sdx20-v2-emmc-mtp.dtb \
+	sdx20-v2-nand-cdp.dtb \
+	sdx20-v2-nand-mtp.dtb \
+	sdx20-v2-nand-dualwifi-mtp.dtb \
+	sdx20-v2-nand-dualwifi-cdp.dtb \
+	sdx20-v2-nand-singlewifi-dualwificonf-mtp.dtb \
+	sdx20-emmc-pcie-ep-mtp.dtb \
+	sdx20-nand-pcie-ep-mtp.dtb \
+	sdx20-v2-emmc-pcie-ep-mtp.dtb \
+	sdx20-v2-nand-pcie-ep-mtp.dtb
+
 dtb-$(CONFIG_ARCH_MSM8937) += msm8937-rumi.dtb \
 	msm8937-pmi8950-cdp.dtb \
 	msm8937-pmi8937-cdp.dtb \

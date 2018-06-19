@@ -517,7 +517,7 @@ __acquires(&port->port_lock)
 		/*
 		 * If port_usb is NULL, gserial disconnect is called
 		 * while the spinlock is dropped and all requests are
-		 * freed. Free the current request here.
+		 * freed.
 		 */
 		if (!port->port_usb) {
 			started = 0;
