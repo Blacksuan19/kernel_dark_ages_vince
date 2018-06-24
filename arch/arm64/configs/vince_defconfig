@@ -546,7 +546,9 @@ CONFIG_CPU_FREQ_GOV_CONSERVATIVE=y
 # CPU frequency scaling drivers
 #
 # CONFIG_CPUFREQ_DT is not set
-# CONFIG_CPU_BOOST is not set
+CONFIG_CPU_BOOST=y
+CONFIG_QUICK_THAW_FINGERPRINTD=y
+CONFIG_FINGERPRINT_BOOST=y
 
 #
 # ARM CPU frequency scaling drivers
