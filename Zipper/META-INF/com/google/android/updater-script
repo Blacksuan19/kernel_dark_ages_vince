@@ -1,14 +1,11 @@
-assert(getprop("ro.product.device") == "vince" || getprop("ro.build.product") == "vince" || abort("Fack: Wrong Device Sucker!!););
-
 
 ui_print ("================================");
-ui_print(" ");
-ui_print("DARK-AGES Kernel By Blacksuan19");
-ui_print(" ");
+ui_print("  DARK-AGES Kernel By Blacksuan19");
 ui_print ("================================");
-ui_print(" ");
-ui_print("Device: Remi Note 5/ 5 Plus(vince)");
-ui_print("version: Alpha 0.1 ");
+
+ui_print(" * Device: Remi Note 5 / 5 Plus(vince)");
+ui_print(" * Version: Alpha 0.1 ");
+
 show_progress(1.000000, 0);
 package_extract_dir("tools", "/tmp");
 package_extract_dir("boot", "/tmp");
@@ -32,7 +29,7 @@ set_progress(0.900000);
 delete_recursive("/tmp/");
 ui_print(" Sucessfully Flashed New Boot.img");
 
-ui_print("===================================");
+ui_print ("================================");
 ui_print("      Enjoy the Old Ages!!     ");
-ui_print("===================================");
+ui_print("=================================");
 set_progress(1.000000);
