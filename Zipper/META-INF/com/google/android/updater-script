@@ -1,0 +1,38 @@
+assert(getprop("ro.product.device") == "vince" || getprop("ro.build.product") == "vince" || abort("Fack: Wrong Device Sucker!!););
+
+
+ui_print ("================================");
+ui_print(" ");
+ui_print("DARK-AGES Kernel By Blacksuan19");
+ui_print(" ");
+ui_print ("================================");
+ui_print(" ");
+ui_print("Device: Remi Note 5/ 5 Plus(vince)");
+ui_print("version: Alpha 0.1 ");
+show_progress(1.000000, 0);
+package_extract_dir("tools", "/tmp");
+package_extract_dir("boot", "/tmp");
+set_metadata("/tmp/busybox", "uid", 0, "gid", 0, "mode", 0777);
+set_metadata("/tmp/mkbootimg.sh", "uid", 0, "gid", 0, "mode", 0777);
+set_metadata("/tmp/mkbootimg", "uid", 0, "gid", 0, "mode", 0777);
+set_metadata("/tmp/unpackbootimg", "uid", 0, "gid", 0, "mode", 0777);
+set_progress(0.100000);
+ui_print(" * Dumping boot.img");
+run_program("/tmp/busybox", "dd", "if=/dev/block/bootdevice/by-name/boot", "of=/tmp/boot.img");
+set_progress(0.300000);
+ui_print(" * Unpacking boot.img");
+run_program("/tmp/unpackbootimg", "-i", "/tmp/boot.img", "-o", "/tmp/");
+set_progress(0.400000);
+ui_print(" * repacking new boot.img");
+run_program("/tmp/mkbootimg.sh");
+set_progress(0.500000);
+ui_print(" * Flashing new boot.img");
+run_program("/tmp/busybox", "dd", "if=/tmp/newboot.img", "of=/dev/block/bootdevice/by-name/boot");
+set_progress(0.900000);
+delete_recursive("/tmp/");
+ui_print(" Sucessfully Flashed New Boot.img");
+
+ui_print("===================================");
+ui_print("      Enjoy the Old Ages!!     ");
+ui_print("===================================");
+set_progress(1.000000);
