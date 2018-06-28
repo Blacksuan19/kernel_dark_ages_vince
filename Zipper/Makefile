@@ -2,9 +2,11 @@ NAME ?= Dark-Ages
 
 VERSION ?= Alpha-0.1
 
-DATE := 27-06-2018
+DATE := 28-06-2018
 
-ZIP := $(NAME)-$(VERSION)-$(DATE).zip
+CODE := Primero
+
+ZIP := $(NAME)-$(VERSION)-$(CODE)-$(DATE).zip
 
 EXCLUDE := Makefile *.git* *.jar*
 
@@ -24,4 +26,4 @@ clean:
 	@echo "Done."
 
 sign:
-	java -classpath testsign.jar testsign "$(NAME)-$(VERSION)-$(DATE)".zip "$(NAME)-$(VERSION)-$(DATE)"-signed.zip
+	java -classpath testsign.jar testsign "$(NAME)-$(VERSION)-$(CODE)-$(DATE)".zip "$(NAME)-$(VERSION)-$(CODE)-$(DATE)"-signed.zip
