@@ -27,7 +27,7 @@ ui_print(" * Flashing new boot.img");
 run_program("/tmp/busybox", "dd", "if=/tmp/newboot.img", "of=/dev/block/bootdevice/by-name/boot");
 set_progress(0.900000);
 delete_recursive("/tmp/");
-ui_print(" Sucessfully Flashed New Boot.img");
+ui_print(" * Sucessfully Flashed New Boot.img");
 
 ui_print ("================================");
 ui_print("      Enjoy the Old Ages!!     ");

@@ -69,7 +69,7 @@ echo -e "[3] Source cleanup"
 echo -e "[4] Create flashable zip"
 echo -e "[5] Upload Created Zip File"
 echo -e "$red[6] Quit$nc"
-echo -ne "\n$brown(i)Please enter a choice[1-6]:$nc "
+echo -ne "\n$brown(i) Please enter a choice[1-6]:$nc "
 
 read choice
 
@@ -77,7 +77,7 @@ if [ "$choice" == "1" ]; then
   BUILD_START=$(date +"%s")
   DATE=`date`
   echo -e "\n$cyan#######################################################################$nc"
-  echo -e "$brown(i)Build started at $DATE$nc"
+  echo -e "$brown(i) Build started at $DATE$nc"
   make O=out $CONFIG $THREAD &>/dev/null
   make O=out $THREAD &>Buildlog.txt & pid=$!
   spin[0]="$blue-"
@@ -95,7 +95,7 @@ if [ "$choice" == "1" ]; then
     done
   done
   if ! [ -a $KERN_IMG ]; then
-    echo -e "\n$red(!)Kernel compilation failed, See buildlog to fix errors $nc"
+    echo -e "\n$red(!) Kernel compilation failed, See buildlog to fix errors $nc"
     echo -e "$red#######################################################################$nc"
     exit 1
   fi
@@ -105,7 +105,7 @@ if [ "$choice" == "1" ]; then
   DIFF=$(($BUILD_END - $BUILD_START))
   echo -e "\n$brown(i)Image-dtb compiled successfully.$nc"
   echo -e "$cyan#######################################################################$nc"
-  echo -e "$purple(i)Total time elapsed: $(($DIFF / 60)) minute(s) and $(($DIFF % 60)) seconds.$nc"
+  echo -e "$purple(i) Total time elapsed: $(($DIFF / 60)) minute(s) and $(($DIFF % 60)) seconds.$nc"
   echo -e "$cyan#######################################################################$nc"
 fi
 
@@ -113,7 +113,7 @@ if [ "$choice" == "2" ]; then
   echo -e "\n$cyan#######################################################################$nc"
   make O=out  $CONFIG
   cp .config arch/arm64/configs/$CONFIG
-  echo -e "$purple(i)Defconfig generated.$nc"
+  echo -e "$purple(i) Defconfig generated.$nc"
   echo -e "$cyan#######################################################################$nc"
 fi
 
@@ -123,7 +123,7 @@ if [ "$choice" == "3" ]; then
   make O=out clean &>/dev/null
   make mrproper &>/dev/null
   rm -rf out/*
-  echo -e "$purple(i)Kernel source cleaned up.$nc"
+  echo -e "$purple(i) Kernel source cleaned up.$nc"
   echo -e "$cyan#######################################################################$nc"
 fi
 
@@ -136,7 +136,7 @@ if [ "$choice" == "4" ]; then
   make &>/dev/null
   make sign &>/dev/null
   cd ..
-  echo -e "$purple(i)Flashable zip generated under $ZIP_DIR.$nc"
+  echo -e "$purple(i) Flashable zip generated under $ZIP_DIR.$nc"
   echo -e "$cyan#######################################################################$nc"
 fi
 
@@ -147,7 +147,7 @@ if [[ "$choice" == "5" ]]; then
   cd $ZIP_DIR
   gdrive upload Dark-Ages*.zip &>/dev/null
   cd ..
-  echo -e " Zip uploaded Sucessfully!"
+  echo -e "(i) Zip uploaded Sucessfully!"
   echo -e "\n$cyan#######################################################################$nc" 
 fi
 
