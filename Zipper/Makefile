@@ -1,7 +1,7 @@
 NAME ?= Dark-Ages
 
 
-DATE := $(shell date "+%d-%m-%Y")
+DATE := $(shell date "+%b-%d,%I.%M.%p")
 
 CODE := Primero
 
