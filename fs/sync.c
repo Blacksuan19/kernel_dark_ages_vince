@@ -17,6 +17,10 @@
 #include <linux/backing-dev.h>
 #include "internal.h"
 
+#ifdef CONFIG_DYNAMIC_FSYNC
+extern bool early_suspend_active;
+extern bool dyn_fsync_active;
+#endif
 
 #define VALID_FLAGS (SYNC_FILE_RANGE_WAIT_BEFORE|SYNC_FILE_RANGE_WRITE| \
 			SYNC_FILE_RANGE_WAIT_AFTER)
@@ -178,6 +182,11 @@ SYSCALL_DEFINE1(syncfs, int, fd)
  */
 int vfs_fsync_range(struct file *file, loff_t start, loff_t end, int datasync)
 {
+	#ifdef CONFIG_DYNAMIC_FSYNC
+	if (likely(dyn_fsync_active && !early_suspend_active))
+		return 0;
+	else {
+#endif
 	struct inode *inode = file->f_mapping->host;
 
 	if (!file->f_op->fsync)
@@ -189,6 +198,9 @@ int vfs_fsync_range(struct file *file, loff_t start, loff_t end, int datasync)
 		mark_inode_dirty_sync(inode);
 	}
 	return file->f_op->fsync(file, start, end, datasync);
+	#ifdef CONFIG_DYNAMIC_FSYNC
+	}
+#endif
 }
 EXPORT_SYMBOL(vfs_fsync_range);
 
@@ -222,7 +234,11 @@ static int do_fsync(unsigned int fd, int datasync)
 
 SYSCALL_DEFINE1(fsync, unsigned int, fd)
 {
-
+#ifdef CONFIG_DYNAMIC_FSYNC
+	if (likely(dyn_fsync_active && !early_suspend_active))
+		return 0;
+	else
+#endif
 	return do_fsync(fd, 0);
 }
 
@@ -282,6 +298,11 @@ SYSCALL_DEFINE1(fdatasync, unsigned int, fd)
 SYSCALL_DEFINE4(sync_file_range, int, fd, loff_t, offset, loff_t, nbytes,
 				unsigned int, flags)
 {
+#ifdef CONFIG_DYNAMIC_FSYNC
+	if (likely(dyn_fsync_active && !early_suspend_active))
+		return 0;
+	else {
+#endif
 	int ret;
 	struct fd f;
 	struct address_space *mapping;
@@ -361,6 +382,9 @@ out_put:
 	fdput(f);
 out:
 	return ret;
+#ifdef CONFIG_DYNAMIC_FSYNC
+	}
+#endif
 }
 
 /* It would be nice if people remember that not all the world's an i386
@@ -368,5 +392,10 @@ out:
 SYSCALL_DEFINE4(sync_file_range2, int, fd, unsigned int, flags,
 				 loff_t, offset, loff_t, nbytes)
 {
+	#ifdef CONFIG_DYNAMIC_FSYNC
+	if (likely(dyn_fsync_active && !early_suspend_active))
+		return 0;
+	else
+#endif
 	return sys_sync_file_range(fd, offset, nbytes, flags);
 }
