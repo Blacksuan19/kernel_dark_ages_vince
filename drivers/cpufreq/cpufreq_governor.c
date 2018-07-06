@@ -487,7 +487,7 @@ int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 			cs_dbs_info->requested_freq = policy->cur;
 			} else if (dbs_data->cdata->governor == GOV_ELEMENTALX) {
 			ex_dbs_info->down_floor = 0;
-			ex_dbs_info->enable = 1
+			ex_dbs_info->enable = 1;
 		} else if (dbs_data->cdata->governor == GOV_ALUCARD) {
 			ac_ops->get_cpu_frequency_table(cpu);
 			ac_ops->get_cpu_frequency_table_minmax(policy, cpu);

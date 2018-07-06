@@ -196,15 +196,8 @@ struct ex_cpu_dbs_info_s {
 	struct cpu_dbs_common_info cdbs;
 	unsigned int down_floor;
 	unsigned int enable:1;
+};
 
-struct ex_dbs_tuners {
-	unsigned int ignore_nice_load;
-	unsigned int sampling_rate;
-	unsigned int up_threshold;
-	unsigned int down_differential;
-	unsigned int active_floor_freq;
-	unsigned int sampling_down_factor;
-	unsigned int powersave;
 
 /* Per policy Governors sysfs tunables */
 struct od_dbs_tuners {
@@ -269,6 +262,15 @@ struct nm_dbs_tuners {
 	int freq_step_dec_at_max_freq;
 };
 
+struct ex_dbs_tuners {
+	unsigned int ignore_nice_load;
+	unsigned int sampling_rate;
+	unsigned int up_threshold;
+	unsigned int down_differential;
+	unsigned int active_floor_freq;
+	unsigned int sampling_down_factor;
+	unsigned int powersave;
+};
 /* Common Governor data across policies */
 struct dbs_data;
 struct common_dbs_data {
