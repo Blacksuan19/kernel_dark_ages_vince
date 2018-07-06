@@ -4,7 +4,7 @@ ui_print("  DARK-AGES Kernel By Blacksuan19");
 ui_print ("================================");
 
 ui_print(" * Device: Remi Note 5 / 5 Plus(vince)");
-ui_print(" * Version:  Primero v1.0 ");
+ui_print(" * Version:  Segundo ");
 
 show_progress(1.000000, 0);
 package_extract_dir("tools", "/tmp");
