@@ -203,7 +203,7 @@ static int maple_dispatch_requests(struct request_queue *q, int force)
 	}
 
 	if (!rq) {
-		if (mdata->starved > mdata->writes_starved)
+		if (mdata->starved >= mdata->writes_starved)
 			readwrite = WRITE;
 
 		rq = maple_choose_request(mdata, readwrite);
