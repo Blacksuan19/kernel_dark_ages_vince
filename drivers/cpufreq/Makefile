@@ -19,6 +19,7 @@ obj-$(CONFIG_CPU_FREQ_GOV_ALUCARD)		+= cpufreq_alucard.o
 obj-$(CONFIG_CPU_FREQ_GOV_RELAXED)	+= cpufreq_relaxed.o
 obj-$(CONFIG_CPU_FREQ_GOV_CHILL)	+= cpufreq_chill.o
 obj-$(CONFIG_CPU_FREQ_GOV_ELECTRON)	+= cpufreq_electron.o
+obj-$(CONFIG_CPU_FREQ_GOV_ELEMENTALX)	+= cpufreq_elementalx.o
 obj-$(CONFIG_CPU_BOOST)			+= cpu-boost.o
 obj-$(CONFIG_FINGERPRINT_BOOST)		+= fp-boost.o
 obj-$(CONFIG_CPUFREQ_DT)		+= cpufreq-dt.o
