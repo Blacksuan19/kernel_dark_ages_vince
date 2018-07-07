@@ -143,7 +143,6 @@ fi
 
 if [[ "$choice" == "5" ]]; then
   echo -e "\n$cyan#######################################################################$nc"
-  echo -e "$purple Uploading zip to Google Drive..."
   cd $ZIP_DIR
   gdrive upload Dark-Ages*.zip &>/dev/null
   cd ..
