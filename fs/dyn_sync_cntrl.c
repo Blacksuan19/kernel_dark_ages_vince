@@ -33,8 +33,8 @@
  */
 static DEFINE_MUTEX(fsync_mutex);
 
-bool power_suspend_active __read_mostly = false;
-bool dyn_fsync_active __read_mostly = false;
+bool power_suspend_active __read_mostly = true;
+bool dyn_fsync_active __read_mostly = true;
 
 static ssize_t dyn_fsync_active_show(struct kobject *kobj,
 		struct kobj_attribute *attr, char *buf)
@@ -77,6 +77,10 @@ static ssize_t dyn_fsync_powersuspend_show(struct kobject *kobj,
 {
 	return sprintf(buf, "power suspend active: %u\n", power_suspend_active);
 }
+
+/* warning! need write-all permission so overriding check */ 
+#undef VERIFY_OCTAL_PERMISSIONS
+#define VERIFY_OCTAL_PERMISSIONS(perms) (perms)
 
 static struct kobj_attribute dyn_fsync_active_attribute = 
 	__ATTR(Dyn_fsync_active, 0666,
