@@ -332,7 +332,7 @@ static int cpu_boost_init(void)
 	for_each_possible_cpu(cpu) {
 		s = &per_cpu(sync_info, cpu);
 		s->cpu = cpu;
-		s->input_boost_freq = 1401800;
+		s->input_boost_freq = 1401000;
 	}
 	cpufreq_register_notifier(&boost_adjust_nb, CPUFREQ_POLICY_NOTIFIER);
 	ret = input_register_handler(&cpuboost_input_handler);
