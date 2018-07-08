@@ -34,7 +34,6 @@
 
 /* Available bits for boost_policy state */
 #define DRIVER_ENABLED        (1U << 0)
-#define SCREEN_AWAKE          (1U << 1)
 #define WAKE_BOOST            (1U << 1)
 #define INPUT_BOOST           (1U << 2)
 #define INPUT_REBOOST         (1U << 3)
@@ -333,7 +332,7 @@ static void cpu_ib_input_event(struct input_handle *handle, unsigned int type,
 	state = get_boost_state(b);
 
 	if (!(state & DRIVER_ENABLED) ||
-		!(state & !SCREEN_AWAKE) ||
+		!(state & !state_suspended) ||
 		(state & WAKE_BOOST) ||
 		(state & INPUT_REBOOST))
 		return;
