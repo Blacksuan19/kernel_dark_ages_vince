@@ -34,6 +34,7 @@
 
 /* Available bits for boost_policy state */
 #define DRIVER_ENABLED        (1U << 0)
+#define SCREEN_AWAKE          (1U << 1)
 #define WAKE_BOOST            (1U << 1)
 #define INPUT_BOOST           (1U << 2)
 #define INPUT_REBOOST         (1U << 3)
@@ -103,16 +104,6 @@ static void update_online_cpu_policy(void);
 static bool validate_cpu_freq(unsigned int cpu, uint32_t *freq);
 
 static struct notifier_block notif;
-
-static inline bool cpufreq_next_valid(struct cpufreq_frequency_table **pos)
-{
-	while ((*pos)->frequency != CPUFREQ_TABLE_END)
-		if ((*pos)->frequency != CPUFREQ_ENTRY_INVALID)
-			return true;
-		else
-			(*pos)++;
-	return false;
-}
 
 static void ib_boost_main(struct work_struct *work)
 {
@@ -342,7 +333,7 @@ static void cpu_ib_input_event(struct input_handle *handle, unsigned int type,
 	state = get_boost_state(b);
 
 	if (!(state & DRIVER_ENABLED) ||
-		!(state & !state_suspended) ||
+		!(state & !SCREEN_AWAKE) ||
 		(state & WAKE_BOOST) ||
 		(state & INPUT_REBOOST))
 		return;
