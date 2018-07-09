@@ -33,18 +33,18 @@ KERN_IMG=$KERNEL_DIR/out/arch/arm64/boot/Image.gz-dtb
 ZIP_DIR=$KERNEL_DIR/Zipper
 CONFIG_DIR=$KERNEL_DIR/arch/arm64/configs
 
-#Export
+
+#clang
+#export TARGET_KERNEL_CLANG_PATH="$PWD/linaro/android-ndk-r17b/toolchains/llvm/prebuilt/linux-x86_64"
+export CC="$PWD/linaro/android-ndk-r17b/toolchains/llvm/prebuilt/linux-x86_64/bin/clang"
+export CLANG_TRIPLE=aarch64-linux-gnu-
+
+#Exports
 export CROSS_COMPILE="$PWD/linaro/android-ndk-r17b/toolchains/aarch64-linux-android-4.9/prebuilt/linux-x86_64/bin/aarch64-linux-android-"
 export ARCH=arm64
 export SUBARCH=arm64
 export KBUILD_BUILD_USER="Blacksuan19"
 export KBUILD_BUILD_HOST="Dark-Castle"
-
-#clang
-#export TARGET_KERNEL_CLANG_COMPILE := true
-#export TARGET_KERNEL_CLANG_VERSION := 7.0.2
-#export TARGET_KERNEL_CLANG_PATH=
-
 
 #Misc
 CONFIG=vince_defconfig
@@ -146,8 +146,8 @@ if [[ "$choice" == "5" ]]; then
   cd $ZIP_DIR
   gdrive upload Dark-Ages*.zip &>/dev/null
   cd ..
-  echo -e "(i) Zip uploaded Sucessfully!"
-  echo -e "\n$cyan#######################################################################$nc" 
+  echo -e "$purple(i) Zip uploaded Sucessfully!"
+  echo -e "$cyan#######################################################################$nc" 
 fi
 
 if [ "$choice" == "6" ]; then
