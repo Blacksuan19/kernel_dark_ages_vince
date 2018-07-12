@@ -35,7 +35,8 @@ CONFIG_DIR=$KERNEL_DIR/arch/arm64/configs
 
 
 #clang
-#export TARGET_KERNEL_CLANG_PATH="$PWD/linaro/android-ndk-r17b/toolchains/llvm/prebuilt/linux-x86_64"
+export TARGET_KERNEL_CLANG_COMPILE=true
+export TARGET_KERNEL_CLANG_PATH="$PWD/linaro/android-ndk-r17b/toolchains/llvm/prebuilt/linux-x86_64"
 export CC="$PWD/linaro/android-ndk-r17b/toolchains/llvm/prebuilt/linux-x86_64/bin/clang"
 export CLANG_TRIPLE=aarch64-linux-gnu-
 
