@@ -35,9 +35,9 @@ CONFIG_DIR=$KERNEL_DIR/arch/arm64/configs
 
 
 #clang
-export TARGET_KERNEL_CLANG_COMPILE=true
-export TARGET_KERNEL_CLANG_PATH="$PWD/linaro/android-ndk-r17b/toolchains/llvm/prebuilt/linux-x86_64"
-export CC="$PWD/linaro/android-ndk-r17b/toolchains/llvm/prebuilt/linux-x86_64/bin/clang"
+export CLANG_COMPILE=true
+export CLANG_PATH="$PWD/linaro/android-ndk-r17b/toolchains/llvm/prebuilt/linux-x86_64"
+export PATH=${CLANG_PATH}:${PATH}
 export CLANG_TRIPLE=aarch64-linux-gnu-
 
 #Exports
@@ -79,8 +79,8 @@ if [ "$choice" == "1" ]; then
   DATE=`date`
   echo -e "\n$cyan#######################################################################$nc"
   echo -e "$brown(i) Build started at $DATE$nc"
-  make O=out $CONFIG $THREAD &>/dev/null
-  make O=out $THREAD &>Buildlog.txt & pid=$!
+  make CC="$PWD/linaro/android-ndk-r17b/toolchains/llvm/prebuilt/linux-x86_64/bin/clang" O=out $CONFIG $THREAD &>/dev/null
+  make CC="$PWD/linaro/android-ndk-r17b/toolchains/llvm/prebuilt/linux-x86_64/bin/clang" O=out $THREAD &>Buildlog.txt & pid=$!
   spin[0]="$blue-"
   spin[1]="\\"
   spin[2]="|"
