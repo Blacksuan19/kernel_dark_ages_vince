@@ -36,12 +36,9 @@ CONFIG_DIR=$KERNEL_DIR/arch/arm64/configs
 
 #clang
 export CLANG_COMPILE=true
-export CLANG_PATH="$PWD/linaro/android-ndk-r17b/toolchains/llvm/prebuilt/linux-x86_64"
-export PATH=${CLANG_PATH}:${PATH}
 export CLANG_TRIPLE=aarch64-linux-gnu-
 
 #Exports
-export CROSS_COMPILE="$PWD/linaro/android-ndk-r17b/toolchains/aarch64-linux-android-4.9/prebuilt/linux-x86_64/bin/aarch64-linux-android-"
 export ARCH=arm64
 export SUBARCH=arm64
 export KBUILD_BUILD_USER="Blacksuan19"
@@ -75,18 +72,48 @@ echo -ne "\n$brown(i) Please enter a choice[1-6]:$nc "
 read choice
 
 if [ "$choice" == "1" ]; then
+  echo -e "\n$green[1] Stock GCC"
+  echo -e "[2] Linaro"
+  echo -e "[3] Stock Clang"
+  echo -e "[4] DragonTC"
+  echo -ne "\n$brown(i) Select Toolchain:$nc "
+  read TC
   BUILD_START=$(date +"%s")
   DATE=`date`
   echo -e "\n$cyan#######################################################################$nc"
   echo -e "$brown(i) Build started at $DATE$nc"
-  make CC="$PWD/linaro/android-ndk-r17b/toolchains/llvm/prebuilt/linux-x86_64/bin/clang" O=out $CONFIG $THREAD &>/dev/null
-  make CC="$PWD/linaro/android-ndk-r17b/toolchains/llvm/prebuilt/linux-x86_64/bin/clang" O=out $THREAD &>Buildlog.txt & pid=$!
+
+  if [[ "$TC" == "1" ]]; then
+  export CROSS_COMPILE="~/toolchains/stock/aarch64-linux-android-4.9/prebuilt/linux-x86_64/bin/aarch64-linux-android-"
+  make  O=out $CONFIG $THREAD &>/dev/null
+  make  O=out $THREAD &>Buildlog.txt & pid=$!   
+  fi
+
+  if [[ "$TC" == "2" ]]; then
+  export CROSS_COMPILE="~/toolchains/linaro8/bin/aarch64-linux-gnu-"
+  make  O=out $CONFIG $THREAD &>/dev/null
+  make  O=out $THREAD &>Buildlog.txt & pid=$!   
+  fi
+
+  if [[ "$TC" == "3" ]]; then
+  export CLANG_PATH="~/toolchains/stock/llvm/prebuilt/linux-x86_64"
+  export PATH=${CLANG_PATH}:${PATH}
+  make CC="~/toolchains/stock/llvm/prebuilt/linux-x86_64/bin/clang" O=out $CONFIG $THREAD &>/dev/null
+  make CC="~/toolchains/stock/llvm/prebuilt/linux-x86_64/bin/clang" O=out $THREAD &>Buildlog.txt & pid=$! 
+  fi
+
+  if [[ "$TC" == "4" ]]; then
+  export CLANG_PATH="~/toolchains/dragontc-7.0"
+  export PATH=${CLANG_PATH}:${PATH}
+  make CC="~/toolchains/dragontc-7.0/bin" O=out $CONFIG $THREAD &>/dev/null
+  make CC="~/toolchains/dragontc-7.0/bin" O=out $THREAD &>Buildlog.txt & pid=$! 
+  fi
   spin[0]="$blue-"
   spin[1]="\\"
   spin[2]="|"
   spin[3]="/$nc"
 
-  echo -ne "$blue[Please wait...] ${spin[0]}$nc"
+  echo -ne "\n$blue[Please wait...] ${spin[0]}$nc"
   while kill -0 $pid &>/dev/null
   do
     for i in "${spin[@]}"
