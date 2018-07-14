@@ -1,7 +1,7 @@
 NAME ?= Dark-Ages
 
 
-DATE := $(shell date "+%b-%d,%I.%M.%p")
+DATE := $(shell date "+%d%m%y-%I%M")
 
 CODE := Segundo
 
