@@ -1,0 +1,15 @@
+config ASMP
+ 	bool "Multi-core automatic hotplug support"
+ 	depends on SMP
+ 	default n
+ 	help
+ 	Automatically hotplugs the multiple cpu cores on and off
+ 	based on cpu load and suspend stat
+
+          Note that this will BREAK any runtime patching of the kernel text
+          (i.e. anything that uses apply_alternatives,
+          aarch64_insn_patch_text_nosync, etc. including the various CPU
+          errata workarounds in arch/arm64/kernel/cpu_errata.c).
+
+	  For MPU based protection-enabled targets please refer to
+	  MSM_KERNEL_PROTECT_MPU
