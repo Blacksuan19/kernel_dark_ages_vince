@@ -40,7 +40,7 @@
 					type = "ext4";
 					mnt_flags = "ro,barrier=1,discard";
 					fsmgr_flags = "wait";
-					status = "disabled";
+					status = "ok";
 				};
 
 
