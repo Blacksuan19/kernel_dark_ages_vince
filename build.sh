@@ -72,16 +72,32 @@ echo -ne "\n$brown(i) Please enter a choice[1-6]:$nc "
 read choice
 
 if [ "$choice" == "1" ]; then
-  echo -e "\n$green[1] Stock GCC"
-  echo -e "[2] Linaro"
-  echo -e "[3] Stock Clang"
-  echo -e "[4] DragonTC"
-  echo -ne "\n$brown(i) Select Toolchain:$nc "
-  read TC
-  BUILD_START=$(date +"%s")
-  DATE=`date`
-  echo -e "\n$cyan#######################################################################$nc"
-  echo -e "$brown(i) Build started at $DATE$nc"
+  echo -e "\n$green[1] Non-Treble"
+  echo -e "[2] Treble"
+  echo -ne "\n$brown(i) Select Kernel Variant[1-2]:$nc "
+read type
+  if [[ "$type" == "1" ]]; then
+    #change branch to non treble before proceeding
+    git checkout darky-beta &>/dev/null #yeah still beta
+    echo -e "$blue\nSwitched to Non-Treble Branch"
+  fi
+
+  if [[ "$type" == "2" ]]; then
+    #change branch to  treble before proceeding
+    git checkout darky-treble &>/dev/null #yeah still beta
+    echo -e "$blue\nSwitched to Treble Branch"
+  fi
+  
+echo -e "\n$green[1] Stock GCC"
+echo -e "[2] Linaro"
+echo -e "[3] Stock Clang"
+echo -e "[4] DragonTC"
+echo -ne "\n$brown(i) Select Toolchain[1-4]:$nc "
+read TC
+BUILD_START=$(date +"%s")
+DATE=`date`
+echo -e "\n$cyan#######################################################################$nc"
+echo -e "$brown(i) Build started at $DATE$nc"
 
   if [[ "$TC" == "1" ]]; then
   export CROSS_COMPILE="~/toolchains/stock/aarch64-linux-android-4.9/prebuilt/linux-x86_64/bin/aarch64-linux-android-"
