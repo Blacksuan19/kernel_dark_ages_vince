@@ -26,3 +26,6 @@ clean:
 
 sign:
 	java -classpath testsign.jar testsign "$(NAME)-$(CODE)-$(DATE)".zip "$(NAME)-$(CODE)-$(DATE)"-signed.zip
+
+sign-treble:
+	java -classpath testsign.jar testsign "$(NAME)-$(CODE)-$(DATE)".zip "$(NAME)-$(CODE)-treble-$(DATE)"-signed.zip
