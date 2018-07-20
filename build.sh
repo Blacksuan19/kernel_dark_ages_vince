@@ -78,13 +78,13 @@ if [ "$choice" == "1" ]; then
 read type
   if [[ "$type" == "1" ]]; then
     #change branch to non treble before proceeding
-    git checkout darky-beta &>/dev/null # yeah still beta
+    git checkout darky &>/dev/null
     echo -e "$blue\nSwitched to Non-Treble Branch"
   fi
 
   if [[ "$type" == "2" ]]; then
     #change branch to  treble before proceeding
-    git checkout darky-treble &>/dev/null # yeah still beta
+    git checkout darky-treble &>/dev/null
     echo -e "$blue\nSwitched to Treble Branch"
   fi
   
