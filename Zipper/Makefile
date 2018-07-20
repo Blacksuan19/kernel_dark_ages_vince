@@ -6,13 +6,22 @@ DATE := $(shell date "+%d%m%y-%I%M")
 CODE := Segundo
 
 ZIP := $(NAME)-$(CODE)-$(DATE).zip
+TZIP := $(NAME)-$(CODE)-Treble-$(DATE).zip
 
 EXCLUDE := Makefile *.git* *.jar*
 
-all: $(ZIP)
-
+normal: $(ZIP)
+treble: $(TZIP)
 $(ZIP):
 	@echo "Creating ZIP: $(ZIP)"
+	@zip -r9 "$@" . -x $(EXCLUDE)
+	@echo "Generating SHA1..."
+	@sha1sum "$@" > "$@.sha1"
+	@cat "$@.sha1"
+	@echo "Done."
+
+$(TZIP):
+	@echo "Creating ZIP: $(TZIP)"
 	@zip -r9 "$@" . -x $(EXCLUDE)
 	@echo "Generating SHA1..."
 	@sha1sum "$@" > "$@.sha1"
@@ -27,5 +36,3 @@ clean:
 sign:
 	java -classpath testsign.jar testsign "$(NAME)-$(CODE)-$(DATE)".zip "$(NAME)-$(CODE)-$(DATE)"-signed.zip
 
-sign-treble:
-	java -classpath testsign.jar testsign "$(NAME)-$(CODE)-$(DATE)".zip "$(NAME)-$(CODE)-treble-$(DATE)"-signed.zip

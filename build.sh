@@ -183,12 +183,11 @@ if [ "$choice" == "4" ]; then
   cd $ZIP_DIR
   make clean &>/dev/null
   cp $KERN_IMG $ZIP_DIR/boot/zImage
-  make &>/dev/null
   if [[ "$type" == "1" ]]; then
-  make sign &>/dev/null
+    make normal &>/dev/null
   fi
-    if [[ "$type" == "2" ]]; then
-  make sign-treble &>/dev/null
+  if [[ "$type" == "2" ]]; then
+    make treble &>/dev/null
   fi
   cd ..
   echo -e "$purple(i) Flashable zip generated under $ZIP_DIR.$nc"
