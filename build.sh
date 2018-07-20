@@ -78,13 +78,13 @@ if [ "$choice" == "1" ]; then
 read type
   if [[ "$type" == "1" ]]; then
     #change branch to non treble before proceeding
-    git checkout darky-beta &>/dev/null #yeah still beta
+    git checkout darky-beta &>/dev/null # yeah still beta
     echo -e "$blue\nSwitched to Non-Treble Branch"
   fi
 
   if [[ "$type" == "2" ]]; then
     #change branch to  treble before proceeding
-    git checkout darky-treble &>/dev/null #yeah still beta
+    git checkout darky-treble &>/dev/null # yeah still beta
     echo -e "$blue\nSwitched to Treble Branch"
   fi
   
@@ -100,29 +100,35 @@ echo -e "\n$cyan################################################################
 echo -e "$brown(i) Build started at $DATE$nc"
 
   if [[ "$TC" == "1" ]]; then
-  export CROSS_COMPILE="~/toolchains/stock/aarch64-linux-android-4.9/prebuilt/linux-x86_64/bin/aarch64-linux-android-"
+  export CROSS_COMPILE="~/toolchains/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-"
   make  O=out $CONFIG $THREAD &>/dev/null
   make  O=out $THREAD &>Buildlog.txt & pid=$!   
   fi
 
   if [[ "$TC" == "2" ]]; then
-  export CROSS_COMPILE="~/toolchains/linaro8/bin/aarch64-linux-gnu-"
+  export CROSS_COMPILE="~/toolchains/linaro8/bin/aarch64-opt-linux-android-"
   make  O=out $CONFIG $THREAD &>/dev/null
   make  O=out $THREAD &>Buildlog.txt & pid=$!   
   fi
 
   if [[ "$TC" == "3" ]]; then
-  export CLANG_PATH="~/toolchains/stock/llvm/prebuilt/linux-x86_64"
+  export CLANG_PATH="~/toolchains/linux-x86/clang-4053586"
   export PATH=${CLANG_PATH}:${PATH}
-  make CC="~/toolchains/stock/llvm/prebuilt/linux-x86_64/bin/clang" O=out $CONFIG $THREAD &>/dev/null
-  make CC="~/toolchains/stock/llvm/prebuilt/linux-x86_64/bin/clang" O=out $THREAD &>Buildlog.txt & pid=$! 
+  make O=out $CONFIG $THREAD &>/dev/null  \
+               CC="~/toolchains/linux-x86/clang-4053586/bin/clang"  \
+               CROSS_COMPILE="~/toolchains/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-" 
+  make O=out $THREAD &>Buildlog.txt & pid=$! \
+               CC="~/toolchains/linux-x86/clang-4053586/bin/clang"  \
+               CROSS_COMPILE="~/toolchains/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-" 
+
   fi
 
   if [[ "$TC" == "4" ]]; then
   export CLANG_PATH="~/toolchains/dragontc-7.0"
   export PATH=${CLANG_PATH}:${PATH}
-  make CC="~/toolchains/dragontc-7.0/bin" O=out $CONFIG $THREAD &>/dev/null
-  make CC="~/toolchains/dragontc-7.0/bin" O=out $THREAD &>Buildlog.txt & pid=$! 
+  make O=out $CONFIG $THREAD &>/dev/null \
+  CC="~/toolchains/dragontc-7.0/bin/clang" 
+  make CC="~/toolchains/dragontc-7.0/bin/clang" O=out $THREAD &>Buildlog.txt & pid=$! 
   fi
   spin[0]="$blue-"
   spin[1]="\\"
