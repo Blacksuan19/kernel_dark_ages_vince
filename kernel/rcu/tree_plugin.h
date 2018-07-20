@@ -1595,8 +1595,9 @@ static void rcu_idle_count_callbacks_posted(void)
  */
 #define RCU_IDLE_FLUSHES 5		/* Number of dyntick-idle tries. */
 #define RCU_IDLE_OPT_FLUSHES 3		/* Optional dyntick-idle tries. */
-#define RCU_IDLE_GP_DELAY 4		/* Roughly one grace period. */
-#define RCU_IDLE_LAZY_GP_DELAY (6 * HZ)	/* Roughly six seconds. */
+#define RCU_IDLE_GP_DELAY 12		/* Roughly one grace period. */
+#define RCU_IDLE_LAZY_GP_DELAY (18 * HZ)	/* Roughly six seconds. */
+
 
 static int rcu_idle_flushes = RCU_IDLE_FLUSHES;
 module_param(rcu_idle_flushes, int, 0644);

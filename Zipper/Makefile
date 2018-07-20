@@ -1,19 +1,27 @@
 NAME ?= Dark-Ages
 
-VERSION ?= Alpha-0.1
 
-DATE := 28-06-2018
+DATE := $(shell date "+%d%m%y-%I%M")
 
-CODE := Primero
+CODE := Segundo
 
-ZIP := $(NAME)-$(VERSION)-$(CODE)-$(DATE).zip
+ZIP := $(NAME)-$(CODE)-$(DATE).zip
+TZIP := $(NAME)-$(CODE)-Treble-$(DATE).zip
 
 EXCLUDE := Makefile *.git* *.jar*
 
-all: $(ZIP)
-
+normal: $(ZIP)
+treble: $(TZIP)
 $(ZIP):
 	@echo "Creating ZIP: $(ZIP)"
+	@zip -r9 "$@" . -x $(EXCLUDE)
+	@echo "Generating SHA1..."
+	@sha1sum "$@" > "$@.sha1"
+	@cat "$@.sha1"
+	@echo "Done."
+
+$(TZIP):
+	@echo "Creating ZIP: $(TZIP)"
 	@zip -r9 "$@" . -x $(EXCLUDE)
 	@echo "Generating SHA1..."
 	@sha1sum "$@" > "$@.sha1"
@@ -26,4 +34,5 @@ clean:
 	@echo "Done."
 
 sign:
-	java -classpath testsign.jar testsign "$(NAME)-$(VERSION)-$(CODE)-$(DATE)".zip "$(NAME)-$(VERSION)-$(CODE)-$(DATE)"-signed.zip
+	java -classpath testsign.jar testsign "$(NAME)-$(CODE)-$(DATE)".zip "$(NAME)-$(CODE)-$(DATE)"-signed.zip
+

@@ -1143,3 +1143,5 @@ config BOOT_INFO
 	  bootloader to kernel. eg. powerup reason.
 
 source "arch/arm64/mm/Kconfig"
+
+source "arch/arm64/hotplugs/Kconfig"

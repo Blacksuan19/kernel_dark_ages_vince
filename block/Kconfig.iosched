@@ -32,6 +32,10 @@ config IOSCHED_DEADLINE
 	  a new point in the service tree and doing a batch of IO from there
 	  in case of expiry.
 
+config IOSCHED_MAPLE
+	tristate "Maple I/O scheduler"
+	default y
+
 config IOSCHED_CFQ
 	tristate "CFQ I/O scheduler"
 	default y
@@ -43,12 +47,20 @@ config IOSCHED_CFQ
 
 	  This is the default I/O scheduler.
 
+config IOSCHED_ZEN
+	tristate "Zen I/O scheduler"
+	default y
+	---help---
+	  FCFS, dispatches are back-inserted, deadlines ensure fairness.
+	  Should work best with devices where there is no travel delay.
+
 config CFQ_GROUP_IOSCHED
 	bool "CFQ Group Scheduling support"
 	depends on IOSCHED_CFQ && BLK_CGROUP
 	default n
 	---help---
 	  Enable group IO scheduling in CFQ.
+
 
 config IOSCHED_BFQ
 	tristate "BFQ I/O scheduler"
@@ -65,9 +77,20 @@ config BFQ_GROUP_IOSCHED
 	depends on IOSCHED_BFQ && BLK_CGROUP
 	default n
 	---help---
-
 	Enable hierarchical scheduling in BFQ, using the blkio
 	(cgroups-v1) or io (cgroups-v2) controller.
+
+config IOSCHED_SWITCHER
+	bool "Use Noop while the screen is off"
+	depends on IOSCHED_NOOP
+	---help---
+	  This enables a driver that switches the I/O scheduler for a single
+	  block device to Noop when the screen turns off, and back to its
+	  original I/O scheduler after a delay when the screen is turned back
+	  on. It requires being manually initialized from a different driver
+	  in order to grab the request_queue pointer that should have its I/O
+	  scheduler switched to Noop when the screen turns off.
+
 
 choice
 	prompt "Default I/O scheduler"
@@ -84,16 +107,15 @@ choice
 
 	config DEFAULT_BFQ
 		bool "BFQ" if IOSCHED_BFQ=y
-		help
-		  Selects BFQ as the default I/O scheduler which will be
-		  used by default for all block devices.
-		  The BFQ I/O scheduler aims at distributing the bandwidth
-		  as desired, independently of the disk parameters and with
-		  any workload. It also tries to guarantee low latency to
-		  interactive and soft real-time applications.
+
+	config DEFAULT_MAPLE
+		bool "Maple" if IOSCHED_MAPLE=y
 
 	config DEFAULT_NOOP
 		bool "No-op"
+
+	config DEFAULT_ZEN
+		bool "ZEN" if IOSCHED_ZEN=y
 
 endchoice
 
@@ -103,6 +125,7 @@ config DEFAULT_IOSCHED
 	default "cfq" if DEFAULT_CFQ
 	default "bfq" if DEFAULT_BFQ
 	default "noop" if DEFAULT_NOOP
+	default "zen" if DEFAULT_ZEN
 
 endmenu
 

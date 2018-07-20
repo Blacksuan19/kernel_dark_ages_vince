@@ -22,12 +22,18 @@
 #include <linux/qpnp/pwm.h>
 #include <linux/err.h>
 #include <linux/string.h>
+#include <linux/display_state.h>
 
 #include "mdss_dsi.h"
 #ifdef TARGET_HW_MDSS_HDMI
 #include "mdss_dba_utils.h"
 #endif
 #include "mdss_livedisplay.h"
+
+#ifdef CONFIG_POWERSUSPEND
+#include <linux/powersuspend.h>
+#endif
+
 #define DT_CMD_HDR 6
 #define MIN_REFRESH_RATE 48
 #define DEFAULT_MDP_TRANSFER_TIME 14000
@@ -38,6 +44,12 @@ struct mdss_dsi_ctrl_pdata *change_par_ctrl ;
 int change_par_buf;
 int LCM_effect[3] = {0x2, 0xf0, 0xf00};
 DEFINE_LED_TRIGGER(bl_led_trigger);
+
+bool display_on = true;
+bool is_display_on()
+{
+	return display_on;
+}
 
 void mdss_dsi_panel_pwm_cfg(struct mdss_dsi_ctrl_pdata *ctrl)
 {
@@ -882,6 +894,10 @@ static int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 		return -EINVAL;
 	}
 
+#ifdef CONFIG_POWERSUSPEND
+	set_power_suspend_state_panel_hook(POWER_SUSPEND_INACTIVE);
+#endif
+
 	pinfo = &pdata->panel_info;
 	ctrl = container_of(pdata, struct mdss_dsi_ctrl_pdata,
 				panel_data);
@@ -978,25 +994,6 @@ end:
 	return ret;
 }
 
-#ifdef TARGET_HW_MDSS_HDMI
-static void mdss_dsi_post_panel_on_hdmi(struct mdss_panel_info *pinfo)
-{
-	u32 vsync_period = 0;
-
-	if (pinfo->is_dba_panel && pinfo->is_pluggable) {
-		/* ensure at least 1 frame transfers to down stream device */
-		vsync_period = (MSEC_PER_SEC / pinfo->mipi.frame_rate) + 1;
-		msleep(vsync_period);
-		mdss_dba_utils_hdcp_enable(pinfo->dba_data, true);
-	}
-}
-#else
-static void mdss_dsi_post_panel_on_hdmi(struct mdss_panel_info *pinfo)
-{
-	(void)(*pinfo);
-}
-#endif
-
 static int mdss_dsi_post_panel_on(struct mdss_panel_data *pdata)
 {
 	struct mdss_dsi_ctrl_pdata *ctrl = NULL;
@@ -1025,7 +1022,14 @@ static int mdss_dsi_post_panel_on(struct mdss_panel_data *pdata)
 		mdss_dsi_panel_cmds_send(ctrl, cmds, CMD_REQ_COMMIT);
 	}
 
-	mdss_dsi_post_panel_on_hdmi(pinfo);
+		if (ctrl->ds_registered && pinfo->is_pluggable) {
+		mdss_dba_utils_video_off(pinfo->dba_data);
+		mdss_dba_utils_hdcp_enable(pinfo->dba_data, false);
+	}
+    
+#ifdef CONFIG_POWERSUSPEND
+	set_power_suspend_state_panel_hook(POWER_SUSPEND_ACTIVE);
+#endif
 
 end:
 	pr_debug("%s:-\n", __func__);
@@ -1076,6 +1080,8 @@ static int mdss_dsi_panel_off(struct mdss_panel_data *pdata)
 
 	mdss_dsi_panel_off_hdmi(ctrl, pinfo);
 
+	display_on = false;
+
 end:
 	/* clear idle state */
 	ctrl->idle = false;
@@ -1093,6 +1099,8 @@ static int mdss_dsi_panel_low_power_config(struct mdss_panel_data *pdata,
 		pr_err("%s: Invalid input data\n", __func__);
 		return -EINVAL;
 	}
+
+	display_on = true;
 
 	pinfo = &pdata->panel_info;
 	ctrl = container_of(pdata, struct mdss_dsi_ctrl_pdata,

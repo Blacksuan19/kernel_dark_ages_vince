@@ -3,8 +3,8 @@ ui_print ("================================");
 ui_print("  DARK-AGES Kernel By Blacksuan19");
 ui_print ("================================");
 
-ui_print(" * Device: Remi Note 5 / 5 Plus(vince)");
-ui_print(" * Version:  Primero v1.0 ");
+ui_print(" * Device: Redmi Note 5/5 Plus(vince)");
+ui_print(" * Version: Segundo ");
 
 show_progress(1.000000, 0);
 package_extract_dir("tools", "/tmp");
@@ -27,7 +27,7 @@ ui_print(" * Flashing new boot.img");
 run_program("/tmp/busybox", "dd", "if=/tmp/newboot.img", "of=/dev/block/bootdevice/by-name/boot");
 set_progress(0.900000);
 delete_recursive("/tmp/");
-ui_print(" Sucessfully Flashed New Boot.img");
+ui_print(" * Sucessfully Flashed New Boot.img");
 
 ui_print ("================================");
 ui_print("      Enjoy the Old Ages!!     ");
