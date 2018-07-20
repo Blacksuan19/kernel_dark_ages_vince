@@ -89,7 +89,7 @@ read type
   fi
   
 echo -e "\n$green[1] Stock GCC"
-echo -e "[2] Linaro"
+echo -e "[2] Custom GCC"
 echo -e "[3] Stock Clang"
 echo -e "[4] DragonTC"
 echo -ne "\n$brown(i) Select Toolchain[1-4]:$nc "
