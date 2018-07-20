@@ -100,35 +100,35 @@ echo -e "\n$cyan################################################################
 echo -e "$brown(i) Build started at $DATE$nc"
 
   if [[ "$TC" == "1" ]]; then
-  export CROSS_COMPILE="~/toolchains/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-"
+  export CROSS_COMPILE="$PWD/toolchains/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-"
   make  O=out $CONFIG $THREAD &>/dev/null
   make  O=out $THREAD &>Buildlog.txt & pid=$!   
   fi
 
   if [[ "$TC" == "2" ]]; then
-  export CROSS_COMPILE="~/toolchains/linaro8/bin/aarch64-opt-linux-android-"
+  export CROSS_COMPILE="$PWD/toolchains/linaro8/bin/aarch64-opt-linux-android-"
   make  O=out $CONFIG $THREAD &>/dev/null
   make  O=out $THREAD &>Buildlog.txt & pid=$!   
   fi
 
   if [[ "$TC" == "3" ]]; then
-  export CLANG_PATH="~/toolchains/linux-x86/clang-4053586"
+  export CLANG_PATH="$PWD/toolchains/linux-x86/clang-4053586"
   export PATH=${CLANG_PATH}:${PATH}
   make O=out $CONFIG $THREAD &>/dev/null  \
-               CC="~/toolchains/linux-x86/clang-4053586/bin/clang"  \
-               CROSS_COMPILE="~/toolchains/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-" 
+               CC="$PWD/toolchains/linux-x86/clang-4053586/bin/clang"  \
+               CROSS_COMPILE="$PWD/toolchains/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-" 
   make O=out $THREAD &>Buildlog.txt & pid=$! \
-               CC="~/toolchains/linux-x86/clang-4053586/bin/clang"  \
-               CROSS_COMPILE="~/toolchains/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-" 
+               CC="$PWD/toolchains/linux-x86/clang-4053586/bin/clang"  \
+               CROSS_COMPILE="$PWD/toolchains/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-" 
 
   fi
 
   if [[ "$TC" == "4" ]]; then
-  export CLANG_PATH="~/toolchains/dragontc-7.0"
+  export CLANG_PATH="$PWD/toolchains/dragontc-7.0"
   export PATH=${CLANG_PATH}:${PATH}
   make O=out $CONFIG $THREAD &>/dev/null \
-  CC="~/toolchains/dragontc-7.0/bin/clang" 
-  make CC="~/toolchains/dragontc-7.0/bin/clang" O=out $THREAD &>Buildlog.txt & pid=$! 
+  CC="$PWD/toolchains/dragontc-7.0/bin/clang" 
+  make CC="$PWD/toolchains/dragontc-7.0/bin/clang" O=out $THREAD &>Buildlog.txt & pid=$! 
   fi
   spin[0]="$blue-"
   spin[1]="\\"
@@ -184,10 +184,10 @@ if [ "$choice" == "4" ]; then
   make clean &>/dev/null
   cp $KERN_IMG $ZIP_DIR/boot/zImage
   make &>/dev/null
-  if [[ type = "1" ]]; then
+  if [[ "$type" == "1" ]]; then
   make sign &>/dev/null
   fi
-    if [[ type = "2" ]]; then
+    if [[ "$type" == "2" ]]; then
   make sign-treble &>/dev/null
   fi
   cd ..
