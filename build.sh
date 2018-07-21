@@ -144,6 +144,7 @@ echo -e "$brown(i) Build started at $DATE$nc"
           sleep 0.1
     done
   done
+
   if ! [ -a $KERN_IMG ]; then
     echo -e "\n$red(!) Kernel compilation failed, See buildlog to fix errors $nc"
     echo -e "$red#######################################################################$nc"
@@ -183,11 +184,17 @@ if [ "$choice" == "4" ]; then
   cd $ZIP_DIR
   make clean &>/dev/null
   cp $KERN_IMG $ZIP_DIR/boot/zImage
-  if [[ "$type" == "1" ]]; then
+  if [[ "$type" == "1" && "$TC" == "1" || "$TC" == "2" ]]; then
     make normal &>/dev/null
   fi
-  if [[ "$type" == "2" ]]; then
+  if [[ "$type" == "1" && "$TC" == "3" || "$TC" == "4" ]]; then
+    make nclang &>/dev/null
+  fi
+  if [[ "$type" == "2" && "$TC" == "1" || "$TC" == "2" ]]; then
     make treble &>/dev/null
+  fi
+    if [[ "$type" == "2" && "$TC" == "3" || "$TC" == "4" ]]; then
+    make tclang &>/dev/null
   fi
   cd ..
   echo -e "$purple(i) Flashable zip generated under $ZIP_DIR.$nc"
