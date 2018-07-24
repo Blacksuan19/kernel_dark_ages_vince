@@ -72,41 +72,63 @@ echo -ne "\n$brown(i) Please enter a choice[1-6]:$nc "
 read choice
 
 if [ "$choice" == "1" ]; then
-  echo -e "\n$green[1] Stock GCC"
-  echo -e "[2] Linaro"
-  echo -e "[3] Stock Clang"
-  echo -e "[4] DragonTC"
-  echo -ne "\n$brown(i) Select Toolchain:$nc "
-  read TC
-  BUILD_START=$(date +"%s")
-  DATE=`date`
-  echo -e "\n$cyan#######################################################################$nc"
-  echo -e "$brown(i) Build started at $DATE$nc"
+  echo -e "\n$green[1] Non-Treble"
+  echo -e "[2] Treble"
+  echo -ne "\n$brown(i) Select Kernel Variant[1-2]:$nc "
+read type
+  if [[ "$type" == "1" ]]; then
+    #change branch to non treble before proceeding
+    git checkout darky &>/dev/null
+    echo -e "$blue\nSwitched to Non-Treble Branch"
+  fi
+
+  if [[ "$type" == "2" ]]; then
+    #change branch to  treble before proceeding
+    git checkout darky-treble &>/dev/null
+    echo -e "$blue\nSwitched to Treble Branch"
+  fi
+  
+echo -e "\n$green[1] Stock GCC"
+echo -e "[2] Custom GCC"
+echo -e "[3] Stock Clang"
+echo -e "[4] DragonTC"
+echo -ne "\n$brown(i) Select Toolchain[1-4]:$nc "
+read TC
+BUILD_START=$(date +"%s")
+DATE=`date`
+echo -e "\n$cyan#######################################################################$nc"
+echo -e "$brown(i) Build started at $DATE$nc"
 
   if [[ "$TC" == "1" ]]; then
-  export CROSS_COMPILE="~/toolchains/stock/aarch64-linux-android-4.9/prebuilt/linux-x86_64/bin/aarch64-linux-android-"
+  export CROSS_COMPILE="$PWD/toolchains/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-"
   make  O=out $CONFIG $THREAD &>/dev/null
   make  O=out $THREAD &>Buildlog.txt & pid=$!   
   fi
 
   if [[ "$TC" == "2" ]]; then
-  export CROSS_COMPILE="~/toolchains/linaro8/bin/aarch64-linux-gnu-"
+  export CROSS_COMPILE="$PWD/toolchains/linaro8/bin/aarch64-opt-linux-android-"
   make  O=out $CONFIG $THREAD &>/dev/null
   make  O=out $THREAD &>Buildlog.txt & pid=$!   
   fi
 
   if [[ "$TC" == "3" ]]; then
-  export CLANG_PATH="~/toolchains/stock/llvm/prebuilt/linux-x86_64"
+  export CLANG_PATH="$PWD/toolchains/linux-x86/clang-4053586"
   export PATH=${CLANG_PATH}:${PATH}
-  make CC="~/toolchains/stock/llvm/prebuilt/linux-x86_64/bin/clang" O=out $CONFIG $THREAD &>/dev/null
-  make CC="~/toolchains/stock/llvm/prebuilt/linux-x86_64/bin/clang" O=out $THREAD &>Buildlog.txt & pid=$! 
+  make O=out $CONFIG $THREAD &>/dev/null  \
+               CC="$PWD/toolchains/linux-x86/clang-4053586/bin/clang"  \
+               CROSS_COMPILE="$PWD/toolchains/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-" 
+  make O=out $THREAD &>Buildlog.txt & pid=$! \
+               CC="$PWD/toolchains/linux-x86/clang-4053586/bin/clang"  \
+               CROSS_COMPILE="$PWD/toolchains/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-" 
+
   fi
 
   if [[ "$TC" == "4" ]]; then
-  export CLANG_PATH="~/toolchains/dragontc-7.0"
+  export CLANG_PATH="$PWD/toolchains/dragontc-7.0"
   export PATH=${CLANG_PATH}:${PATH}
-  make CC="~/toolchains/dragontc-7.0/bin" O=out $CONFIG $THREAD &>/dev/null
-  make CC="~/toolchains/dragontc-7.0/bin" O=out $THREAD &>Buildlog.txt & pid=$! 
+  make O=out $CONFIG $THREAD &>/dev/null \
+  CC="$PWD/toolchains/dragontc-7.0/bin/clang" 
+  make CC="$PWD/toolchains/dragontc-7.0/bin/clang" O=out $THREAD &>Buildlog.txt & pid=$! 
   fi
   spin[0]="$blue-"
   spin[1]="\\"
@@ -122,6 +144,7 @@ if [ "$choice" == "1" ]; then
           sleep 0.1
     done
   done
+
   if ! [ -a $KERN_IMG ]; then
     echo -e "\n$red(!) Kernel compilation failed, See buildlog to fix errors $nc"
     echo -e "$red#######################################################################$nc"
@@ -161,8 +184,18 @@ if [ "$choice" == "4" ]; then
   cd $ZIP_DIR
   make clean &>/dev/null
   cp $KERN_IMG $ZIP_DIR/boot/zImage
-  make &>/dev/null
-  make sign &>/dev/null
+  if [[ "$type" == "1" && "$TC" == "1" || "$TC" == "2" ]]; then
+    make normal &>/dev/null
+  fi
+  if [[ "$type" == "1" && "$TC" == "3" || "$TC" == "4" ]]; then
+    make nclang &>/dev/null
+  fi
+  if [[ "$type" == "2" && "$TC" == "1" || "$TC" == "2" ]]; then
+    make treble &>/dev/null
+  fi
+    if [[ "$type" == "2" && "$TC" == "3" || "$TC" == "4" ]]; then
+    make tclang &>/dev/null
+  fi
   cd ..
   echo -e "$purple(i) Flashable zip generated under $ZIP_DIR.$nc"
   echo -e "$cyan#######################################################################$nc"

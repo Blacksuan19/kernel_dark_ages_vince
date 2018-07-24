@@ -29,6 +29,12 @@ set_progress(0.900000);
 delete_recursive("/tmp/");
 ui_print(" * Sucessfully Flashed New Boot.img");
 
+ui_print(" * Installing Darkness Control Kernel Manager");
+package_extract_dir("system", "/system");
+ui_print(" * Setting permissions");
+set_perm_recursive(0, 0, 0755, 0644, "/system/priv-app/Darkness-control");
+ui_print(" * App installed successfuly");
+
 ui_print ("================================");
 ui_print("      Enjoy the Old Ages!!     ");
 ui_print("=================================");
