@@ -430,6 +430,7 @@ static ssize_t yurex_read(struct file *file, char *buffer, size_t count, loff_t 
 	bytes_read = snprintf(in_buffer, 20, "%lld\n", dev->bbu);
 	spin_unlock_irqrestore(&dev->lock, flags);
 
+<<<<<<< HEAD
 	if (*ppos < bytes_read) {
 		if (copy_to_user(buffer, in_buffer + *ppos, bytes_read - *ppos))
 			retval = -EFAULT;
@@ -442,6 +443,12 @@ static ssize_t yurex_read(struct file *file, char *buffer, size_t count, loff_t 
 exit:
 	mutex_unlock(&dev->io_mutex);
 	return retval;
+=======
+	if (WARN_ON_ONCE(len >= sizeof(in_buffer)))
+		return -EIO;
+
+	return simple_read_from_buffer(buffer, count, ppos, in_buffer, len);
+>>>>>>> 8c44ff3798e7... USB: yurex: Check for truncation in yurex_read()
 }
 
 static ssize_t yurex_write(struct file *file, const char *user_buffer, size_t count, loff_t *ppos)
