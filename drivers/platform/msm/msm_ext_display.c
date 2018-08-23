@@ -231,7 +231,7 @@ static struct msm_ext_disp *msm_ext_disp_validate_and_get(
 	} else {
 		if (ext_disp->current_disp == EXT_DISPLAY_TYPE_MAX ||
 		    ext_disp->current_disp != type) {
-			pr_err("invalid interface call\n");
+			pr_debug("invalid interface call\n");
 			goto err;
 		}
 	}
