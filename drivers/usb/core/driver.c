@@ -502,7 +502,10 @@ int usb_driver_claim_interface(struct usb_driver *driver,
 	struct device *dev = &iface->dev;
 	struct usb_device *udev;
 	int retval = 0;
+<<<<<<< HEAD
 	int lpm_disable_error;
+=======
+>>>>>>> 05bebb4387b8... USB: remove LPM management from usb_driver_claim_interface()
 
 	if (dev->driver)
 		return -EBUSY;
@@ -515,6 +518,7 @@ int usb_driver_claim_interface(struct usb_driver *driver,
 
 	iface->condition = USB_INTERFACE_BOUND;
 
+<<<<<<< HEAD
 	/* Disable LPM until this driver is bound. */
 	lpm_disable_error = usb_unlocked_disable_lpm(udev);
 	if (lpm_disable_error && driver->disable_hub_initiated_lpm) {
@@ -523,6 +527,8 @@ int usb_driver_claim_interface(struct usb_driver *driver,
 		return -ENOMEM;
 	}
 
+=======
+>>>>>>> 05bebb4387b8... USB: remove LPM management from usb_driver_claim_interface()
 	/* Claimed interfaces are initially inactive (suspended) and
 	 * runtime-PM-enabled, but only if the driver has autosuspend
 	 * support.  Otherwise they are marked active, to prevent the
@@ -540,10 +546,6 @@ int usb_driver_claim_interface(struct usb_driver *driver,
 	 */
 	if (device_is_registered(dev))
 		retval = device_bind_driver(dev);
-
-	/* Attempt to re-enable USB3 LPM, if the disable was successful. */
-	if (!lpm_disable_error)
-		usb_unlocked_enable_lpm(udev);
 
 	if (retval) {
 		dev->driver = NULL;
