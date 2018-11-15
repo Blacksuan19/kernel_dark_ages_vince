@@ -4758,5 +4758,6 @@ MODULE_AUTHOR("Pierre Ossman <pierre@ossman.eu>");
 MODULE_DESCRIPTION("Secure Digital Host Controller Interface core driver");
 MODULE_LICENSE("GPL");
 
+
 MODULE_PARM_DESC(debug_quirks, "Force certain quirks.");
 MODULE_PARM_DESC(debug_quirks2, "Force certain other quirks.");
