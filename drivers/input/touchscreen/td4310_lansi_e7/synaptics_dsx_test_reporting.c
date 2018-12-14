@@ -3421,20 +3421,20 @@ exit:
 
 static short find_median(short *pdata, int num)
 {
-	int i,j;
-	short temp;
-	short *value;
-	short median;
+int i,j;
+short temp;
+short *value;
+short median;
 
-	value = (short *)kzalloc(num * sizeof(short), GFP_KERNEL);
+value = (short *)kzalloc(num * sizeof(short), GFP_KERNEL);
 
-	for (i = 0; i < num; i++)
-		*(value+i) = *(pdata+i);
+for (i = 0; i < num; i++)
+	*(value+i) = *(pdata+i);
 
 
-	for (i = 1; i < = num-1; i++)
+for (i = 1; i <= num-1; i++)
 	{
-		for (j = 1; j < = num-i; j++)
+		for (j = 1; j <= num-i; j++)
 		{
 			if (*(value+j-1) <= *(value+j))
 			{

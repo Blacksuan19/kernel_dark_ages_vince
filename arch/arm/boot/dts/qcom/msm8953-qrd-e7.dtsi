@@ -12,7 +12,7 @@
  * GNU General Public License for more details.
  */
 
-#include "msm8953-pinctrl-e7.dtsi"
+#include "msm8953-pinctrl.dtsi"
 #include "msm8953-camera-sensor-qrd-e7.dtsi"
 
 &soc {
@@ -22,8 +22,7 @@
 		pinctrl-names = "tlmm_gpio_key_active","tlmm_gpio_key_suspend";
 		pinctrl-0 = <&gpio_key_active>;
 		pinctrl-1 = <&gpio_key_suspend>;
-
-		vol_up {
+ 		vol_up {
 			label = "volume_up";
 			gpios = <&tlmm 85 0x1>;
 			linux,input-type = <1>;
@@ -39,8 +38,8 @@
 		interrupt-parent = <&tlmm>;
 		interrupts = <9 0x0>;
 
-		goodix,gpio_reset    = <&tlmm 140 0>;
-		goodix,gpio_irq      = <&tlmm 48 0>;
+		fp-gpio-reset   = <&tlmm 140 0>;
+		fp-gpio-irq     = <&tlmm 48 0>;
 
 		clock-names = "iface_clk", "core_clk";
 		clocks = <&clock_gcc clk_gcc_blsp1_ahb_clk>,
