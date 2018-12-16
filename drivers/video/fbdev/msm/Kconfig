@@ -144,4 +144,9 @@ config FB_MSM_MDSS_FRC_DEBUG
 	statistics and check whether its output pattern matches expected
 	cadence.
 
+config ENABLE_PM_TP_SUSPEND_RESUME
+	bool "ENABLE PM TP SUSPEND/RESUME"
+	---help---
+	  Say Y here if you want to know whether it is running in ffbm mode.
+
 endif
