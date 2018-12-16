@@ -1,0 +1,57 @@
+/*
+ * Copyright (c) 2015-2017, The Linux Foundation. All rights reserved.
+ * Copyright (C) 2019 XiaoMi, Inc.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/* msm-audio */
+&soc {
+	int_codec: sound {
+		status = "ok";
+		qcom,msm-hs-micbias-type = "internal";
+		qcom,audio-routing =
+			"RX_BIAS", "MCLK",
+			"SPK_RX_BIAS", "MCLK",
+			"INT_LDO_H", "MCLK",
+			"MIC BIAS External", "Handset Mic",
+			"MIC BIAS Internal2", "Headset Mic",
+			"MIC BIAS External", "Secondary Mic",
+			"AMIC1", "MIC BIAS External",
+			"AMIC2", "MIC BIAS Internal2",
+			"AMIC3", "MIC BIAS External";
+		/delete-property/qcom,hdmi-dba-codec-rx;
+	};
+	i2c@78b6000 {
+		status = "okay";
+		tas2557@4c {
+                        compatible = "ti,tas2557";
+                        reg = <0x4c>;
+                        ti,cdc-reset-gpio = <&tlmm 86 0>;
+                        ti,irq-gpio = <&tlmm 87 0x0>;
+                        ti,i2s-bits = <16>;   /* support 16, 24, 32 */
+                        ti,bypass-tmax = <0>;   /* 0, not bypass; 1, bypass */
+                        status = "ok";
+			pinctrl-names = "smartpa_irq_active";
+			pinctrl-0 = <&smartpa_irq_active>;
+		};
+	};
+};
+
+/* msm8953-audio */
+&int_codec {
+	qcom,msm-mbhc-hphl-swh = <1>;
+	qcom,msm-mbhc-gnd-swh = <1>;
+	/delete-property/asoc-wsa-codec-names;
+	/delete-property/asoc-wsa-codec-prefixes;
+	/delete-property/msm-vdd-wsa-switch-supply;
+	/delete-property/qcom,msm-vdd-wsa-switch-voltage;
+	/delete-property/qcom,msm-vdd-wsa-switch-current;
+};
