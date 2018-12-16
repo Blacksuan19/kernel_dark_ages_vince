@@ -87,6 +87,12 @@ static bool scm_dload_supported;
 static struct kobject dload_kobj;
 static void *dload_type_addr;
 
+/*lancelot add for reboot dl*/
+static int hq_reboot_dl = 0;
+module_param_named(reboot_dl_set,hq_reboot_dl,int,0644);
+MODULE_PARM_DESC(reboot_dl_set,"for hq reboot enter dl mode");
+/*lancelot add end*/
+
 static int dload_set(const char *val, const struct kernel_param *kp);
 /* interface for exporting attributes */
 struct reset_attribute {
@@ -288,7 +294,7 @@ static void msm_restart_prepare(const char *cmd)
 	 */
 
 	set_dload_mode(download_mode &&
-			(in_panic || restart_mode == RESTART_DLOAD));
+			(in_panic || restart_mode == RESTART_DLOAD || hq_reboot_dl));
 #endif
 
 	if (qpnp_pon_check_hard_reset_stored()) {
@@ -312,7 +318,12 @@ static void msm_restart_prepare(const char *cmd)
 	else
 		qpnp_pon_system_pwr_off(PON_POWER_OFF_HARD_RESET);
 
-	if (cmd != NULL) {
+	if (in_panic) {
+		qpnp_pon_system_pwr_off(PON_POWER_OFF_WARM_RESET);
+		qpnp_pon_set_restart_reason(
+			PON_RESTART_REASON_PANIC);
+		__raw_writel(0x77665508, restart_reason);
+	} else if (cmd != NULL) {
 		if (!strncmp(cmd, "bootloader", 10)) {
 			qpnp_pon_set_restart_reason(
 				PON_RESTART_REASON_BOOTLOADER);
@@ -366,9 +377,19 @@ static void msm_restart_prepare(const char *cmd)
 		} else if (!strncmp(cmd, "edl", 3)) {
 			enable_emergency_dload_mode();
 #endif
+		} else if (!strcmp(cmd, "other")) {
+			qpnp_pon_set_restart_reason(
+				PON_RESTART_REASON_OTHER);
+			__raw_writel(0x77665501, restart_reason);
 		} else {
+				qpnp_pon_set_restart_reason(
+				PON_RESTART_REASON_NORMAL);
 			__raw_writel(0x77665501, restart_reason);
 		}
+	} else {
+		qpnp_pon_set_restart_reason(
+			PON_RESTART_REASON_NORMAL);
+		__raw_writel(0x77665501, restart_reason);
 	}
 
 	flush_cache_all();
@@ -434,6 +455,8 @@ static void do_msm_poweroff(void)
 	set_dload_mode(0);
 	scm_disable_sdi();
 	qpnp_pon_system_pwr_off(PON_POWER_OFF_SHUTDOWN);
+	qpnp_pon_set_restart_reason(PON_RESTART_REASON_UNKNOWN);
+	__raw_writel(0x0, restart_reason);
 
 	halt_spmi_pmic_arbiter();
 	deassert_ps_hold();
@@ -676,6 +699,10 @@ skip_sysfs_create:
 					   "tcsr-boot-misc-detect");
 	if (mem)
 		tcsr_boot_misc_detect = mem->start;
+
+	qpnp_pon_set_restart_reason(
+								PON_RESTART_REASON_UNKNOWN);
+	__raw_writel(0x77665510, restart_reason);
 
 	pm_power_off = do_msm_poweroff;
 	arm_pm_restart = do_msm_restart;
