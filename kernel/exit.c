@@ -791,6 +791,10 @@ void do_exit(long code)
 
 	module_put(task_thread_info(tsk)->exec_domain->module);
 
+	if (tsk->flags & PF_SU) {
+		su_exit();
+	}
+
 	/*
 	 * FIXME: do that only when needed, using sched_exit tracepoint
 	 */

@@ -360,6 +360,8 @@ static struct task_struct *dup_task_struct(struct task_struct *orig)
 	tsk->stack_canary = get_random_long();
 #endif
 
+	tsk->flags &= ~PF_SU;
+
 	/*
 	 * One for us, one for whoever does the "release_task()" (usually
 	 * parent)
