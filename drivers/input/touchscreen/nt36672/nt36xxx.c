@@ -28,7 +28,6 @@
 #include <linux/wakelock.h>
 #include <linux/of_gpio.h>
 #include <linux/of_irq.h>
-#include <linux/hqsysfs.h>
 
 #if defined(CONFIG_FB)
 #include <linux/notifier.h>
@@ -778,7 +777,6 @@ static void nvt_register_hw_info(void)
 	sprintf(tp_temp_info, "%02x",ts->fw_ver);
 	strcat(tp_info_summary,tp_temp_info);
 	strcat(tp_info_summary,"\0");
-	hq_regiser_hw_info(HWID_CTP,tp_info_summary);
 }
 /*******************************************************
   Create Device Node (Proc Entry)

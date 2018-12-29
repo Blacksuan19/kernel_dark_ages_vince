@@ -1212,6 +1212,52 @@ config VITURALSAR
 source "drivers/input/touchscreen/ft5446/Kconfig"
 source "drivers/input/touchscreen/gt917d/Kconfig"
 
+config TOUCHSCREEN_TD4310_E7
+       tristate "synaptics touchscreens"
+       depends on I2C
+       help
+         Say Y here if you have a ist3038c touchscreen.
+         Ft5x06 controllers are multi touch controllers which can
+         report 5 touches at a time.
+
+         If unsure, say N.
+
+         To compile this driver as a module, choose M here: the
+         module will be called ist3038c_ts.
+
+config TOUCHSCREEN_NT36672
+	bool "Novatek NT36672"
+	default y
+	help
+	  Say Y here if you have a Novatek NT36672 touchscreen connected
+	  to your system.
+
+	  If unsure, say N.
+
+config TOUCHSCREEN_TD4310_LANSI_E7
+       tristate "synaptics touchscreens"
+       depends on I2C
+       help
+         Say Y here if you have a ist3038c touchscreen.
+         Ft5x06 controllers are multi touch controllers which can
+         report 5 touches at a time.
+
+         If unsure, say N.
+
+         To compile this driver as a module, choose M here: the
+         module will be called ist3038c_ts.
+
+config VITURALSAR
+	bool "Vitural Sar series"
+	depends on I2C
+	help
+	  Say Y here if you have a Goodix GT9xx touchscreen.
+	  Gt9xx controllers are multi touch controllers which can
+	  report 5 touches at a time.
+
+          If unsure, say N.
+
+
 config TOUCHSCREEN_HIMAX_CHIPSET
 	bool "Himax touchpanel CHIPSET"
 	depends on I2C
