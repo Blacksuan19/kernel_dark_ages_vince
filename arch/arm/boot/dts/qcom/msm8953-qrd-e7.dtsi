@@ -12,7 +12,7 @@
  * GNU General Public License for more details.
  */
 
-#include "msm8953-pinctrl.dtsi"
+#include "msm8953-pinctrl-e7.dtsi"
 #include "msm8953-camera-sensor-qrd-e7.dtsi"
 
 &soc {
