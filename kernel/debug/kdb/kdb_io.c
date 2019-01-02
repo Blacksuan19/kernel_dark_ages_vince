@@ -215,13 +215,8 @@ static char *kdb_read(char *buffer, size_t bufsize)
 	int count;
 	int i;
 	int diag, dtab_count;
-<<<<<<< HEAD
-	int key;
-	static int last_crlf;
-=======
 	int key, buf_size, ret;
-
->>>>>>> 1bdb2d2f065b... kdb: Use strscpy with destination buffer size
+	static int last_crlf;
 
 	diag = kdbgetintenv("DTABCOUNT", &dtab_count);
 	if (diag)

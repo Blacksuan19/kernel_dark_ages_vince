@@ -483,18 +483,18 @@ static const u8 xboxone_hori_init[] = {
 };
 
 /*
- * This packet is required for some of the PDP pads to start
+ * This packet is required for most (all?) of the PDP pads to start
  * sending input reports. These pads include: (0x0e6f:0x02ab),
- * (0x0e6f:0x02a4).
+ * (0x0e6f:0x02a4), (0x0e6f:0x02a6).
  */
 static const u8 xboxone_pdp_init1[] = {
 	0x0a, 0x20, 0x00, 0x03, 0x00, 0x01, 0x14
 };
 
 /*
- * This packet is required for some of the PDP pads to start
+ * This packet is required for most (all?) of the PDP pads to start
  * sending input reports. These pads include: (0x0e6f:0x02ab),
- * (0x0e6f:0x02a4).
+ * (0x0e6f:0x02a4), (0x0e6f:0x02a6).
  */
 static const u8 xboxone_pdp_init2[] = {
 	0x06, 0x20, 0x00, 0x02, 0x01, 0x00
@@ -530,12 +530,8 @@ static const struct xboxone_init_packet xboxone_init_packets[] = {
 	XBOXONE_INIT_PKT(0x0e6f, 0x0165, xboxone_hori_init),
 	XBOXONE_INIT_PKT(0x0f0d, 0x0067, xboxone_hori_init),
 	XBOXONE_INIT_PKT(0x0000, 0x0000, xboxone_fw2015_init),
-	XBOXONE_INIT_PKT(0x0e6f, 0x02ab, xboxone_pdp_init1),
-	XBOXONE_INIT_PKT(0x0e6f, 0x02ab, xboxone_pdp_init2),
-	XBOXONE_INIT_PKT(0x0e6f, 0x02a4, xboxone_pdp_init1),
-	XBOXONE_INIT_PKT(0x0e6f, 0x02a4, xboxone_pdp_init2),
-	XBOXONE_INIT_PKT(0x0e6f, 0x02a6, xboxone_pdp_init1),
-	XBOXONE_INIT_PKT(0x0e6f, 0x02a6, xboxone_pdp_init2),
+	XBOXONE_INIT_PKT(0x0e6f, 0x0000, xboxone_pdp_init1),
+	XBOXONE_INIT_PKT(0x0e6f, 0x0000, xboxone_pdp_init2),
 	XBOXONE_INIT_PKT(0x24c6, 0x541a, xboxone_rumblebegin_init),
 	XBOXONE_INIT_PKT(0x24c6, 0x542a, xboxone_rumblebegin_init),
 	XBOXONE_INIT_PKT(0x24c6, 0x543a, xboxone_rumblebegin_init),
@@ -590,27 +586,9 @@ struct usb_xpad {
 
 	int mapping;			/* map d-pad to buttons or to axes */
 	int xtype;			/* type of xbox device */
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 	int pad_nr;			/* the order x360 pads were attached */
 	const char *name;		/* name of the device */
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-	unsigned long led_no;		/* led to lit on xbox360 controllers */
->>>>>>> b92cf9056938... Input: xpad - re-send LED command on present event
-=======
-	unsigned long pad_nr;		/* the order x360 pads were attached */
->>>>>>> a9040f812372... Input: xpad - clarify LED enumeration
-=======
-	int pad_nr;			/* the order x360 pads were attached */
->>>>>>> 12a85e058d8c... Input: xpad - use ida() for finding the pad_nr
-=======
->>>>>>> 7e0f79ac7989... Input: xpad - move the input device creation to a new function
-=======
 	struct work_struct work;	/* init/remove device from callback */
->>>>>>> 7a0a65d1576e... Input: xpad - handle "present" and "gone" correctly
 };
 
 static int xpad_init_input(struct usb_xpad *xpad);
@@ -815,31 +793,12 @@ static void xpad360w_process_packet(struct usb_xpad *xpad, u16 cmd, unsigned cha
 
 	/* Presence change */
 	if (data[0] & 0x08) {
-<<<<<<< HEAD
-		if (data[1] & 0x80) {
-			xpad->pad_present = 1;
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-			usb_submit_urb(xpad->bulk_out, GFP_ATOMIC);
->>>>>>> b92cf9056938... Input: xpad - re-send LED command on present event
-=======
->>>>>>> e2e233d1a986... Input: xpad - remove needless bulk out URB used for LED setup
-			/*
-			 * Light up the segment corresponding to
-			 * controller number.
-			 */
-			xpad_identify_controller(xpad);
-		} else
-			xpad->pad_present = 0;
-=======
 		present = (data[1] & 0x80) != 0;
 
 		if (xpad->pad_present != present) {
 			xpad->pad_present = present;
 			schedule_work(&xpad->work);
 		}
->>>>>>> 7a0a65d1576e... Input: xpad - handle "present" and "gone" correctly
 	}
 
 	/* Valid pad data */
@@ -1268,14 +1227,9 @@ static int xpad_play_effect(struct input_dev *dev, void *data, struct ff_effect 
 	struct xpad_output_packet *packet = &xpad->out_packets[XPAD_OUT_FF_IDX];
 	__u16 strong;
 	__u16 weak;
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
 	int retval;
 	unsigned long flags;
->>>>>>> c190dccbbafe... Input: xpad - correctly handle concurrent LED and FF requests
 
-<<<<<<< HEAD
 	if (effect->type != FF_RUMBLE)
 		return 0;
 
@@ -1326,54 +1280,6 @@ static int xpad_play_effect(struct input_dev *dev, void *data, struct ff_effect 
 		packet->pending = true;
 		break;
 
-=======
-
-	if (effect->type != FF_RUMBLE)
-		return 0;
-
-	strong = effect->u.rumble.strong_magnitude;
-	weak = effect->u.rumble.weak_magnitude;
-
-	switch (xpad->xtype) {
-	case XTYPE_XBOX:
-		xpad->odata[0] = 0x00;
-		xpad->odata[1] = 0x06;
-		xpad->odata[2] = 0x00;
-		xpad->odata[3] = strong / 256;	/* left actuator */
-		xpad->odata[4] = 0x00;
-		xpad->odata[5] = weak / 256;	/* right actuator */
-		xpad->irq_out->transfer_buffer_length = 6;
-		break;
-
-	case XTYPE_XBOX360:
-		xpad->odata[0] = 0x00;
-		xpad->odata[1] = 0x08;
-		xpad->odata[2] = 0x00;
-		xpad->odata[3] = strong / 256;  /* left actuator? */
-		xpad->odata[4] = weak / 256;	/* right actuator? */
-		xpad->odata[5] = 0x00;
-		xpad->odata[6] = 0x00;
-		xpad->odata[7] = 0x00;
-		xpad->irq_out->transfer_buffer_length = 8;
-		break;
-
-	case XTYPE_XBOX360W:
-		xpad->odata[0] = 0x00;
-		xpad->odata[1] = 0x01;
-		xpad->odata[2] = 0x0F;
-		xpad->odata[3] = 0xC0;
-		xpad->odata[4] = 0x00;
-		xpad->odata[5] = strong / 256;
-		xpad->odata[6] = weak / 256;
-		xpad->odata[7] = 0x00;
-		xpad->odata[8] = 0x00;
-		xpad->odata[9] = 0x00;
-		xpad->odata[10] = 0x00;
-		xpad->odata[11] = 0x00;
-		xpad->irq_out->transfer_buffer_length = 12;
-		break;
-
->>>>>>> 9a249a885bb8... Input: xpad - factor out URB submission in xpad_play_effect
 	case XTYPE_XBOXONE:
 		packet->data[0] = 0x09; /* activate rumble */
 		packet->data[1] = 0x00;
@@ -1396,87 +1302,8 @@ static int xpad_play_effect(struct input_dev *dev, void *data, struct ff_effect 
 		dev_dbg(&xpad->dev->dev,
 			"%s - rumble command sent to unsupported xpad type: %d\n",
 			__func__, xpad->xtype);
-<<<<<<< HEAD
-		return -EINVAL;
-<<<<<<< HEAD
-=======
-	if (effect->type == FF_RUMBLE) {
-		__u16 strong = effect->u.rumble.strong_magnitude;
-		__u16 weak = effect->u.rumble.weak_magnitude;
-
-		switch (xpad->xtype) {
-
-		case XTYPE_XBOX:
-			xpad->odata[0] = 0x00;
-			xpad->odata[1] = 0x06;
-			xpad->odata[2] = 0x00;
-			xpad->odata[3] = strong / 256;	/* left actuator */
-			xpad->odata[4] = 0x00;
-			xpad->odata[5] = weak / 256;	/* right actuator */
-			xpad->irq_out->transfer_buffer_length = 6;
-
-			return usb_submit_urb(xpad->irq_out, GFP_ATOMIC);
-
-		case XTYPE_XBOX360:
-			xpad->odata[0] = 0x00;
-			xpad->odata[1] = 0x08;
-			xpad->odata[2] = 0x00;
-			xpad->odata[3] = strong / 256;  /* left actuator? */
-			xpad->odata[4] = weak / 256;	/* right actuator? */
-			xpad->odata[5] = 0x00;
-			xpad->odata[6] = 0x00;
-			xpad->odata[7] = 0x00;
-			xpad->irq_out->transfer_buffer_length = 8;
-
-			return usb_submit_urb(xpad->irq_out, GFP_ATOMIC);
-
-		case XTYPE_XBOX360W:
-			xpad->odata[0] = 0x00;
-			xpad->odata[1] = 0x01;
-			xpad->odata[2] = 0x0F;
-			xpad->odata[3] = 0xC0;
-			xpad->odata[4] = 0x00;
-			xpad->odata[5] = strong / 256;
-			xpad->odata[6] = weak / 256;
-			xpad->odata[7] = 0x00;
-			xpad->odata[8] = 0x00;
-			xpad->odata[9] = 0x00;
-			xpad->odata[10] = 0x00;
-			xpad->odata[11] = 0x00;
-			xpad->irq_out->transfer_buffer_length = 12;
-
-			return usb_submit_urb(xpad->irq_out, GFP_ATOMIC);
-
-		case XTYPE_XBOXONE:
-			xpad->odata[0] = 0x09; /* activate rumble */
-			xpad->odata[1] = 0x08;
-			xpad->odata[2] = 0x00;
-			xpad->odata[3] = 0x08; /* continuous effect */
-			xpad->odata[4] = 0x00; /* simple rumble mode */
-			xpad->odata[5] = 0x03; /* L and R actuator only */
-			xpad->odata[6] = 0x00; /* TODO: LT actuator */
-			xpad->odata[7] = 0x00; /* TODO: RT actuator */
-			xpad->odata[8] = strong / 256;	/* left actuator */
-			xpad->odata[9] = weak / 256;	/* right actuator */
-			xpad->odata[10] = 0x80;	/* length of pulse */
-			xpad->odata[11] = 0x00;	/* stop period of pulse */
-			xpad->irq_out->transfer_buffer_length = 12;
-
-			return usb_submit_urb(xpad->irq_out, GFP_ATOMIC);
-
-		default:
-			dev_dbg(&xpad->dev->dev,
-				"%s - rumble command sent to unsupported xpad type: %d\n",
-				__func__, xpad->xtype);
-			return -1;
-		}
->>>>>>> 70d7e0cb4248... Input: xpad - add rumble support for Xbox One controller
-=======
->>>>>>> 9a249a885bb8... Input: xpad - factor out URB submission in xpad_play_effect
-=======
 		retval = -EINVAL;
 		goto out;
->>>>>>> c190dccbbafe... Input: xpad - correctly handle concurrent LED and FF requests
 	}
 
 	retval = xpad_try_sending_next_out_packet(xpad);
@@ -1513,14 +1340,7 @@ struct xpad_led {
 };
 
 /**
-<<<<<<< HEAD
-<<<<<<< HEAD
  * set the LEDs on Xbox360 / Wireless Controllers
-=======
->>>>>>> 30221037921b... Input: xpad - set the LEDs properly on XBox Wireless controllers
-=======
- * set the LEDs on Xbox360 / Wireless Controllers
->>>>>>> a9040f812372... Input: xpad - clarify LED enumeration
  * @param command
  *  0: off
  *  1: all blink, then previous setting
@@ -1576,26 +1396,9 @@ static void xpad_send_led_command(struct usb_xpad *xpad, int command)
 		break;
 	}
 
-<<<<<<< HEAD
-	usb_submit_urb(xpad->irq_out, GFP_KERNEL);
-	mutex_unlock(&xpad->odata_mutex);
-<<<<<<< HEAD
-}
-
-/*
- * Light up the segment corresponding to the pad number on
- * Xbox 360 Controllers.
- */
-static void xpad_identify_controller(struct usb_xpad *xpad)
-{
-	xpad_send_led_command(xpad, (xpad->pad_nr % 4) + 2);
-=======
->>>>>>> 30221037921b... Input: xpad - set the LEDs properly on XBox Wireless controllers
-=======
 	xpad_try_sending_next_out_packet(xpad);
 
 	spin_unlock_irqrestore(&xpad->odata_lock, flags);
->>>>>>> c190dccbbafe... Input: xpad - correctly handle concurrent LED and FF requests
 }
 
 /*
@@ -1618,18 +1421,6 @@ static void xpad_led_set(struct led_classdev *led_cdev,
 
 static int xpad_led_probe(struct usb_xpad *xpad)
 {
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-	static atomic_t led_seq	= ATOMIC_INIT(-1);
-	unsigned long led_no;
->>>>>>> 69700b23ee00... Input: initialize device counter variables with -1
-=======
-	static atomic_t led_seq = ATOMIC_INIT(-1);
->>>>>>> b92cf9056938... Input: xpad - re-send LED command on present event
-=======
->>>>>>> 12a85e058d8c... Input: xpad - use ida() for finding the pad_nr
 	struct xpad_led *led;
 	struct led_classdev *led_cdev;
 	int error;
@@ -1641,39 +1432,13 @@ static int xpad_led_probe(struct usb_xpad *xpad)
 	if (!led)
 		return -ENOMEM;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 12a85e058d8c... Input: xpad - use ida() for finding the pad_nr
 	xpad->pad_nr = ida_simple_get(&xpad_pad_seq, 0, 0, GFP_KERNEL);
 	if (xpad->pad_nr < 0) {
 		error = xpad->pad_nr;
 		goto err_free_mem;
 	}
-<<<<<<< HEAD
 
 	snprintf(led->name, sizeof(led->name), "xpad%d", xpad->pad_nr);
-=======
-	led_no = atomic_inc_return(&led_seq);
-
-	snprintf(led->name, sizeof(led->name), "xpad%lu", led_no);
->>>>>>> 69700b23ee00... Input: initialize device counter variables with -1
-=======
-	xpad->led_no = atomic_inc_return(&led_seq);
-
-	snprintf(led->name, sizeof(led->name), "xpad%lu", xpad->led_no);
->>>>>>> b92cf9056938... Input: xpad - re-send LED command on present event
-=======
-	xpad->pad_nr = atomic_inc_return(&led_seq);
-
-	snprintf(led->name, sizeof(led->name), "xpad%lu", xpad->pad_nr);
->>>>>>> a9040f812372... Input: xpad - clarify LED enumeration
-=======
-
-	snprintf(led->name, sizeof(led->name), "xpad%d", xpad->pad_nr);
->>>>>>> 12a85e058d8c... Input: xpad - use ida() for finding the pad_nr
 	led->xpad = xpad;
 
 	led_cdev = &led->led_cdev;
@@ -1685,35 +1450,8 @@ static int xpad_led_probe(struct usb_xpad *xpad)
 	if (error)
 		goto err_free_id;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d6d5f0290ba6... Input: xpad - fix clash of presence handling with LED setting
-	if (xpad->xtype == XTYPE_XBOX360) {
-		/*
-		 * Light up the segment corresponding to controller
-		 * number on wired devices. On wireless we'll do that
-		 * when they respond to "presence" packet.
-		 */
-		xpad_identify_controller(xpad);
-	}
-<<<<<<< HEAD
-=======
-	/* Light up the segment corresponding to controller number */
-	xpad_identify_controller(xpad);
-<<<<<<< HEAD
->>>>>>> b92cf9056938... Input: xpad - re-send LED command on present event
-
-=======
->>>>>>> 12a85e058d8c... Input: xpad - use ida() for finding the pad_nr
-=======
-
->>>>>>> d6d5f0290ba6... Input: xpad - fix clash of presence handling with LED setting
-=======
 	xpad_identify_controller(xpad);
 
->>>>>>> 7a0a65d1576e... Input: xpad - handle "present" and "gone" correctly
 	return 0;
 
 err_free_id:
@@ -1990,22 +1728,6 @@ static int xpad_probe(struct usb_interface *intf, const struct usb_device_id *id
 			break;
 	}
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-	if (xpad_device[i].xtype == XTYPE_XBOXONE &&
-	    intf->cur_altsetting->desc.bInterfaceNumber != 0) {
-		/*
-		 * The Xbox One controller lists three interfaces all with the
-		 * same interface class, subclass and protocol. Differentiate by
-		 * interface number.
-		 */
-		return -ENODEV;
-	}
-
->>>>>>> 7e0f79ac7989... Input: xpad - move the input device creation to a new function
-=======
->>>>>>> 40b3de594d27... Input: xpad - fix oops when attaching an unknown Xbox One gamepad
 	xpad = kzalloc(sizeof(struct usb_xpad), GFP_KERNEL);
 	if (!xpad)
 		return -ENOMEM;
@@ -2037,16 +1759,8 @@ static int xpad_probe(struct usb_interface *intf, const struct usb_device_id *id
 		if (intf->cur_altsetting->desc.bInterfaceClass == USB_CLASS_VENDOR_SPEC) {
 			if (intf->cur_altsetting->desc.bInterfaceProtocol == 129)
 				xpad->xtype = XTYPE_XBOX360W;
-<<<<<<< HEAD
-<<<<<<< HEAD
 			else if (intf->cur_altsetting->desc.bInterfaceProtocol == 208)
 				xpad->xtype = XTYPE_XBOXONE;
-=======
->>>>>>> 7e0f79ac7989... Input: xpad - move the input device creation to a new function
-=======
-			else if (intf->cur_altsetting->desc.bInterfaceProtocol == 208)
-				xpad->xtype = XTYPE_XBOXONE;
->>>>>>> 40b3de594d27... Input: xpad - fix oops when attaching an unknown Xbox One gamepad
 			else
 				xpad->xtype = XTYPE_XBOX360;
 		} else {
@@ -2061,10 +1775,6 @@ static int xpad_probe(struct usb_interface *intf, const struct usb_device_id *id
 			xpad->mapping |= MAP_STICKS_TO_NULL;
 	}
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 40b3de594d27... Input: xpad - fix oops when attaching an unknown Xbox One gamepad
 	if (xpad->xtype == XTYPE_XBOXONE &&
 	    intf->cur_altsetting->desc.bInterfaceNumber != 0) {
 		/*
@@ -2076,15 +1786,6 @@ static int xpad_probe(struct usb_interface *intf, const struct usb_device_id *id
 		goto err_free_in_urb;
 	}
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 7e0f79ac7989... Input: xpad - move the input device creation to a new function
-=======
->>>>>>> 40b3de594d27... Input: xpad - fix oops when attaching an unknown Xbox One gamepad
-	error = xpad_init_output(intf, xpad);
-	if (error)
-=======
 	ep_irq_in = ep_irq_out = NULL;
 
 	for (i = 0; i < 2; i++) {
@@ -2101,7 +1802,6 @@ static int xpad_probe(struct usb_interface *intf, const struct usb_device_id *id
 
 	if (!ep_irq_in || !ep_irq_out) {
 		error = -ENODEV;
->>>>>>> 237ff9b10cae... Input: xpad - don't depend on endpoint order
 		goto err_free_in_urb;
 	}
 
@@ -2118,22 +1818,6 @@ static int xpad_probe(struct usb_interface *intf, const struct usb_device_id *id
 
 	usb_set_intfdata(intf, xpad);
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 7e0f79ac7989... Input: xpad - move the input device creation to a new function
-	error = xpad_init_input(xpad);
-	if (error)
-		goto err_deinit_output;
-
-<<<<<<< HEAD
-=======
->>>>>>> e2e233d1a986... Input: xpad - remove needless bulk out URB used for LED setup
-=======
->>>>>>> 7e0f79ac7989... Input: xpad - move the input device creation to a new function
-=======
->>>>>>> 7a0a65d1576e... Input: xpad - handle "present" and "gone" correctly
 	if (xpad->xtype == XTYPE_XBOX360W) {
 		/*
 		 * Submit the int URB immediately rather than waiting for open
@@ -2144,40 +1828,7 @@ static int xpad_probe(struct usb_interface *intf, const struct usb_device_id *id
 		 */
 		error = xpad360w_start_input(xpad);
 		if (error)
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-			goto err_deinit_input;
-=======
-			goto fail7;
-	}
->>>>>>> e2e233d1a986... Input: xpad - remove needless bulk out URB used for LED setup
-
-		/*
-		 * Send presence packet.
-		 * This will force the controller to resend connection packets.
-		 * This is useful in the case we activate the module after the
-		 * adapter has been plugged in, as it won't automatically
-		 * send us info about the controllers.
-		 */
-		error = xpad_inquiry_pad_presence(xpad);
-		if (error)
-			goto err_kill_in_urb;
-	}
-	return 0;
-
-<<<<<<< HEAD
-err_kill_in_urb:
-	usb_kill_urb(xpad->irq_in);
-=======
-			goto err_deinit_input;
-=======
 			goto err_deinit_output;
-<<<<<<< HEAD
->>>>>>> 7a0a65d1576e... Input: xpad - handle "present" and "gone" correctly
-
-=======
->>>>>>> 0d5f5eafb5a8... Input: xpad - workaround dead irq_out after suspend/ resume
 		/*
 		 * Wireless controllers require RESET_RESUME to work properly
 		 * after suspend. Ideally this quirk should be in usb core
@@ -2193,20 +1844,6 @@ err_kill_in_urb:
 	}
 	return 0;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> 7e0f79ac7989... Input: xpad - move the input device creation to a new function
-=======
-err_kill_in_urb:
-	usb_kill_urb(xpad->irq_in);
-<<<<<<< HEAD
->>>>>>> 80426963a312... Input: xpad - query wireless controller state at init
-err_deinit_input:
-	xpad_deinit_input(xpad);
-=======
->>>>>>> 7a0a65d1576e... Input: xpad - handle "present" and "gone" correctly
-=======
->>>>>>> 0d5f5eafb5a8... Input: xpad - workaround dead irq_out after suspend/ resume
 err_deinit_output:
 	xpad_deinit_output(xpad);
 err_free_in_urb:
@@ -2214,20 +1851,6 @@ err_free_in_urb:
 err_free_idata:
 	usb_free_coherent(udev, XPAD_PKT_LEN, xpad->idata, xpad->idata_dma);
 err_free_mem:
-<<<<<<< HEAD
-=======
- fail7:	input_unregister_device(input_dev);
-	input_dev = NULL;
- fail6:	xpad_led_disconnect(xpad);
- fail5:	if (input_dev)
-		input_ff_destroy(input_dev);
- fail4:	xpad_deinit_output(xpad);
- fail3:	usb_free_urb(xpad->irq_in);
- fail2:	usb_free_coherent(udev, XPAD_PKT_LEN, xpad->idata, xpad->idata_dma);
- fail1:	input_free_device(input_dev);
->>>>>>> e2e233d1a986... Input: xpad - remove needless bulk out URB used for LED setup
-=======
->>>>>>> 7e0f79ac7989... Input: xpad - move the input device creation to a new function
 	kfree(xpad);
 	return error;
 }
