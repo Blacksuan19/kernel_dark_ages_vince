@@ -1336,14 +1336,6 @@ int wmi_set_ie(struct wil6210_priv *wil, u8 type, u16 ie_len, const void *ie)
 	int rc;
 	u16 len = sizeof(struct wmi_set_appie_cmd) + ie_len;
 	struct wmi_set_appie_cmd *cmd;
-<<<<<<< HEAD
-=======
-
-	if (len < ie_len)
-		return -EINVAL;
-
-	cmd = kzalloc(len, GFP_KERNEL);
->>>>>>> eac164f4025d... wil6210: missing length check in wmi_set_ie
 
 	if (len < ie_len) {
 		rc = -EINVAL;
