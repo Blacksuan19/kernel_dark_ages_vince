@@ -1064,10 +1064,6 @@ static void pci_restore_config_space(struct pci_dev *pdev)
 	if (pdev->hdr_type == PCI_HEADER_TYPE_NORMAL) {
 		pci_restore_config_space_range(pdev, 10, 15, 0, false);
 		/* Restore BARs before the command register. */
-<<<<<<< HEAD
-		pci_restore_config_space_range(pdev, 4, 9, 0);
-		pci_restore_config_space_range(pdev, 0, 3, 0);
-=======
 		pci_restore_config_space_range(pdev, 4, 9, 10, false);
 		pci_restore_config_space_range(pdev, 0, 3, 0, false);
 	} else if (pdev->hdr_type == PCI_HEADER_TYPE_BRIDGE) {
@@ -1080,7 +1076,7 @@ static void pci_restore_config_space(struct pci_dev *pdev)
 		 */
 		pci_restore_config_space_range(pdev, 9, 11, 0, true);
 		pci_restore_config_space_range(pdev, 0, 8, 0, false);
->>>>>>> 8858d0c43629... PCI: Reprogram bridge prefetch registers on resume
+
 	} else {
 		pci_restore_config_space_range(pdev, 0, 15, 0, false);
 	}

@@ -1295,16 +1295,12 @@ static int proc_do_submiturb(struct usb_dev_state *ps, struct usbdevfs_urb *uurb
 	int number_of_packets = 0;
 	unsigned int stream_id = 0;
 	void *buf;
-<<<<<<< HEAD
-
-	if (uurb->flags & ~(USBDEVFS_URB_ISO_ASAP |
-				USBDEVFS_URB_SHORT_NOT_OK |
-=======
 	bool is_in;
 	bool allow_short = false;
 	bool allow_zero = false;
-	unsigned long mask =	USBDEVFS_URB_SHORT_NOT_OK |
->>>>>>> 2ea01479e822... USB: usbdevfs: sanitize flags more
+
+	if (uurb->flags & ~(USBDEVFS_URB_ISO_ASAP |
+				USBDEVFS_URB_SHORT_NOT_OK |
 				USBDEVFS_URB_BULK_CONTINUATION |
 				USBDEVFS_URB_NO_FSBR |
 				USBDEVFS_URB_ZERO_PACKET |

@@ -1374,13 +1374,10 @@ static int __device_suspend(struct device *dev, pm_message_t state, bool async)
 		pm_wakeup_event(dev, 0);
 
 	if (pm_wakeup_pending()) {
-<<<<<<< HEAD
 		pm_get_active_wakeup_sources(suspend_abort,
 			MAX_SUSPEND_ABORT_LEN);
 		log_suspend_abort_reason(suspend_abort);
-=======
 		dev->power.direct_complete = false;
->>>>>>> d9e61bdd84b2... PM / core: Clear the direct_complete flag on errors
 		async_error = -EBUSY;
 		goto Complete;
 	}
