@@ -5,15 +5,10 @@
 /*
  * Common definitions for all gcc versions go here.
  */
-<<<<<<< HEAD
+
 #define GCC_VERSION (__GNUC__ * 10000		\
 		     + __GNUC_MINOR__ * 100	\
 		     + __GNUC_PATCHLEVEL__)
-=======
-#define GCC_VERSION (__GNUC__ * 10000 \
-		   + __GNUC_MINOR__ * 100 \
-		   + __GNUC_PATCHLEVEL__)
->>>>>>> 9e452e6fb063... lib: make memzero_explicit more robust against dead store elimination
 
 /* Optimization barrier */
 

@@ -16,11 +16,6 @@
 
 #include "scsi_priv.h"
 
-#ifdef CONFIG_PM_RUNTIME
-static int do_scsi_runtime_resume(struct device *dev,
-				   const struct dev_pm_ops *pm);
-#endif
-
 #ifdef CONFIG_PM_SLEEP
 
 static int do_scsi_suspend(struct device *dev, const struct dev_pm_ops *pm)
@@ -82,22 +77,10 @@ static int scsi_dev_type_resume(struct device *dev,
 	scsi_device_resume(to_scsi_device(dev));
 	dev_dbg(dev, "scsi resume: %d\n", err);
 
-	if (err == 0 && (cb != do_scsi_runtime_resume)) {
+	if (err == 0) {
 		pm_runtime_disable(dev);
-		err = pm_runtime_set_active(dev);
+		pm_runtime_set_active(dev);
 		pm_runtime_enable(dev);
-
-		if (!err && scsi_is_sdev_device(dev)) {
-			struct scsi_device *sdev = to_scsi_device(dev);
-
-			/*
-			 * If scsi device runtime PM is managed by block layer
-			 * then we should update request queue's runtime status
-			 * as well.
-			 */
-			if (sdev->request_queue->dev)
-				blk_post_runtime_resume(sdev->request_queue, 0);
-		}
 	}
 
 	return err;
@@ -232,46 +215,19 @@ static int scsi_bus_restore(struct device *dev)
 
 #ifdef CONFIG_PM_RUNTIME
 
-static int do_scsi_runtime_suspend(struct device *dev,
-				   const struct dev_pm_ops *pm)
-{
-	return pm && pm->runtime_suspend ? pm->runtime_suspend(dev) : 0;
-}
-
-static int do_scsi_runtime_resume(struct device *dev,
-				   const struct dev_pm_ops *pm)
-{
-	return pm && pm->runtime_resume ? pm->runtime_resume(dev) : 0;
-}
-
 static int sdev_runtime_suspend(struct device *dev)
 {
 	const struct dev_pm_ops *pm = dev->driver ? dev->driver->pm : NULL;
 	struct scsi_device *sdev = to_scsi_device(dev);
 	int err = 0;
 
-<<<<<<< HEAD
-	if (!sdev->request_queue->dev) {
-		err = scsi_dev_type_suspend(dev, do_scsi_runtime_suspend);
-		if (err == -EAGAIN)
-			pm_schedule_suspend(dev, jiffies_to_msecs(
-					round_jiffies_up_relative(HZ/10)));
-		return err;
-	}
-
 	if (pm && pm->runtime_suspend) {
 		err = blk_pre_runtime_suspend(sdev->request_queue);
 		if (err)
 			return err;
-=======
-	err = blk_pre_runtime_suspend(sdev->request_queue);
-	if (err)
-		return err;
-	if (pm && pm->runtime_suspend)
->>>>>>> 1c857dc0e69f... Revert "SCSI: Fix NULL pointer dereference in runtime PM"
 		err = pm->runtime_suspend(dev);
-	blk_post_runtime_suspend(sdev->request_queue, err);
-
+		blk_post_runtime_suspend(sdev->request_queue, err);
+	}
 	return err;
 }
 
@@ -294,19 +250,11 @@ static int sdev_runtime_resume(struct device *dev)
 	const struct dev_pm_ops *pm = dev->driver ? dev->driver->pm : NULL;
 	int err = 0;
 
-<<<<<<< HEAD
-	if (!sdev->request_queue->dev)
-		return scsi_dev_type_resume(dev, do_scsi_runtime_resume);
-
 	if (pm && pm->runtime_resume) {
 		blk_pre_runtime_resume(sdev->request_queue);
-=======
-	blk_pre_runtime_resume(sdev->request_queue);
-	if (pm && pm->runtime_resume)
->>>>>>> 1c857dc0e69f... Revert "SCSI: Fix NULL pointer dereference in runtime PM"
 		err = pm->runtime_resume(dev);
-	blk_post_runtime_resume(sdev->request_queue, err);
-
+		blk_post_runtime_resume(sdev->request_queue, err);
+	}
 	return err;
 }
 

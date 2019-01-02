@@ -1606,11 +1606,7 @@ iso_stream_schedule (
 
 	/* Is the schedule about to wrap around? */
 	if (unlikely(!empty && start < period)) {
-<<<<<<< HEAD
-		ehci_dbg(ehci, "iso sched full %pK (%u-%u < %u mod %u)\n",
-=======
 		ehci_dbg(ehci, "request %p would overflow (%u-%u < %u mod %u)\n",
->>>>>>> 500378d94d0b... USB: EHCI: adjust error return code
 				urb, stream->next_uframe, base, period, mod);
 		status = -EFBIG;
 		goto fail;
