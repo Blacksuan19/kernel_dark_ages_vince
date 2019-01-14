@@ -1,6 +1,5 @@
 /*
  * Copyright (C) 2014 Sergey Senozhatsky.
- * Copyright (C) 2018 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,14 +15,24 @@
 
 #include "zcomp_lz4.h"
 
-static void *zcomp_lz4_create(gfp_t flags)
+static void *zcomp_lz4_create(void)
 {
 	void *ret;
 
-	ret = kmalloc(LZ4_MEM_COMPRESS, flags);
+	/*
+	 * This function can be called in swapout/fs write path
+	 * so we can't use GFP_FS|IO. And it assumes we already
+	 * have at least one stream in zram initialization so we
+	 * don't do best effort to allocate more stream in here.
+	 * A default stream will work well without further multiple
+	 * streams. That's why we use NORETRY | NOWARN.
+	 */
+	ret = kzalloc(LZ4_MEM_COMPRESS, GFP_NOIO | __GFP_NORETRY |
+					__GFP_NOWARN);
 	if (!ret)
 		ret = __vmalloc(LZ4_MEM_COMPRESS,
-				flags | __GFP_HIGHMEM,
+				GFP_NOIO | __GFP_NORETRY | __GFP_NOWARN |
+				__GFP_ZERO | __GFP_HIGHMEM,
 				PAGE_KERNEL);
 	return ret;
 }
