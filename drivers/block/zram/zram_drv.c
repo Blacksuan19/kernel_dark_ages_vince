@@ -1194,11 +1194,7 @@ static const struct attribute_group *zram_disk_attr_groups[] = {
 	NULL,
 };
 
-/*
- * Allocate and initialize new zram device. the function returns
- * '>= 0' device_id upon success, and negative value otherwise.
- */
-static int zram_add(void)
+static int create_device(struct zram *zram, int device_id)
 {
 	struct zram *zram;
 	struct request_queue *queue;
@@ -1278,9 +1274,6 @@ static int zram_add(void)
 	strlcpy(zram->compressor, default_compressor, sizeof(zram->compressor));
 	zram->meta = NULL;
 
-	pr_info("Added device: %s\n", zram->disk->disk_name);
-	return device_id;
-
 out_free_queue:
 	blk_cleanup_queue(queue);
 out_free_idr:
@@ -1356,12 +1349,8 @@ static ssize_t hot_remove_store(struct class *class,
 	struct zram *zram;
 	int ret, dev_id;
 
-	/* dev_id is gendisk->first_minor, which is `int' */
-	ret = kstrtoint(buf, 10, &dev_id);
-	if (ret)
-		return ret;
-	if (dev_id < 0)
-		return -EINVAL;
+	for (i = 0; i < nr; i++) {
+		zram = &zram_devices[i];
 
 	mutex_lock(&zram_index_mutex);
 

@@ -53,7 +53,9 @@ DEVICE(funsoft, FUNSOFT_IDS);
 
 /* Infineon Flashloader driver */
 #define FLASHLOADER_IDS()		\
-	{ USB_DEVICE(0x8087, 0x0716) }
+	{ USB_DEVICE_INTERFACE_CLASS(0x058b, 0x0041, USB_CLASS_CDC_DATA) }, \
+	{ USB_DEVICE(0x8087, 0x0716) }, \
+	{ USB_DEVICE(0x8087, 0x0801) }
 DEVICE(flashloader, FLASHLOADER_IDS);
 
 /* ViVOpay USB Serial Driver */
@@ -105,6 +107,7 @@ static struct usb_serial_driver * const serial_drivers[] = {
 	&flashloader_device,
 	&vivopay_device,
 	&moto_modem_device,
+	&motorola_tetra_device,
 	&novatel_gps_device,
 	&hp4x_device,
 	&suunto_device,
@@ -119,6 +122,7 @@ static const struct usb_device_id id_table[] = {
 	FLASHLOADER_IDS(),
 	VIVOPAY_IDS(),
 	MOTO_IDS(),
+	MOTOROLA_TETRA_IDS(),
 	NOVATEL_IDS(),
 	HP4X_IDS(),
 	SUUNTO_IDS(),
