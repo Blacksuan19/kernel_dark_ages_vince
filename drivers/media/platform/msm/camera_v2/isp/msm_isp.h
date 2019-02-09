@@ -702,6 +702,11 @@ struct msm_vfe_common_subdev {
 	struct msm_vfe_common_dev_data *common_data;
 };
 
+struct isp_proc {
+	uint32_t  kernel_sofid;
+	uint32_t  vfeid;
+};
+
 struct vfe_device {
 	/* Driver private data */
 	struct platform_device *pdev;
