@@ -1,1 +1,0 @@
-obj-$(CONFIG_FINGERPRINT_FPC1020_MIDO)	+= fpc1020_tee.o
