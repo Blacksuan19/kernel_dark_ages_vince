@@ -56,7 +56,6 @@ bool lcm_ffbm_mode = 0;
 
 /*Only used in D2*/
 
-#ifdef CONFIG_PROJECT_VINCE
 static struct NVT_CSOT_ESD nvt_csot_esd = {
 	.nova_csot_panel = false,
 	.ESD_TE_status = false
@@ -67,7 +66,6 @@ struct NVT_CSOT_ESD *get_nvt_csot_esd_status(void){
 }
 
 bool vspn_power_state = false;		/*only used in vince*/
-#endif
 
 static struct pm_qos_request mdss_dsi_pm_qos_request;
 
@@ -387,8 +385,6 @@ static int mdss_dsi_regulator_init(struct platform_device *pdev,
 	return rc;
 }
 
-#ifdef CONFIG_PROJECT_VINCE
-/*Add by HQ-zmc [Date: 2017-12-21 16:50:07]*/
 static int nova_esd_2fingers_rst(struct mdss_panel_data *pdata){
 	int ret = 0;
 	struct mdss_dsi_ctrl_pdata *ctrl_pdata = NULL;
@@ -450,16 +446,12 @@ static int nova_esd_recovery(struct mdss_panel_data *pdata){
 end:
 	return ret;
 }
-#endif
 int mdss_dsi_panel_power_off(struct mdss_panel_data *pdata)
 {
 	int ret = 0;
 	struct mdss_dsi_ctrl_pdata *ctrl_pdata = NULL;
 
-#ifdef CONFIG_PROJECT_VINCE
-	/*Add by HQ-zmc [Date: 2017-12-18 11:16:00]*/
 	struct NVT_CSOT_ESD *nvt_csot_esd_status = get_nvt_csot_esd_status();
-#endif
 
 	if (pdata == NULL) {
 		pr_err("%s: Invalid input data\n", __func__);
@@ -488,9 +480,7 @@ int mdss_dsi_panel_power_off(struct mdss_panel_data *pdata)
 
 	if (mdss_dsi_pinctrl_set_state(ctrl_pdata, false))
 		pr_debug("reset disable: pinctrl not enabled\n");
-
-#ifdef CONFIG_PROJECT_VINCE
-	/*changed by HQ-zmc 20170926*/
+	
 	if ((!synaptics_gesture_func_on) || (!synaptics_gesture_func_on_lansi) || (!NVT_gesture_func_on)){
 		if (nvt_csot_esd_status->nova_csot_panel && nvt_csot_esd_status->ESD_TE_status){
 			ret = nova_esd_recovery(pdata);
@@ -512,14 +502,6 @@ int mdss_dsi_panel_power_off(struct mdss_panel_data *pdata)
 	else{
 		printk("[zmc] %s: VSP/VSN keep high for gesture_wakeup\n",__func__);
 	}
-#else
-	ret = msm_mdss_enable_vreg(
-		ctrl_pdata->panel_power_data.vreg_config,
-		ctrl_pdata->panel_power_data.num_vreg, 0);
-	if (ret)
-		pr_err("%s: failed to disable vregs for %s\n",
-			__func__, __mdss_dsi_pm_name(DSI_PANEL_PM));
-#endif
 
 end:
 	return ret;
@@ -547,7 +529,6 @@ static int mdss_dsi_panel_power_on(struct mdss_panel_data *pdata)
 					__func__);
 	}
 
-#ifdef CONFIG_PROJECT_VINCE
 	printk("[zmc] %s: vspn_power_state = %d\n",__func__,vspn_power_state);
 	if (!vspn_power_state){
 		printk("[zmc] mido/E7 lite msm_dss_enable_vreg \n ");
@@ -561,16 +542,6 @@ static int mdss_dsi_panel_power_on(struct mdss_panel_data *pdata)
 		}
 		vspn_power_state = true;
 	}
-#else
-	ret = msm_mdss_enable_vreg(
-		ctrl_pdata->panel_power_data.vreg_config,
-		ctrl_pdata->panel_power_data.num_vreg, 1);
-	if (ret) {
-		pr_err("%s: failed to enable vregs for %s\n",
-			__func__, __mdss_dsi_pm_name(DSI_PANEL_PM));
-		return ret;
-	}
-#endif
 	/*
 	 * If continuous splash screen feature is enabled, then we need to
 	 * request all the GPIOs that have already been configured in the
@@ -3069,37 +3040,23 @@ static struct device_node *mdss_dsi_pref_prim_panel(
  * returns pointer to panel node on success, NULL on error.
  */
 char panel_name[MDSS_MAX_PANEL_LEN] = "";
-#ifdef CONFIG_WPONIT_ADJUST_FUN
-u32 white_point_num_x = 0;
-u32 white_point_num_y = 0;
-u32 white_point_num_r = 0;
-u32 white_point_num_g = 0;
-u32 white_point_num_b = 0;
-#endif
-#ifdef CONFIG_PROJECT_VINCE
+
 int white_point_num = 0;
 extern uint32_t ESD_interval;		/*ESD check period*/
-#endif
+
 static struct device_node *mdss_dsi_find_panel_of_node(
 		struct platform_device *pdev, char *panel_cfg)
 {
 	int len, i = 0;
 	int ctrl_id = pdev->id - 1;
-#ifdef CONFIG_PROJECT_VINCE
 	char *wponit_str;
-#endif
 	char ctrl_id_stream[3] =  "0:";
 	char *str1 = NULL, *str2 = NULL, *override_cfg = NULL;
 	char cfg_np_name[MDSS_MAX_PANEL_LEN] = "";
-#ifdef CONFIG_WPONIT_ADJUST_FUN
-	char *wponit_str;
-#endif
 	struct device_node *dsi_pan_node = NULL, *mdss_node = NULL;
 	struct mdss_dsi_ctrl_pdata *ctrl_pdata = platform_get_drvdata(pdev);
 	struct mdss_panel_info *pinfo = &ctrl_pdata->panel_data.panel_info;
-#ifdef CONFIG_PROJECT_VINCE
 	struct NVT_CSOT_ESD *nvt_csot_esd_status = get_nvt_csot_esd_status();
-#endif
 
 	len = strlen(panel_cfg);
 	ctrl_pdata->panel_data.dsc_cfg_np_name[0] = '\0';
@@ -3115,7 +3072,6 @@ static struct device_node *mdss_dsi_find_panel_of_node(
 			pr_info("[ffbm] we are in ffbm mode now!\n");
 		}
 #endif
-#ifdef CONFIG_PROJECT_VINCE
 		wponit_str = strnstr(panel_cfg, ":wpoint=", len);
 		if (!wponit_str) {
 			pr_err("%s:[white point calibration] white point is not present in %s\n",
@@ -3124,18 +3080,6 @@ static struct device_node *mdss_dsi_find_panel_of_node(
 			white_point_num = ((*(wponit_str +  8)) - '0') * 10 + ((*(wponit_str +  9) - '0'));
 			pr_err("[white point calibration] white_point_num = %d\n", white_point_num);
 		}
-#endif
-#ifdef CONFIG_WPONIT_ADJUST_FUN
-		wponit_str = strnstr(panel_cfg, ":wpoint=", len);
-		if (!wponit_str) {
-			pr_err("%s:[white point calibration] white point is not present in %s\n",
-					__func__, panel_cfg);
-		}else{
-			white_point_num_x = ((*(wponit_str +  8)) - '0') * 100 + ((*(wponit_str +  9) - '0'))*10 +(*(wponit_str +  10) - '0');
-			white_point_num_y = ((*(wponit_str +  11)) - '0') * 100 + ((*(wponit_str +  12) - '0'))*10 +(*(wponit_str +  13) - '0');
-			pr_err("[white point calibration] white_point_num_x = %d,white_point_num_y = %d\n", white_point_num_x,white_point_num_y);
-		}
-#endif
 		/* check if any override parameters are set */
 		pinfo->sim_panel_mode = 0;
 		override_cfg = strnstr(panel_cfg, "#" OVERRIDE_CFG, len);
@@ -3183,12 +3127,10 @@ static struct device_node *mdss_dsi_find_panel_of_node(
 			__func__, panel_cfg, panel_name);
 		if (!strcmp(panel_name, NONE_PANEL))
 			goto exit;
-#ifdef CONFIG_PROJECT_VINCE
 		if (!strcmp(panel_name, "qcom,mdss_dsi_nt36672_csot_fhdplus_video_e7")){
 			nvt_csot_esd_status->nova_csot_panel = true;
 			ESD_interval = 500;
 		}
-#endif
 		mdss_node = of_parse_phandle(pdev->dev.of_node,
 			"qcom,mdss-mdp", 0);
 		if (!mdss_node) {

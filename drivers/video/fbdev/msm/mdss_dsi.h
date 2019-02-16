@@ -228,11 +228,9 @@ extern struct device dsi_dev;
 extern u32 dsi_irq;
 extern struct mdss_dsi_ctrl_pdata *ctrl_list[];
 
-#ifdef CONFIG_PROJECT_VINCE
 extern bool synaptics_gesture_func_on;
 extern bool synaptics_gesture_func_on_lansi;
 extern bool NVT_gesture_func_on;
-#endif
 
 enum {
 	DSI_CTRL_0,
@@ -489,10 +487,8 @@ struct mdss_dsi_ctrl_pdata {
 	struct dsi_panel_cmds warm_gamma_cmds;
 	struct dsi_panel_cmds default_gamma_cmds;
 	struct dsi_panel_cmds white_gamma_cmds;
-#ifdef CONFIG_PROJECT_VINCE
 	struct dsi_panel_cmds sRGB_on_cmds;
 	struct dsi_panel_cmds sRGB_off_cmds;
-#endif
 	struct dsi_panel_cmds PM1_cmds;
 	struct dsi_panel_cmds PM2_cmds;
 	struct dsi_panel_cmds PM3_cmds;
@@ -743,14 +739,12 @@ static inline const char *__mdss_dsi_pm_supply_node_name(
 	}
 }
 
-#ifdef CONFIG_PROJECT_VINCE
-/*Add by HQ-zmc [Date: 2017-12-18 11:02:02]*/
 struct NVT_CSOT_ESD{
 	bool nova_csot_panel;
 	bool ESD_TE_status;
 };
 struct NVT_CSOT_ESD *get_nvt_csot_esd_status(void);
-#endif
+
 void mdss_dsi_panel_cmds_send(struct mdss_dsi_ctrl_pdata *ctrl,
 			struct dsi_panel_cmds *pcmds, u32 flags);
 

@@ -57,11 +57,8 @@
 
 extern struct mdss_dsi_ctrl_pdata *change_par_ctrl ;
 extern int change_par_buf;
-#ifdef CONFIG_PROJECT_VINCE
+
 extern int LCM_effect[4];
-#else
-extern int LCM_effect[3];
-#endif
 
 #ifdef CONFIG_FB_MSM_TRIPLE_BUFFER
 #define MDSS_FB_NUM 3
@@ -829,10 +826,9 @@ static ssize_t mdss_fb_change_dispparam(struct device *dev,
 	struct dsi_panel_cmds *PM6_cmds_point;
 	struct dsi_panel_cmds *PM7_cmds_point;
 	struct dsi_panel_cmds *PM8_cmds_point;
-#ifdef CONFIG_PROJECT_VINCE
 	struct dsi_panel_cmds *sRGB_on_cmds_point;
 	struct dsi_panel_cmds *sRGB_off_cmds_point;
-#endif
+
     sscanf(buf, "%x", &change_par_buf) ;
 	if (!change_par_ctrl){
 		pr_err("%s: change_par_ctrl is NULL, change lcm effect failed\n",__func__);
@@ -854,10 +850,9 @@ static ssize_t mdss_fb_change_dispparam(struct device *dev,
 	PM6_cmds_point = &change_par_ctrl->PM6_cmds;
 	PM7_cmds_point = &change_par_ctrl->PM7_cmds;
 	PM8_cmds_point = &change_par_ctrl->PM8_cmds;
-#ifdef CONFIG_PROJECT_VINCE
 	sRGB_on_cmds_point = &change_par_ctrl->sRGB_on_cmds;
 	sRGB_off_cmds_point = &change_par_ctrl->sRGB_off_cmds;
-#endif
+
 	if ((change_par_buf >= 0x01) && (change_par_buf <= 0x0c)) {
 		LCM_effect[0] = change_par_buf;
 	} else if ((change_par_buf == 0x10) || (change_par_buf == 0xf0)) {
@@ -865,11 +860,9 @@ static ssize_t mdss_fb_change_dispparam(struct device *dev,
 	} else if ((change_par_buf == 0x100) || (change_par_buf == 0xf00)) {
 		LCM_effect[2] = change_par_buf;
 	}
-	#ifdef CONFIG_PROJECT_VINCE
 	else if ((change_par_buf == 0x1000) || (change_par_buf == 0xf000)) {
 		LCM_effect[3] = change_par_buf;
 	}
-	#endif
 	printk("mdss_fb_change_dispparam: mode=%x\n", change_par_buf);
 	switch(change_par_buf){
 		case 0x0001:
@@ -908,12 +901,10 @@ static ssize_t mdss_fb_change_dispparam(struct device *dev,
 			mdss_dsi_panel_cmds_send(change_par_ctrl, CABC_on_cmds_point, CMD_REQ_COMMIT); break;
 		case 0x0f00:
 			mdss_dsi_panel_cmds_send(change_par_ctrl, CABC_off_cmds_point, CMD_REQ_COMMIT); break;
-		#ifdef CONFIG_PROJECT_VINCE
 		case 0x1000:
 			mdss_dsi_panel_cmds_send(change_par_ctrl, sRGB_on_cmds_point, CMD_REQ_COMMIT); break;
 		case 0xf000:
 			mdss_dsi_panel_cmds_send(change_par_ctrl, sRGB_off_cmds_point, CMD_REQ_COMMIT); break;
-		#endif
 	}
        return len;
 }
@@ -921,83 +912,10 @@ static ssize_t mdss_fb_get_dispparam(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
 	int ret;
-	#ifdef CONFIG_PROJECT_VINCE
 	ret = scnprintf(buf, PAGE_SIZE, "%x%x%x%x\n",
 		LCM_effect[0] , LCM_effect[1] ,LCM_effect[2] , LCM_effect[3]);
-	#else
-	ret = scnprintf(buf, PAGE_SIZE, "%x%x%x\n",
-		LCM_effect[0] , LCM_effect[1] ,LCM_effect[2]);
-	#endif
 	return ret;
 }
-#if defined(CONFIG_WPONIT_ADJUST_FUN)
-bool set_white_point_x = true;
-static ssize_t mdss_fb_set_wpoint(struct device *dev,
-	struct device_attribute *attr, const char *buf, size_t len)
-{
-	if (set_white_point_x)
-	{
-		sscanf(buf, "%3d", &white_point_num_x) ;
-		set_white_point_x = false;
-	}
-	else
-	{
-		sscanf(buf, "%3d", &white_point_num_y) ;
-		set_white_point_x = true;
-	}
-       return len;
-}
-static ssize_t mdss_fb_get_wpoint(struct device *dev,
-		struct device_attribute *attr, char *buf)
-{
-	int ret;
-	ret = scnprintf(buf, PAGE_SIZE, "%3d%3d\n",
-		white_point_num_x, white_point_num_y);
-	return ret;
-}
-static ssize_t mdss_fb_set_rpoint(struct device *dev,
-	struct device_attribute *attr, const char *buf, size_t len)
-{
-	sscanf(buf, "%6d", &white_point_num_r) ;
-       return len;
-}
-static ssize_t mdss_fb_get_rpoint(struct device *dev,
-		struct device_attribute *attr, char *buf)
-{
-	int ret;
-	ret = scnprintf(buf, PAGE_SIZE, "%6d\n",
-		white_point_num_r);
-	return ret;
-}
-static ssize_t mdss_fb_set_gpoint(struct device *dev,
-	struct device_attribute *attr, const char *buf, size_t len)
-{
-	sscanf(buf, "%6d", &white_point_num_g) ;
-       return len;
-}
-static ssize_t mdss_fb_get_gpoint(struct device *dev,
-		struct device_attribute *attr, char *buf)
-{
-	int ret;
-	ret = scnprintf(buf, PAGE_SIZE, "%6d\n",
-		white_point_num_g);
-	return ret;
-}
-static ssize_t mdss_fb_set_bpoint(struct device *dev,
-	struct device_attribute *attr, const char *buf, size_t len)
-{
-	sscanf(buf, "%6d", &white_point_num_b) ;
-       return len;
-}
-static ssize_t mdss_fb_get_bpoint(struct device *dev,
-		struct device_attribute *attr, char *buf)
-{
-	int ret;
-	ret = scnprintf(buf, PAGE_SIZE, "%6d\n",
-		white_point_num_b);
-	return ret;
-}
-#endif
 
 static ssize_t mdss_fb_change_dfps_mode(struct device *dev,
 	struct device_attribute *attr, const char *buf, size_t len)
@@ -1161,16 +1079,6 @@ static DEVICE_ATTR(msm_fb_persist_mode, 0644,
 	mdss_fb_get_persist_mode, mdss_fb_change_persist_mode);
 static DEVICE_ATTR(msm_fb_dispparam, S_IRUGO | S_IWUSR,
 	mdss_fb_get_dispparam, mdss_fb_change_dispparam);
-#if defined(CONFIG_WPONIT_ADJUST_FUN)
-static DEVICE_ATTR(msm_fb_wpoint, S_IRUGO | S_IWUSR,
-	mdss_fb_get_wpoint, mdss_fb_set_wpoint);
-static DEVICE_ATTR(msm_fb_rpoint, S_IRUGO | S_IWUSR,
-	mdss_fb_get_rpoint, mdss_fb_set_rpoint);
-static DEVICE_ATTR(msm_fb_gpoint, S_IRUGO | S_IWUSR,
-	mdss_fb_get_gpoint, mdss_fb_set_gpoint);
-static DEVICE_ATTR(msm_fb_bpoint, S_IRUGO | S_IWUSR,
-	mdss_fb_get_bpoint, mdss_fb_set_bpoint);
-#endif
 static DEVICE_ATTR(idle_power_collapse, 0444, mdss_fb_idle_pc_notify, NULL);
 
 static struct attribute *mdss_fb_attrs[] = {
@@ -1187,12 +1095,6 @@ static struct attribute *mdss_fb_attrs[] = {
 	&dev_attr_measured_fps.attr,
 	&dev_attr_msm_fb_persist_mode.attr,
 	&dev_attr_msm_fb_dispparam.attr,
-#if defined(CONFIG_WPONIT_ADJUST_FUN)
-	&dev_attr_msm_fb_wpoint.attr,
-	&dev_attr_msm_fb_rpoint.attr,
-	&dev_attr_msm_fb_gpoint.attr,
-	&dev_attr_msm_fb_bpoint.attr,
-#endif
 	&dev_attr_idle_power_collapse.attr,
 	NULL,
 };

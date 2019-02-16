@@ -1576,7 +1576,6 @@ static int32_t nvt_ts_resume(struct device *dev)
 
 #if defined(CONFIG_FB)
 
-#ifdef CONFIG_PROJECT_VINCE
 	static int fb_notifier_callback(struct notifier_block *self, unsigned long event, void *data)
 	{
 		struct fb_event *evdata = data;
@@ -1600,29 +1599,6 @@ static int32_t nvt_ts_resume(struct device *dev)
 
 		return 0;
 	}
-#else
-	static int fb_notifier_callback(struct notifier_block *self, unsigned long event, void *data)
-	{
-		struct fb_event *evdata = data;
-		int *blank;
-		struct nvt_ts_data *ts =
-			container_of(self, struct nvt_ts_data, fb_notif);
-
-		if (evdata && evdata->data && event == FB_EARLY_EVENT_BLANK) {
-			blank = evdata->data;
-			if (*blank == FB_BLANK_POWERDOWN) {
-				nvt_ts_suspend(&ts->client->dev);
-			}
-		} else if (evdata && evdata->data && event == FB_EVENT_BLANK) {
-			blank = evdata->data;
-			if (*blank == FB_BLANK_UNBLANK) {
-				nvt_ts_resume(&ts->client->dev);
-			}
-		}
-
-		return 0;
-	}
-#endif
 
 #elif defined(CONFIG_HAS_EARLYSUSPEND)
 static void nvt_ts_early_suspend(struct early_suspend *h)
