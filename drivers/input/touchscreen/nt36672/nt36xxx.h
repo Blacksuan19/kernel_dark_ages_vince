@@ -32,7 +32,13 @@
 
 #define NVTTOUCH_INT_PIN 943
 
+
+
+
+
 #define INT_TRIGGER_TYPE IRQ_TYPE_EDGE_RISING
+
+
 
 #define NVT_I2C_NAME "NVT-ts"
 #define I2C_BLDR_Address 0x01
@@ -75,7 +81,7 @@ extern bool NVT_gesture_func_on;
 
 
 #define NVT_TOUCH_ESD_PROTECT 1
-#define NVT_TOUCH_ESD_CHECK_PERIOD 1500
+#define NVT_TOUCH_ESD_CHECK_PERIOD 1500	/* ms */
 
 struct nvt_ts_mem_map {
 	uint32_t EVENT_BUF_ADDR;
@@ -126,6 +132,7 @@ struct nvt_ts_data {
 	int32_t irq_gpio;
 	uint32_t irq_flags;
 	int32_t reset_gpio;
+	/*Modifiy by HQ-zmc [Date: 2018-04-23 21:14:58]*/
 	const char *pwr_reg_name;
 	struct regulator *pwr_reg;
 
@@ -151,11 +158,11 @@ typedef enum {
 } RST_COMPLETE_STATE;
 
 typedef enum {
-	EVENT_MAP_HOST_CMD                      = 0x50,
-	EVENT_MAP_HANDSHAKING_or_SUB_CMD_BYTE   = 0x51,
-	EVENT_MAP_RESET_COMPLETE                = 0x60,
-	EVENT_MAP_FWINFO                        = 0x78,
-	EVENT_MAP_PROJECTID                     = 0x9A,
+    EVENT_MAP_HOST_CMD                      = 0x50,
+    EVENT_MAP_HANDSHAKING_or_SUB_CMD_BYTE   = 0x51,
+    EVENT_MAP_RESET_COMPLETE                = 0x60,
+    EVENT_MAP_FWINFO                        = 0x78,
+    EVENT_MAP_PROJECTID                     = 0x9A,
 } I2C_EVENT_MAP;
 
 
@@ -174,4 +181,4 @@ extern int32_t nvt_check_fw_status(void);
 extern void nvt_esd_check_enable(uint8_t enable);
 #endif
 
-#endif
+#endif /* _LINUX_NVT_TOUCH_H */

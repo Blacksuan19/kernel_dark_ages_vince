@@ -34,12 +34,19 @@
 
 const struct firmware *fw_entry = NULL;
 
+/*******************************************************
+Description:
+	Novatek touchscreen request update firmware function.
+
+return:
+	Executive outcomes. 0---succeed. -1,-22---failed.
+*******************************************************/
 int32_t update_firmware_request(char *filename)
 {
 	int32_t ret = 0;
 
 	if (NULL == filename) {
-		return -1;
+		return -EPERM;
 	}
 
 	NVT_LOG("filename is %s\n", filename);
@@ -66,6 +73,13 @@ int32_t update_firmware_request(char *filename)
 	return 0;
 }
 
+/*******************************************************
+Description:
+	Novatek touchscreen release update firmware function.
+
+return:
+	n.a.
+*******************************************************/
 void update_firmware_release(void)
 {
 	if (fw_entry) {
@@ -74,6 +88,14 @@ void update_firmware_release(void)
 	fw_entry = NULL;
 }
 
+/*******************************************************
+Description:
+	Novatek touchscreen check firmware version function.
+
+return:
+	Executive outcomes. 0---need update. 1---need not
+	update.
+*******************************************************/
 int32_t Check_FW_Ver(void)
 {
 	uint8_t buf[16] = {0};
@@ -116,6 +138,13 @@ int32_t Check_FW_Ver(void)
 		return 0;
 }
 
+/*******************************************************
+Description:
+	Novatek touchscreen resume from deep power down function.
+
+return:
+	Executive outcomes. 0---succeed. negative---failed.
+*******************************************************/
 int32_t Resume_PD(void)
 {
 	uint8_t buf[8] = {0};
@@ -148,7 +177,7 @@ int32_t Resume_PD(void)
 		retry++;
 		if (unlikely(retry > 20)) {
 			NVT_ERR("Check 0xAA (Resume Command) error!! status=0x%02X\n", buf[1]);
-			return -1;
+			return -EPERM;
 		}
 	}
 	msleep(10);
@@ -157,6 +186,14 @@ int32_t Resume_PD(void)
 	return 0;
 }
 
+/*******************************************************
+Description:
+	Novatek touchscreen check firmware checksum function.
+
+return:
+	Executive outcomes. 0---checksum not match.
+	1---checksum match. -1--- checksum read failed.
+*******************************************************/
 int32_t Check_CheckSum(void)
 {
 	uint8_t buf[64] = {0};
@@ -217,7 +254,7 @@ int32_t Check_CheckSum(void)
 				retry++;
 				if (unlikely(retry > 5)) {
 					NVT_ERR("Check 0xAA (Fast Read Command) failed, buf[1]=0x%02X, retry=%d\n", buf[1], retry);
-					return -1;
+					return -EPERM;
 				}
 			}
 
@@ -252,6 +289,14 @@ int32_t Check_CheckSum(void)
 	return 1;
 }
 
+/*******************************************************
+Description:
+	Novatek touchscreen initial bootloader and flash
+	block function.
+
+return:
+	Executive outcomes. 0---succeed. negative---failed.
+*******************************************************/
 int32_t Init_BootLoader(void)
 {
 	uint8_t buf[64] = {0};
@@ -288,7 +333,7 @@ int32_t Init_BootLoader(void)
 		retry++;
 		if (unlikely(retry > 20)) {
 			NVT_ERR("Check 0xAA (Inittial Flash Block) error!! status=0x%02X\n", buf[1]);
-			return -1;
+			return -EPERM;
 		}
 	}
 
@@ -298,6 +343,13 @@ int32_t Init_BootLoader(void)
 	return 0;
 }
 
+/*******************************************************
+Description:
+	Novatek touchscreen erase flash sectors function.
+
+return:
+	Executive outcomes. 0---succeed. negative---failed.
+*******************************************************/
 int32_t Erase_Flash(void)
 {
 	uint8_t buf[64] = {0};
@@ -332,7 +384,7 @@ int32_t Erase_Flash(void)
 		retry++;
 		if (unlikely(retry > 20)) {
 			NVT_ERR("Check 0xAA (Write Enable for Write Status Register) error!! status=0x%02X\n", buf[1]);
-			return -1;
+			return -EPERM;
 		}
 	}
 
@@ -362,7 +414,7 @@ int32_t Erase_Flash(void)
 		retry++;
 		if (unlikely(retry > 20)) {
 			NVT_ERR("Check 0xAA (Write Status Register) error!! status=0x%02X\n", buf[1]);
-			return -1;
+			return -EPERM;
 		}
 	}
 
@@ -393,7 +445,7 @@ int32_t Erase_Flash(void)
 		retry++;
 		if (unlikely(retry > 100)) {
 			NVT_ERR("Check 0xAA (Read Status for Write Status Register) failed, buf[1]=0x%02X, buf[2]=0x%02X, retry=%d\n", buf[1], buf[2], retry);
-			return -1;
+			return -EPERM;
 		}
 	}
 
@@ -428,7 +480,7 @@ int32_t Erase_Flash(void)
 			retry++;
 			if (unlikely(retry > 20)) {
 				NVT_ERR("Check 0xAA (Write Enable) error!! status=0x%02X\n", buf[1]);
-				return -1;
+				return -EPERM;
 			}
 		}
 
@@ -462,7 +514,7 @@ int32_t Erase_Flash(void)
 			retry++;
 			if (unlikely(retry > 20)) {
 				NVT_ERR("Check 0xAA (Sector Erase) failed, buf[1]=0x%02X, retry=%d\n", buf[1], retry);
-				return -1;
+				return -EPERM;
 			}
 		}
 
@@ -493,7 +545,7 @@ int32_t Erase_Flash(void)
 			retry++;
 			if (unlikely(retry > 100)) {
 				NVT_ERR("Check 0xAA (Read Status) failed, buf[1]=0x%02X, buf[2]=0x%02X, retry=%d\n", buf[1], buf[2], retry);
-				return -1;
+				return -EPERM;
 			}
 		}
 	}
@@ -502,6 +554,13 @@ int32_t Erase_Flash(void)
 	return 0;
 }
 
+/*******************************************************
+Description:
+	Novatek touchscreen write flash sectors function.
+
+return:
+	Executive outcomes. 0---succeed. negative---failed.
+*******************************************************/
 int32_t Write_Flash(void)
 {
 	uint8_t buf[64] = {0};
@@ -556,7 +615,7 @@ int32_t Write_Flash(void)
 			retry++;
 			if (unlikely(retry > 20)) {
 				NVT_ERR("Check 0xAA (Write Enable) error!! status=0x%02X\n", buf[1]);
-				return -1;
+				return -EPERM;
 			}
 		}
 
@@ -577,7 +636,7 @@ int32_t Write_Flash(void)
 		else
 			tmpvalue = (Flash_Address >> 16) + ((Flash_Address >> 8) & 0xFF) + (Flash_Address & 0xFF) + 0x00 + (fw_entry->size - Flash_Address - 1);
 
-		for (k = 0;k < min(fw_entry->size - Flash_Address,(size_t)256); k++)
+		for (k = 0; k < min(fw_entry->size - Flash_Address,(size_t)256); k++)
 			tmpvalue += fw_entry->data[Flash_Address + k];
 
 		tmpvalue = 255 - tmpvalue + 1;
@@ -613,7 +672,7 @@ int32_t Write_Flash(void)
 			retry++;
 			if (unlikely(retry > 20)) {
 				NVT_ERR("Check 0xAA (Page Program) failed, buf[1]=0x%02X, retry=%d\n", buf[1], retry);
-				return -1;
+				return -EPERM;
 			}
 		}
 		if (buf[1] == 0xEA) {
@@ -648,7 +707,7 @@ int32_t Write_Flash(void)
 			retry++;
 			if (unlikely(retry > 100)) {
 				NVT_ERR("Check 0xAA (Read Status) failed, buf[1]=0x%02X, buf[2]=0x%02X, retry=%d\n", buf[1], buf[2], retry);
-				return -1;
+				return -EPERM;
 			}
 		}
 		if (buf[1] == 0xEA) {
@@ -664,6 +723,14 @@ int32_t Write_Flash(void)
 	return 0;
 }
 
+/*******************************************************
+Description:
+	Novatek touchscreen verify checksum of written
+	flash function.
+
+return:
+	Executive outcomes. 0---succeed. negative---failed.
+*******************************************************/
 int32_t Verify_Flash(void)
 {
 	uint8_t buf[64] = {0};
@@ -719,7 +786,7 @@ int32_t Verify_Flash(void)
 				retry++;
 				if (unlikely(retry > 5)) {
 					NVT_ERR("Check 0xAA (Fast Read Command) failed, buf[1]=0x%02X, retry=%d\n", buf[1], retry);
-					return -1;
+					return -EPERM;
 				}
 			}
 
@@ -745,7 +812,7 @@ int32_t Verify_Flash(void)
 			if (WR_Filechksum[i] != RD_Filechksum[i]) {
 				NVT_ERR("Verify Fail%d!!\n", i);
 				NVT_ERR("RD_Filechksum[%d]=0x%04X, WR_Filechksum[%d]=0x%04X\n", i, RD_Filechksum[i], i, WR_Filechksum[i]);
-				return -1;
+				return -EPERM;
 			}
 		}
 	}
@@ -754,6 +821,13 @@ int32_t Verify_Flash(void)
 	return 0;
 }
 
+/*******************************************************
+Description:
+	Novatek touchscreen update firmware function.
+
+return:
+	Executive outcomes. 0---succeed. negative---failed.
+*******************************************************/
 int32_t Update_Firmware(void)
 {
 	int32_t ret = 0;
@@ -795,6 +869,13 @@ int32_t Update_Firmware(void)
 	return ret;
 }
 
+/*******************************************************
+Description:
+	Novatek touchscreen check flash end flag function.
+
+return:
+	Executive outcomes. 0---succeed. 1,negative---failed.
+*******************************************************/
 #define NVT_FLASH_END_FLAG_LEN 3
 #define NVT_FLASH_END_FLAG_ADDR 0x1AFFD
 int32_t nvt_check_flash_end_flag(void)
@@ -825,7 +906,7 @@ int32_t nvt_check_flash_end_flag(void)
 	}
 	msleep(10);
 
-
+	//Step 4 : Flash Read Command
 	buf[0] = 0x00;
 	buf[1] = 0x03;
 	buf[2] = (NVT_FLASH_END_FLAG_ADDR >> 16) & 0xFF;
@@ -840,7 +921,7 @@ int32_t nvt_check_flash_end_flag(void)
 	}
 	msleep(10);
 
-
+	// Check 0xAA (Read Command)
 	buf[0] = 0x00;
 	buf[1] = 0x00;
 	ret = CTP_I2C_READ(ts->client, I2C_HW_Address, buf, 2);
@@ -850,12 +931,12 @@ int32_t nvt_check_flash_end_flag(void)
 	}
 	if (buf[1] != 0xAA) {
 		NVT_ERR("Check 0xAA (Read Command) error!! status=0x%02X\n", buf[1]);
-		return -1;
+		return -EPERM;
 	}
 
 	msleep(10);
 
-
+	//Step 5 : Read Flash Data
 	buf[0] = 0xFF;
 	buf[1] = (ts->mmap->READ_FLASH_CHECKSUM_ADDR >> 16) & 0xFF;
 	buf[2] = (ts->mmap->READ_FLASH_CHECKSUM_ADDR >> 8) & 0xFF;
@@ -866,7 +947,7 @@ int32_t nvt_check_flash_end_flag(void)
 	}
 	msleep(10);
 
-
+	// Read Back
 	buf[0] = ts->mmap->READ_FLASH_CHECKSUM_ADDR & 0xFF;
 	ret = CTP_I2C_READ(ts->client, I2C_BLDR_Address, buf, 6);
 	if (ret < 0) {
@@ -886,6 +967,14 @@ int32_t nvt_check_flash_end_flag(void)
 	}
 }
 
+/*******************************************************
+Description:
+	Novatek touchscreen update firmware when booting
+	function.
+
+return:
+	n.a.
+*******************************************************/
 void Boot_Update_Firmware(struct work_struct *work)
 {
 	int32_t ret = 0;
@@ -933,4 +1022,4 @@ void Boot_Update_Firmware(struct work_struct *work)
 
 	update_firmware_release();
 }
-#endif
+#endif /* BOOT_UPDATE_FIRMWARE */

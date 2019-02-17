@@ -32,7 +32,7 @@
 #define NVT_XIAOMI_CONFIG_INFO "nvt_xiaomi_config_info"
 #define CTP_PROC_LOCKDOWN_FILE "tp_lockdown_info"
 #define TP_DATA_DUMP "tp_data_dump"
-#define TP_WAKEUP_SWITCH "tp_wakeup_switch"
+#define TP_WAKEUP_SWITCH "tp_wakeup_switch"				/*add by HQ-zmc 20170926*/
 
 #define I2C_TANSFER_LENGTH  64
 
@@ -59,13 +59,21 @@ static struct proc_dir_entry *NVT_proc_raw_entry;
 static struct proc_dir_entry *NVT_proc_diff_entry;
 static struct proc_dir_entry *NVT_proc_xiaomi_config_info_entry;
 static struct proc_dir_entry *NVT_ctp_lockdown_status_proc;
-static struct proc_dir_entry *NVT_ctp_wakeup_switch;
-static struct proc_dir_entry *NVT_ctp_data_dump_proc;
+static struct proc_dir_entry *NVT_ctp_data_dump_proc;				/*add by HQ-zmc*/
+static struct proc_dir_entry *NVT_ctp_wakeup_switch;				/*add by HQ-zmc 20170926*/
 
-static uint8_t nvt_xiaomi_conf_info_fw_ver = 0;
-static uint8_t nvt_xiaomi_conf_info_fae_id = 0;
-static uint64_t nvt_xiaomi_conf_info_reservation = 0;
 
+static uint8_t nvt_xiaomi_conf_info_fw_ver;
+static uint8_t nvt_xiaomi_conf_info_fae_id;
+static uint64_t nvt_xiaomi_conf_info_reservation;
+
+/*******************************************************
+Description:
+	Novatek touchscreen change mode function.
+
+return:
+	n.a.
+*******************************************************/
 void nvt_change_mode(uint8_t mode)
 {
 	uint8_t buf[8] = {0};
@@ -89,6 +97,13 @@ void nvt_change_mode(uint8_t mode)
 	}
 }
 
+/*******************************************************
+Description:
+	Novatek touchscreen get firmware pipe function.
+
+return:
+	Executive outcomes. 0---pipe 0. 1---pipe 1.
+*******************************************************/
 uint8_t nvt_get_fw_pipe(void)
 {
 	uint8_t buf[8] = {0};
@@ -109,6 +124,13 @@ uint8_t nvt_get_fw_pipe(void)
 	return (buf[1] & 0x01);
 }
 
+/*******************************************************
+Description:
+	Novatek touchscreen read meta data function.
+
+return:
+	n.a.
+*******************************************************/
 void nvt_read_mdata(uint32_t xdata_addr, uint32_t xdata_btn_addr)
 {
 	int32_t i = 0;
@@ -204,6 +226,13 @@ void nvt_read_mdata(uint32_t xdata_addr, uint32_t xdata_btn_addr)
 	CTP_I2C_WRITE(ts->client, I2C_FW_Address, buf, 3);
 }
 
+/*******************************************************
+Description:
+	Novatek touchscreen read meta data from IQ to rss function.
+
+return:
+	n.a.
+*******************************************************/
 void nvt_read_mdata_rss(uint32_t xdata_i_addr, uint32_t xdata_q_addr, uint32_t xdata_btn_i_addr, uint32_t xdata_btn_q_addr)
 {
 	int i = 0;
@@ -219,19 +248,41 @@ void nvt_read_mdata_rss(uint32_t xdata_i_addr, uint32_t xdata_q_addr, uint32_t x
 	}
 }
 
+/*******************************************************
+Description:
+    Novatek touchscreen get meta data function.
+
+return:
+    n.a.
+*******************************************************/
 void nvt_get_mdata(int32_t *buf, uint8_t *m_x_num, uint8_t *m_y_num)
 {
-	*m_x_num = ts->x_num;
-	*m_y_num = ts->y_num;
-	memcpy(buf, xdata, ((ts->x_num * ts->y_num + TOUCH_KEY_NUM) * sizeof(int32_t)));
+    *m_x_num = ts->x_num;
+    *m_y_num = ts->y_num;
+    memcpy(buf, xdata, ((ts->x_num * ts->y_num + TOUCH_KEY_NUM) * sizeof(int32_t)));
 }
 
+/*******************************************************
+Description:
+	Novatek touchscreen firmware version show function.
+
+return:
+	Executive outcomes. 0---succeed.
+*******************************************************/
 static int32_t c_fw_version_show(struct seq_file *m, void *v)
 {
 	seq_printf(m, "fw_ver=%d, x_num=%d, y_num=%d, button_num=%d\n", ts->fw_ver, ts->x_num, ts->y_num, ts->max_button_num);
 	return 0;
 }
 
+/*******************************************************
+Description:
+	Novatek touchscreen xdata sequence print show
+	function.
+
+return:
+	Executive outcomes. 0---succeed.
+*******************************************************/
 static int32_t c_show(struct seq_file *m, void *v)
 {
 	int32_t i = 0;
@@ -255,17 +306,44 @@ static int32_t c_show(struct seq_file *m, void *v)
 	return 0;
 }
 
+/*******************************************************
+Description:
+	Novatek touchscreen xdata sequence print start
+	function.
+
+return:
+	Executive outcomes. 1---call next function.
+	NULL---not call next function and sequence loop
+	stop.
+*******************************************************/
 static void *c_start(struct seq_file *m, loff_t *pos)
 {
 	return *pos < 1 ? (void *)1 : NULL;
 }
 
+/*******************************************************
+Description:
+	Novatek touchscreen xdata sequence print next
+	function.
+
+return:
+	Executive outcomes. NULL---no next and call sequence
+	stop function.
+*******************************************************/
 static void *c_next(struct seq_file *m, void *v, loff_t *pos)
 {
 	++*pos;
 	return NULL;
 }
 
+/*******************************************************
+Description:
+	Novatek touchscreen xdata sequence print stop
+	function.
+
+return:
+	n.a.
+*******************************************************/
 static void c_stop(struct seq_file *m, void *v)
 {
 	return;
@@ -285,6 +363,14 @@ const struct seq_operations nvt_seq_ops = {
 	.show   = c_show
 };
 
+/*******************************************************
+Description:
+	Novatek touchscreen /proc/nvt_fw_version open
+	function.
+
+return:
+	n.a.
+*******************************************************/
 static int32_t nvt_fw_version_open(struct inode *inode, struct file *file)
 {
 	if (mutex_lock_interruptible(&ts->lock)) {
@@ -317,6 +403,13 @@ static const struct file_operations nvt_fw_version_fops = {
 	.release = seq_release,
 };
 
+/*******************************************************
+Description:
+	Novatek touchscreen /proc/nvt_baseline open function.
+
+return:
+	Executive outcomes. 0---succeed.
+*******************************************************/
 static int32_t nvt_baseline_open(struct inode *inode, struct file *file)
 {
 	if (mutex_lock_interruptible(&ts->lock)) {
@@ -370,6 +463,13 @@ static const struct file_operations nvt_baseline_fops = {
 	.release = seq_release,
 };
 
+/*******************************************************
+Description:
+	Novatek touchscreen /proc/nvt_raw open function.
+
+return:
+	Executive outcomes. 0---succeed.
+*******************************************************/
 static int32_t nvt_raw_open(struct inode *inode, struct file *file)
 {
 	if (mutex_lock_interruptible(&ts->lock)) {
@@ -430,6 +530,13 @@ static const struct file_operations nvt_raw_fops = {
 	.release = seq_release,
 };
 
+/*******************************************************
+Description:
+	Novatek touchscreen /proc/nvt_diff open function.
+
+return:
+	Executive outcomes. 0---succeed. negative---failed.
+*******************************************************/
 static int32_t nvt_diff_open(struct inode *inode, struct file *file)
 {
 	if (mutex_lock_interruptible(&ts->lock)) {
@@ -541,7 +648,7 @@ static const struct file_operations nvt_xiaomi_config_info_fops = {
 	.release = single_release,
 };
 
-static int ctp_lockdown_proc_show(struct seq_file *file, void*data)
+static int ctp_lockdown_proc_show(struct seq_file *file, void *data)
 {
 	char temp[40] = {0};
 
@@ -551,19 +658,20 @@ static int ctp_lockdown_proc_show(struct seq_file *file, void*data)
 	return 0;
 }
 
-static int ctp_lockdown_proc_open (struct inode*inode, struct file*file)
+static int ctp_lockdown_proc_open (struct inode *inode, struct file *file)
 {
 	return single_open(file, ctp_lockdown_proc_show, inode->i_private);
 }
 
-static const struct file_operations ctp_lockdown_proc_fops = {
+static const struct file_operations ctp_lockdown_proc_fops =
+{
 	.open = ctp_lockdown_proc_open,
 	.read = seq_read,
 };
 
 
 
-static int nvt_xiaomi_Raw_Diff_info_show(struct seq_file *m, void *v)  {
+static int nvt_xiaomi_Raw_Diff_info_show(struct seq_file *m, void *v) {
 		int i, j;
 
 
@@ -683,8 +791,9 @@ static const struct file_operations nvt_xiaomi_read_rawdiff_fops = {
 	.release = single_release,
 };
 
+/*add by HQ-zmc 20170926*/
 static ssize_t nvt_xiaomi_wakeup_switch_write(struct file *file, const char __user *buffer,
-		 size_t count, loff_t *pos){
+        size_t count, loff_t *pos){
 
 	char input = -1;
 
@@ -700,12 +809,12 @@ static ssize_t nvt_xiaomi_wakeup_switch_write(struct file *file, const char __us
 	return count;
 }
 
-static int nvt_xiaomi_wakeup_switch_show(struct seq_file *m, void *v)  {
+static int nvt_xiaomi_wakeup_switch_show(struct seq_file *m, void *v) {
 	seq_printf(m, "%d\n",NVT_gesture_func_on);
 	return 0;
 }
 
-static int32_t nvt_xiaomi_wakeup_switch_open(struct inode *inode, struct file *file) {
+static int32_t nvt_xiaomi_wakeup_switch_open(struct inode *inode, struct file *file){
 	return single_open(file, nvt_xiaomi_wakeup_switch_show, NULL);
 }
 
@@ -718,9 +827,17 @@ static const struct file_operations nvt_xiaomi_wakeup_switch_fops = {
 	.write  = nvt_xiaomi_wakeup_switch_write,
 };
 
+/*******************************************************
+Description:
+	Novatek touchscreen extra function proc. file node
+	initial function.
+
+return:
+	Executive outcomes. 0---succeed. -12---failed.
+*******************************************************/
 int32_t nvt_extra_proc_init(void)
 {
-	NVT_proc_fw_version_entry = proc_create(NVT_FW_VERSION, 0444, NULL,&nvt_fw_version_fops);
+	NVT_proc_fw_version_entry = proc_create(NVT_FW_VERSION, 0444, NULL, &nvt_fw_version_fops);
 	if (NVT_proc_fw_version_entry == NULL) {
 		NVT_ERR("create proc/nvt_fw_version Failed!\n");
 		return -ENOMEM;
@@ -728,7 +845,7 @@ int32_t nvt_extra_proc_init(void)
 		NVT_LOG("create proc/nvt_fw_version Succeeded!\n");
 	}
 
-	NVT_proc_baseline_entry = proc_create(NVT_BASELINE, 0444, NULL,&nvt_baseline_fops);
+	NVT_proc_baseline_entry = proc_create(NVT_BASELINE, 0444, NULL, &nvt_baseline_fops);
 	if (NVT_proc_baseline_entry == NULL) {
 		NVT_ERR("create proc/nvt_baseline Failed!\n");
 		return -ENOMEM;
@@ -736,7 +853,7 @@ int32_t nvt_extra_proc_init(void)
 		NVT_LOG("create proc/nvt_baseline Succeeded!\n");
 	}
 
-	NVT_proc_raw_entry = proc_create(NVT_RAW, 0444, NULL,&nvt_raw_fops);
+	NVT_proc_raw_entry = proc_create(NVT_RAW, 0444, NULL, &nvt_raw_fops);
 	if (NVT_proc_raw_entry == NULL) {
 		NVT_ERR("create proc/nvt_raw Failed!\n");
 		return -ENOMEM;
@@ -744,7 +861,7 @@ int32_t nvt_extra_proc_init(void)
 		NVT_LOG("create proc/nvt_raw Succeeded!\n");
 	}
 
-	NVT_proc_diff_entry = proc_create(NVT_DIFF, 0444, NULL,&nvt_diff_fops);
+	NVT_proc_diff_entry = proc_create(NVT_DIFF, 0444, NULL, &nvt_diff_fops);
 	if (NVT_proc_diff_entry == NULL) {
 		NVT_ERR("create proc/nvt_diff Failed!\n");
 		return -ENOMEM;
@@ -769,6 +886,7 @@ int32_t nvt_extra_proc_init(void)
 	}
 
 
+	/********add read raw+diff func for xiaomi E7, wlb 20170829********/
 	NVT_ctp_data_dump_proc = proc_create(TP_DATA_DUMP, 0444, NULL, &nvt_xiaomi_read_rawdiff_fops);
 	if (NVT_ctp_data_dump_proc == NULL) {
 		NVT_ERR("create proc/%s Failed!\n", TP_DATA_DUMP);
@@ -777,11 +895,12 @@ int32_t nvt_extra_proc_init(void)
 		NVT_LOG("create proc/%s Succeeded!\n", TP_DATA_DUMP);
 	}
 
+	/*add by HQ-zmc 20170926*/
 	NVT_ctp_wakeup_switch = proc_create(TP_WAKEUP_SWITCH, 0666, NULL, &nvt_xiaomi_wakeup_switch_fops);
-	if (NVT_ctp_wakeup_switch == NULL) {
+	if (NVT_ctp_wakeup_switch == NULL){
 		NVT_ERR("create proc/%s Failed!\n", TP_WAKEUP_SWITCH);
 		return -ENOMEM;
-	} else{
+	}else{
 		NVT_LOG("create proc/%s Succeeded!\n", TP_WAKEUP_SWITCH);
 	}
 
