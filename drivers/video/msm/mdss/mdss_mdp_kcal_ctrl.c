@@ -21,7 +21,6 @@
 #include <linux/platform_device.h>
 #include <linux/init.h>
 #include <linux/module.h>
-
 #include "mdss_mdp.h"
 
 #define DEF_PCC 0x100
@@ -29,16 +28,16 @@
 #define PCC_ADJ 0x80
 
 struct kcal_lut_data {
-	int red;
-	int green;
-	int blue;
-	int minimum;
-	int enable;
-	int invert;
-	int sat;
-	int hue;
-	int val;
-	int cont;
+        int red;
+        int green;
+        int blue;
+        int minimum;
+        int enable;
+        int invert;
+        int sat;
+        int hue;
+        int val;
+        int cont;
 };
 
 static uint32_t igc_Table_Inverted[IGC_LUT_ENTRIES] = {
@@ -132,6 +131,10 @@ static uint32_t igc_Table_RGB[IGC_LUT_ENTRIES] = {
 	240, 224, 208, 192, 176, 160, 144, 128, 112, 96, 80, 64,
 	48, 32, 16, 0
 };
+
+#ifdef CONFIG_KLAPSE
+struct kcal_lut_data *lut_cpy;
+#endif
 
 struct mdss_mdp_ctl *fb0_ctl = 0;
 
@@ -525,6 +528,20 @@ static DEVICE_ATTR(kcal_val, S_IWUSR | S_IRUGO, kcal_val_show, kcal_val_store);
 static DEVICE_ATTR(kcal_cont, S_IWUSR | S_IRUGO, kcal_cont_show,
 	kcal_cont_store);
 
+#ifdef CONFIG_KLAPSE
+void kcal_klapse_push(int r, int g, int b)
+{
+        lut_cpy->red = r;
+	lut_cpy->green = g;
+	lut_cpy->blue = b;
+
+        mdss_mdp_kcal_update_pcc(lut_cpy);
+	mdss_mdp_kcal_update_pa(lut_cpy);
+	mdss_mdp_kcal_update_igc(lut_cpy);
+	mdss_mdp_kcal_display_commit();
+}
+#endif
+
 static int kcal_ctrl_probe(struct platform_device *pdev)
 {
 	int ret;
@@ -554,6 +571,10 @@ static int kcal_ctrl_probe(struct platform_device *pdev)
 	mdss_mdp_kcal_update_pa(lut_data);
 	mdss_mdp_kcal_update_igc(lut_data);
 	mdss_mdp_kcal_display_commit();
+
+#ifdef CONFIG_KLAPSE
+	lut_cpy = lut_data;
+#endif
 
 	ret = device_create_file(&pdev->dev, &dev_attr_kcal);
 	ret |= device_create_file(&pdev->dev, &dev_attr_kcal_min);
