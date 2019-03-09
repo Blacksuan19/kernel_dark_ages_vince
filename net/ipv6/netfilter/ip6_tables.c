@@ -584,30 +584,6 @@ static void cleanup_match(struct xt_entry_match *m, struct net *net)
 	module_put(par.match->me);
 }
 
-static int
-check_entry(const struct ip6t_entry *e)
-{
-	long size_of_base_struct = e->elems - (const unsigned char *)e;
-	const struct xt_entry_target *t;
-
-	/* target start is within the ip/ip6/arpt_entry struct */
-	if (e->target_offset < size_of_base_struct)
-		return -EINVAL;
-
-	if (!ip6_checkentry(&e->ipv6))
-		return -EINVAL;
-
-	if (e->target_offset + sizeof(struct xt_entry_target) >
-	    e->next_offset)
-		return -EINVAL;
-
-	t = ip6t_get_target_c(e);
-	if (e->target_offset + t->u.target_size > e->next_offset)
-		return -EINVAL;
-
-	return 0;
-}
-
 static int check_match(struct xt_entry_match *m, struct xt_mtchk_param *par)
 {
 	const struct ip6t_ip6 *ipv6 = par->entryinfo;
@@ -766,7 +742,11 @@ check_entry_size_and_hooks(struct ip6t_entry *e,
 		return -EINVAL;
 	}
 
-	err = check_entry(e);
+	if (!ip6_checkentry(&e->ipv6))
+		return -EINVAL;
+
+	err = xt_check_entry_offsets(e, e->elems, e->target_offset,
+				     e->next_offset);
 	if (err)
 		return err;
 
@@ -1501,8 +1481,11 @@ check_compat_entry_size_and_hooks(struct compat_ip6t_entry *e,
 		return -EINVAL;
 	}
 
-	/* For purposes of check_entry casting the compat entry is fine */
-	ret = check_entry((struct ip6t_entry *)e);
+	if (!ip6_checkentry(&e->ipv6))
+		return -EINVAL;
+
+	ret = xt_compat_check_entry_offsets(e, e->elems,
+					    e->target_offset, e->next_offset);
 	if (ret)
 		return ret;
 
