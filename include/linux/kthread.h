@@ -135,11 +135,11 @@ void flush_kthread_worker(struct kthread_worker *worker);
  * or when it is being cancelled.
  */
 static inline bool queuing_blocked(struct kthread_worker *worker,
-                                   struct kthread_work *work)
+				   struct kthread_work *work)
 {
-        lockdep_assert_held(&worker->lock);
+	lockdep_assert_held(&worker->lock);
 
-        return !list_empty(&work->node) || work->canceling;
+	return !list_empty(&work->node);
 }
 
 #endif /* _LINUX_KTHREAD_H */
