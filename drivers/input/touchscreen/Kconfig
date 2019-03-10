@@ -1139,7 +1139,7 @@ config TOUCHSCREEN_FT5435
          module will be called ft5435_ts.
 
 config TOUCHSCREEN_FT5446
-       tristate "FocalTech touchscreens"
+       bool "FocalTech touchscreens"
        depends on I2C
        help
          Say Y here if you have a ft5446 touchscreen.
@@ -1152,7 +1152,7 @@ config TOUCHSCREEN_FT5446
          module will be called ft5446_ts.
 
 config TOUCHSCREEN_GT917d
-       tristate "Goodix touchscreens"
+       bool "Goodix touchscreens"
        depends on I2C
        help
          Say Y here if you have a GT917d touchscreen.
