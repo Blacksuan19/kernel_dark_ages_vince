@@ -36,7 +36,7 @@ static DEFINE_PER_CPU(struct cpu_sync, sync_info);
 static unsigned int input_boost_enabled = 1;
 module_param(input_boost_enabled, uint, 0644);
 
-static unsigned int input_boost_ms = 1500;
+static unsigned int input_boost_ms = 100;
 module_param(input_boost_ms, uint, 0644);
 
 static bool sched_boost_on_input;
