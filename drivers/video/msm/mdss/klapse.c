@@ -11,7 +11,7 @@
  * 1 = time-based scaling
  * 2 = brightness-based scaling
  */
-#define DEFAULT_ENABLE  0
+#define DEFAULT_ENABLE  1
 
 // MAX_SCALE : Maximum value of RGB possible
 #define MAX_SCALE       256
@@ -20,7 +20,7 @@
 #define SCALE_VAL_MIN   20
 
 // MAX_BRIGHTNESS : Maximum value of the display brightness/backlight
-#define MAX_BRIGHTNESS  1023
+#define MAX_BRIGHTNESS  255
 
 // MIN_BRIGHTNESS : Minimum value of the display brightness/backlight
 #define MIN_BRIGHTNESS  2
@@ -28,7 +28,7 @@
 /* UPPER_BL_LVL : Initial upper limit for brightness-dependent mode. 
  * Value <= MAX_BRIGHTNESS && > LOWER_BL_LVL (MUST)
  */
-#define UPPER_BL_LVL  200
+#define UPPER_BL_LVL  20
 
 /* LOWER_BL_LVL : Initial lower limit for brightness-dependent mode. 
  * Value < UPPER_BL_LVL (MUST)
