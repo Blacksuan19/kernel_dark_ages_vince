@@ -1213,7 +1213,7 @@ static ssize_t store_screen_off_maxfreq(struct cpufreq_electron_tunables *tunabl
 	int ret;
 	unsigned long val;
 
-	ret = strict_strtoul(buf, 0, &val);
+	ret = kstrtoul(buf, 0, &val);
 	if (ret < 0) return ret;
 	if (val < 384000) tunables->screen_off_maxfreq = DEFAULT_SCREEN_OFF_MAX;
 	else tunables->screen_off_maxfreq = val;
