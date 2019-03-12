@@ -60,6 +60,7 @@ struct cpufreq_electron_policyinfo {
 	int governor_enabled;
 	struct cpufreq_electron_tunables *cached_tunables;
 	unsigned long *cpu_busy_times;
+	struct sched_load *sl;
 };
 
 /* Protected by per-policy load_lock */
@@ -431,6 +432,7 @@ static void cpufreq_electron_timer(unsigned long data)
 	struct cpufreq_electron_policyinfo *ppol = per_cpu(polinfo, data);
 	struct cpufreq_electron_tunables *tunables =
 		ppol->policy->governor_data;
+	struct sched_load *sl = ppol->sl;
 	struct cpufreq_electron_cpuinfo *pcpu;
 	unsigned int new_freq;
 	unsigned int loadadjfreq = 0, tmploadadjfreq;
@@ -466,8 +468,7 @@ static void cpufreq_electron_timer(unsigned long data)
 	}
 
 	if (tunables->use_sched_load)
-		sched_get_cpus_busy(ppol->cpu_busy_times,
-				    ppol->policy->related_cpus);
+		sched_get_cpus_busy(sl, ppol->policy->cpus);
 	max_cpu = cpumask_first(ppol->policy->cpus);
 	for_each_cpu(i, ppol->policy->cpus) {
 		pcpu = &per_cpu(cpuinfo, i);
