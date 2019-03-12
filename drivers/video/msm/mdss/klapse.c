@@ -6,38 +6,9 @@
 #include <linux/timer.h>
 #include "klapse.h"
 
-/* DEFAULT_ENABLE values :
- * 0 = off
- * 1 = time-based scaling
- * 2 = brightness-based scaling
- */
-#define DEFAULT_ENABLE  1
-
-// MAX_SCALE : Maximum value of RGB possible
-#define MAX_SCALE       256
-
-// SCALE_VAL_MIN : Minimum value of RGB recommended
-#define SCALE_VAL_MIN   20
-
-// MAX_BRIGHTNESS : Maximum value of the display brightness/backlight
-#define MAX_BRIGHTNESS  255
-
-// MIN_BRIGHTNESS : Minimum value of the display brightness/backlight
-#define MIN_BRIGHTNESS  2
-
-/* UPPER_BL_LVL : Initial upper limit for brightness-dependent mode. 
- * Value <= MAX_BRIGHTNESS && > LOWER_BL_LVL (MUST)
- */
-#define UPPER_BL_LVL  20
-
-/* LOWER_BL_LVL : Initial lower limit for brightness-dependent mode. 
- * Value < UPPER_BL_LVL (MUST)
- */
-#define LOWER_BL_LVL 2
-
 #define LIC "GPLv2"
 #define AUT "tanish2k09"
-#define VER "4.0"
+#define VER "4.3"
 
 MODULE_LICENSE(LIC);
 MODULE_AUTHOR(AUT);
@@ -49,25 +20,28 @@ MODULE_VERSION(VER);
 static unsigned int daytime_r, daytime_g, daytime_b, target_r, target_g, target_b;
 static unsigned int klapse_start_hour, klapse_stop_hour, enable_klapse;
 static unsigned int brightness_factor_auto_start_hour, brightness_factor_auto_stop_hour;
-static unsigned int klapse_scaling_rate, brightness_factor;
+static unsigned int brightness_factor;
 static unsigned int backlight_lower, backlight_upper;
 static unsigned int fadeback_minutes;
 static unsigned int pulse_freq;
 static bool brightness_factor_auto_enable;
+static unsigned int target_minute; // <-- Masked as tunable by using klapse_scaling_rate sysfs name
 
 /*
  *Internal calculation variables :
  *WARNING : DO NOT MAKE THEM TUNABLE
  */
-static int target_minute;
 static unsigned int b_cache;
-static int current_r, current_g, current_b;
-static unsigned int active_minutes, last_bl;
+static unsigned int klapse_red, klapse_green, klapse_blue;
+static unsigned int current_r, current_g, current_b;
+static unsigned int klapse_scaling_rate, active_minutes, last_bl;
 static unsigned long local_time;
 static struct rtc_time tm;
 static struct timeval time;
 static struct timer_list pulse_timer;
 
+// Pulse prototype
+static void klapse_pulse(unsigned long data);
 
 //klapse related functions
 static void restart_timer(void)
@@ -85,12 +59,20 @@ static void flush_timer(void)
 
 static void calc_active_minutes(void)
 {
+    bool isPulse = ((enable_klapse == 1) || (brightness_factor_auto_enable == 1));
+    
+    if (isPulse)
+        flush_timer();
+    
     if(klapse_start_hour > klapse_stop_hour)
         active_minutes = (24 + klapse_stop_hour - klapse_start_hour)*60;
     else
         active_minutes = (klapse_stop_hour - klapse_start_hour)*60;
-
-    target_minute = (active_minutes*10)/klapse_scaling_rate;
+        
+    klapse_scaling_rate = (active_minutes*10)/target_minute;
+    
+    if (isPulse)
+        klapse_pulse(0);
 }
 
 static int get_minutes_since_start(void)
@@ -112,9 +94,9 @@ static int get_minutes_before_stop(void)
 
 static void set_rgb(int r, int g, int b)
 {
-    K_RED = r;
-    K_GREEN = g;
-    K_BLUE = b;
+    klapse_red = r;
+    klapse_green = g;
+    klapse_blue = b;
 
     kcal_klapse_push(r, g, b);
 
@@ -184,17 +166,15 @@ static void klapse_pulse(unsigned long data)
     rtc_time_to_tm(local_time, &tm);
 
     // Check brightness level automation
-    if (brightness_factor_auto_enable == 1)
+    if ((brightness_factor_auto_enable == 1) && !hour_within_range(brightness_factor_auto_start_hour, brightness_factor_auto_stop_hour, tm.tm_hour))
     {
-        if (hour_within_range(brightness_factor_auto_start_hour, brightness_factor_auto_stop_hour, tm.tm_hour) == 0) //Means not in dimmer-time
-            brightness_factor = 10;
-        else
-            brightness_factor = b_cache;
+        //Means not in dimmer-time
+        brightness_factor = 10;
     }
     else
-        brightness_factor = b_cache;           
+        brightness_factor = b_cache;
 
-    // Check klapse automation, and a security measure too
+    // Check klapse automation, acts as a security measure too
     if (enable_klapse == 1)
     {
         backtime = get_minutes_before_stop();
@@ -234,6 +214,10 @@ static void klapse_pulse(unsigned long data)
         }
         
         set_rgb_brightness(current_r, current_g, current_b);
+    }
+    else
+    {
+        set_rgb_brightness(klapse_red, klapse_green, klapse_blue);
     }
     
     if (!timer_pending(&pulse_timer))
@@ -292,135 +276,291 @@ static void set_enable_klapse(int val)
 }
 
 //SYSFS node for details :
-static ssize_t info_show(struct device *dev,
-    struct device_attribute *attr, char *buf)
+static ssize_t info_show(struct kobject *kobj,
+    struct kobj_attribute *attr, char *buf)
 {
   size_t count = 0;
 
-  count += sprintf(buf, "Author : %s\nVersion : %s\nLicense : %s\n", AUT, VER, LIC);
+  count += snprintf(buf, PAGE_SIZE, "Author : %s\nVersion : %s\nLicense : %s\n", AUT, VER, LIC);
 
   return count;
 }
 
-static ssize_t info_dump(struct device *dev,
-    struct device_attribute *attr, const char *buf, size_t count)
+static ssize_t info_dump(struct kobject *kobj,
+    struct kobj_attribute *attr, const char *buf, size_t count)
 {
     return count;
 }
 
 //SYSFS tunables :
-static ssize_t enable_klapse_show(struct device *dev,
-    struct device_attribute *attr, char *buf)
+static ssize_t enable_klapse_show(struct kobject *kobj,
+    struct kobj_attribute *attr, char *buf)
 {
   size_t count = 0;
 
-  count += sprintf(buf, "%d\n", enable_klapse);
+  count += snprintf(buf, PAGE_SIZE, "%d\n", enable_klapse);
 
   return count;
 }
 
-static ssize_t enable_klapse_dump(struct device *dev,
-    struct device_attribute *attr, const char *buf, size_t count)
+static ssize_t enable_klapse_dump(struct kobject *kobj,
+    struct kobj_attribute *attr, const char *buf, size_t count)
 {
     int tmpval = 0;
 
-    if (!sscanf(buf, "%d", &tmpval))
-      return -EINVAL;
+    if (kstrtoint(buf, 0, &tmpval) != 0)
+        return -EINVAL;
 
     set_enable_klapse(tmpval);
 
     return count;
 }
 
-static ssize_t daytime_rgb_show(struct device *dev,
-    struct device_attribute *attr, char *buf)
+static ssize_t daytime_r_show(struct kobject *kobj,
+    struct kobj_attribute *attr, char *buf)
 {
   size_t count = 0;
 
-  count += sprintf(buf, "%u %u %u\n", daytime_r, daytime_g, daytime_b);
+  count += snprintf(buf, PAGE_SIZE, "%u\n", daytime_r);
 
   return count;
 }
 
-static ssize_t daytime_rgb_dump(struct device *dev,
-    struct device_attribute *attr, const char *buf, size_t count)
-{
-    unsigned int tmp_r = 0, tmp_g = 0, tmp_b = 0;
-
-    if (sscanf(buf, "%u %u %u", &tmp_r, &tmp_g, &tmp_b) != 3)
-      return -EINVAL;
-
-    if ((tmp_r >= (SCALE_VAL_MIN)) && (tmp_r <= MAX_SCALE) &&
-        (tmp_g >= (SCALE_VAL_MIN)) && (tmp_g <= MAX_SCALE) &&
-        (tmp_b >= (SCALE_VAL_MIN)) && (tmp_b <= MAX_SCALE))
-    {
-        daytime_r = tmp_r;
-        daytime_g = tmp_g;
-        daytime_b = tmp_b;
-        
-        if ((enable_klapse == 0) || ((enable_klapse == 1) && !hour_within_range(klapse_start_hour, klapse_stop_hour, tm.tm_hour)))
-          set_rgb_brightness(daytime_r, daytime_g, daytime_b);
-        else if (enable_klapse == 2)
-          set_rgb_slider(last_bl); 
-           
-        return count;
-    }
-    
-    return -EINVAL;   
-}
-
-static ssize_t target_rgb_show(struct device *dev,
-    struct device_attribute *attr, char *buf)
-{
-  size_t count = 0;
-
-  count += sprintf(buf, "%u %u %u\n", target_r, target_g, target_b);
-
-  return count;
-}
-
-static ssize_t target_rgb_dump(struct device *dev,
-    struct device_attribute *attr, const char *buf, size_t count)
-{
-    unsigned int tmp_r = 0, tmp_g = 0, tmp_b = 0;
-
-    if (sscanf(buf, "%u %u %u", &tmp_r, &tmp_g, &tmp_b) != 3)
-      return -EINVAL;
-
-    if ((tmp_r >= (SCALE_VAL_MIN)) && (tmp_r <= MAX_SCALE) &&
-        (tmp_g >= (SCALE_VAL_MIN)) && (tmp_g <= MAX_SCALE) &&
-        (tmp_b >= (SCALE_VAL_MIN)) && (tmp_b <= MAX_SCALE))
-    {
-        target_r = tmp_r;
-        target_g = tmp_g;
-        target_b = tmp_b;
-        
-        if (enable_klapse == 2)
-          set_rgb_slider(last_bl); 
-           
-        return count;
-    }
-    
-    return -EINVAL;   
-}
-
-static ssize_t klapse_start_hour_show(struct device *dev,
-    struct device_attribute *attr, char *buf)
-{
-  size_t count = 0;
-
-  count += sprintf(buf, "%u\n", klapse_start_hour);
-
-  return count;
-}
-
-static ssize_t klapse_start_hour_dump(struct device *dev,
-    struct device_attribute *attr, const char *buf, size_t count)
+static ssize_t daytime_r_dump(struct kobject *kobj,
+    struct kobj_attribute *attr, const char *buf, size_t count)
 {
     unsigned int tmpval = 0;
 
-    if (!sscanf(buf, "%u", &tmpval))
-      return -EINVAL;
+    if (kstrtouint(buf, 0, &tmpval) != 0)
+        return -EINVAL;
+
+    if ((tmpval >= (SCALE_VAL_MIN)) && (tmpval <= MAX_SCALE))
+    {
+        if (enable_klapse == 2)
+        {
+          daytime_r = tmpval;
+          set_rgb_slider(last_bl);
+        }
+        else if (enable_klapse == 1)
+        {
+          flush_timer();
+          daytime_r = tmpval;
+          klapse_pulse(0);
+        }
+        else
+          daytime_r = tmpval;
+    }
+
+    return count;
+}
+
+static ssize_t daytime_g_show(struct kobject *kobj,
+    struct kobj_attribute *attr, char *buf)
+{
+  size_t count = 0;
+
+  count += snprintf(buf, PAGE_SIZE, "%u\n", daytime_g);
+
+  return count;
+}
+
+static ssize_t daytime_g_dump(struct kobject *kobj,
+    struct kobj_attribute *attr, const char *buf, size_t count)
+{
+    unsigned int tmpval = 0;
+
+    if (kstrtouint(buf, 0, &tmpval) != 0)
+        return -EINVAL;
+
+    if ((tmpval >= (SCALE_VAL_MIN)) && (tmpval <= MAX_SCALE))
+    {
+        if (enable_klapse == 2)
+        {
+          daytime_g = tmpval;
+          set_rgb_slider(last_bl);
+        }
+        else if (enable_klapse == 1)
+        {
+          flush_timer();
+          daytime_g = tmpval;
+          klapse_pulse(0);
+        }
+        else
+          daytime_g = tmpval;
+    }
+
+    return count;
+}
+
+static ssize_t daytime_b_show(struct kobject *kobj,
+    struct kobj_attribute *attr, char *buf)
+{
+  size_t count = 0;
+
+  count += snprintf(buf, PAGE_SIZE, "%u\n", daytime_b);
+
+  return count;
+}
+
+static ssize_t daytime_b_dump(struct kobject *kobj,
+    struct kobj_attribute *attr, const char *buf, size_t count)
+{
+    unsigned int tmpval = 0;
+
+    if (kstrtouint(buf, 0, &tmpval) != 0)
+        return -EINVAL;
+
+    if ((tmpval >= (SCALE_VAL_MIN)) && (tmpval <= MAX_SCALE))
+    {
+        if (enable_klapse == 2)
+        {
+          daytime_b = tmpval;
+          set_rgb_slider(last_bl);
+        }
+        else if (enable_klapse == 1)
+        {
+          flush_timer();
+          daytime_b = tmpval;
+          klapse_pulse(0);
+        }
+        else
+          daytime_b = tmpval;
+    }
+
+    return count;
+}
+
+static ssize_t target_r_show(struct kobject *kobj,
+    struct kobj_attribute *attr, char *buf)
+{
+  size_t count = 0;
+
+  count += snprintf(buf, PAGE_SIZE, "%u\n", target_r);
+
+  return count;
+}
+
+static ssize_t target_r_dump(struct kobject *kobj,
+    struct kobj_attribute *attr, const char *buf, size_t count)
+{
+    unsigned int tmpval = 0;
+
+    if (kstrtouint(buf, 0, &tmpval) != 0)
+        return -EINVAL;
+
+    if ((tmpval >= (SCALE_VAL_MIN)) && (tmpval <= MAX_SCALE))
+    {
+        if (enable_klapse == 2)
+        {
+          target_r = tmpval;
+          set_rgb_slider(last_bl);
+        }
+        else if (enable_klapse == 1)
+        {
+          flush_timer();
+          target_r = tmpval;
+          klapse_pulse(0);
+        }
+        else
+          target_r = tmpval;
+    }
+
+    return count;
+}
+
+static ssize_t target_g_show(struct kobject *kobj,
+    struct kobj_attribute *attr, char *buf)
+{
+  size_t count = 0;
+
+  count += snprintf(buf, PAGE_SIZE, "%u\n", target_g);
+
+  return count;
+}
+
+static ssize_t target_g_dump(struct kobject *kobj,
+    struct kobj_attribute *attr, const char *buf, size_t count)
+{
+    unsigned int tmpval = 0;
+
+    if (kstrtouint(buf, 0, &tmpval) != 0)
+        return -EINVAL;
+
+    if ((tmpval >= (SCALE_VAL_MIN)) && (tmpval <= MAX_SCALE))
+    {
+        if (enable_klapse == 2)
+        {
+          target_g = tmpval;
+          set_rgb_slider(last_bl);
+        }
+        else if (enable_klapse == 1)
+        {
+          flush_timer();
+          target_g = tmpval;
+          klapse_pulse(0);
+        }
+        else
+          target_g = tmpval;
+    }
+
+    return count;
+}
+
+static ssize_t target_b_show(struct kobject *kobj,
+    struct kobj_attribute *attr, char *buf)
+{
+  size_t count = 0;
+
+  count += snprintf(buf, PAGE_SIZE, "%u\n", target_b);
+
+  return count;
+}
+
+static ssize_t target_b_dump(struct kobject *kobj,
+    struct kobj_attribute *attr, const char *buf, size_t count)
+{
+    unsigned int tmpval = 0;
+
+    if (kstrtouint(buf, 0, &tmpval) != 0)
+        return -EINVAL;
+
+    if ((tmpval >= (SCALE_VAL_MIN)) && (tmpval <= MAX_SCALE))
+    {
+        if (enable_klapse == 2)
+        {
+          target_b = tmpval;
+          set_rgb_slider(last_bl);
+        }
+        else if (enable_klapse == 1)
+        {
+          flush_timer();
+          target_b = tmpval;
+          klapse_pulse(0);
+        }
+        else
+          target_b = tmpval;
+    }
+
+    return count;
+}
+
+static ssize_t klapse_start_hour_show(struct kobject *kobj,
+    struct kobj_attribute *attr, char *buf)
+{
+  size_t count = 0;
+
+  count += snprintf(buf, PAGE_SIZE, "%u\n", klapse_start_hour);
+
+  return count;
+}
+
+static ssize_t klapse_start_hour_dump(struct kobject *kobj,
+    struct kobj_attribute *attr, const char *buf, size_t count)
+{
+    unsigned int tmpval = 0;
+
+    if (kstrtouint(buf, 0, &tmpval) != 0)
+        return -EINVAL;
 
     if ((tmpval >= 0) && (tmpval < 24) && (tmpval != klapse_stop_hour))
     {
@@ -431,23 +571,23 @@ static ssize_t klapse_start_hour_dump(struct device *dev,
     return count;
 }
 
-static ssize_t klapse_stop_hour_show(struct device *dev,
-    struct device_attribute *attr, char *buf)
+static ssize_t klapse_stop_hour_show(struct kobject *kobj,
+    struct kobj_attribute *attr, char *buf)
 {
   size_t count = 0;
 
-  count += sprintf(buf, "%u\n", klapse_stop_hour);
+  count += snprintf(buf, PAGE_SIZE, "%u\n", klapse_stop_hour);
 
   return count;
 }
 
-static ssize_t klapse_stop_hour_dump(struct device *dev,
-    struct device_attribute *attr, const char *buf, size_t count)
+static ssize_t klapse_stop_hour_dump(struct kobject *kobj,
+    struct kobj_attribute *attr, const char *buf, size_t count)
 {
     unsigned int tmpval = 0;
 
-    if (!sscanf(buf, "%u", &tmpval))
-      return -EINVAL;
+    if (kstrtouint(buf, 0, &tmpval) != 0)
+        return -EINVAL;
 
     if ((tmpval >= 0) && (tmpval < 24) && (tmpval != klapse_start_hour))
     {
@@ -458,167 +598,235 @@ static ssize_t klapse_stop_hour_dump(struct device *dev,
     return count;
 }
 
-static ssize_t klapse_scaling_rate_show(struct device *dev,
-    struct device_attribute *attr, char *buf)
+static ssize_t klapse_scaling_rate_show(struct kobject *kobj,
+    struct kobj_attribute *attr, char *buf)
 {
   size_t count = 0;
 
-  count += sprintf(buf, "%u\n", klapse_scaling_rate);
+  count += snprintf(buf, PAGE_SIZE, "%u\n", target_minute);
 
   return count;
 }
 
-static ssize_t klapse_scaling_rate_dump(struct device *dev,
-    struct device_attribute *attr, const char *buf, size_t count)
+static ssize_t klapse_scaling_rate_dump(struct kobject *kobj,
+    struct kobj_attribute *attr, const char *buf, size_t count)
 {
     unsigned int tmpval = 0;
 
-    if (!sscanf(buf, "%u", &tmpval))
-      return -EINVAL;
+    if (kstrtouint(buf, 0, &tmpval) != 0)
+        return -EINVAL;
 
-    if ((tmpval > 0) && (tmpval < (MAX_SCALE*10)))
+    if ((tmpval > 0) && (tmpval < active_minutes))
     {
-        klapse_scaling_rate = tmpval;
-        target_minute = (active_minutes*10)/klapse_scaling_rate;
+        target_minute = tmpval;
+        klapse_scaling_rate = (active_minutes*10)/target_minute;
     }
 
     return count;
 }
 
-static ssize_t brightness_factor_show(struct device *dev,
-    struct device_attribute *attr, char *buf)
+static ssize_t brightness_factor_show(struct kobject *kobj,
+    struct kobj_attribute *attr, char *buf)
 {
   size_t count = 0;
 
-  count += sprintf(buf, "%u\n", brightness_factor);
+  count += snprintf(buf, PAGE_SIZE, "%u\n", b_cache);
 
   return count;
 }
 
-static ssize_t brightness_factor_dump(struct device *dev,
-    struct device_attribute *attr, const char *buf, size_t count)
+static ssize_t brightness_factor_dump(struct kobject *kobj,
+    struct kobj_attribute *attr, const char *buf, size_t count)
 {
     unsigned int tmpval = 0;
 
-    if (!sscanf(buf, "%u", &tmpval))
-      return -EINVAL;
+    if (kstrtouint(buf, 0, &tmpval) != 0)
+        return -EINVAL;
 
-    if ((tmpval >= 2) && (tmpval <= 10))
+    if ((tmpval >= 2) && (tmpval <= 10) && (tmpval != b_cache))
     {
-        b_cache = tmpval;
-        if (brightness_factor_auto_enable == 0)
-          set_rgb_brightness(K_RED, K_GREEN, K_BLUE);
+        // At this point, the brightness_factor could already have been changed, so to apply new brightness
+        // the actual brightness RGB values must be restored.
+        if (brightness_factor_auto_enable == 0) // The auto-brightness is already disabled, so simply reset actual RGB
+        {
+            if (enable_klapse == 1)         // Pulse is already running, for thread-safety, stop it and then modify RGB
+            {
+                flush_timer();
+                set_rgb_brightness((klapse_red*10)/b_cache, (klapse_green*10)/b_cache, (klapse_blue*10)/b_cache);
+                b_cache = tmpval;
+                klapse_pulse(0);
+            }
+            else        // Means pulse isn't running
+            {
+                set_rgb_brightness((klapse_red*10)/b_cache, (klapse_green*10)/b_cache, (klapse_blue*10)/b_cache);
+                b_cache = tmpval;
+                brightness_factor = tmpval;
+                if (enable_klapse == 2)
+                    set_rgb_slider(last_bl);
+                else
+                    set_rgb_brightness(klapse_red, klapse_green, klapse_blue);
+            }
+        }
+        else
+        {
+            flush_timer();
+            set_rgb_brightness((klapse_red*10)/brightness_factor, (klapse_green*10)/brightness_factor, (klapse_blue*10)/brightness_factor);
+            b_cache = tmpval;
+            klapse_pulse(0);
+        }
     }
 
     return count;
 }
 
 
-static ssize_t brightness_factor_auto_enable_show(struct device *dev,
-    struct device_attribute *attr, char *buf)
+static ssize_t brightness_factor_auto_enable_show(struct kobject *kobj,
+    struct kobj_attribute *attr, char *buf)
 {
   size_t count = 0;
 
-  count += sprintf(buf, "%u\n", brightness_factor_auto_enable);
+  count += snprintf(buf, PAGE_SIZE, "%u\n", brightness_factor_auto_enable);
 
   return count;
 }
 
-static ssize_t brightness_factor_auto_enable_dump(struct device *dev,
-    struct device_attribute *attr, const char *buf, size_t count)
+static ssize_t brightness_factor_auto_enable_dump(struct kobject *kobj,
+    struct kobj_attribute *attr, const char *buf, size_t count)
 {
     unsigned int tmpval = 0;
 
-    if (!sscanf(buf, "%u", &tmpval))
-      return -EINVAL;
+    if (kstrtouint(buf, 0, &tmpval) != 0)
+        return -EINVAL;
 
     if ((tmpval == 0) || (tmpval == 1))
     {
-        if ((tmpval == 1) && hour_within_range(brightness_factor_auto_start_hour, brightness_factor_auto_stop_hour, tm.tm_hour))
-          set_rgb_brightness(K_RED, K_GREEN, K_BLUE);
-        if ((tmpval == 1) && (enable_klapse != 1) && (brightness_factor_auto_enable != 1))
-        {
-          klapse_pulse(0);
-        }
+        if (brightness_factor_auto_enable == tmpval) // Do nothing if the same value is entered
+            return count;
         
-        if ((tmpval == 0) && (enable_klapse == 0))
+        // At this point, the brightness_factor could already have been changed, so to apply new brightness
+        // the actual brightness RGB values must be restored. Here, check whether the current RGB have been reduced :
+        if (brightness_factor != 10)  // Guarantess that the brightness_factor was changed
         {
-          flush_timer();
+            if (brightness_factor_auto_enable == 0) // The auto-brightness is already disabled, so simply reset actual RGB. Also implies tmpval is 1
+            {
+                if (enable_klapse == 1)         // Pulse is already running, for thread-safety, stop it and then modify RGB
+                    flush_timer();
+                    
+                set_rgb_brightness((klapse_red*10)/b_cache, (klapse_green*10)/b_cache, (klapse_blue*10)/b_cache);
+                brightness_factor_auto_enable = tmpval;
+                klapse_pulse(0);
+                return count;
+            }
+            else    // Guarantees that pulse is on, and RGB is reduced, and tmpval is 0
+            {
+                flush_timer();
+                set_rgb_brightness((klapse_red*10)/brightness_factor, (klapse_green*10)/brightness_factor, (klapse_blue*10)/brightness_factor);
+                brightness_factor_auto_enable = tmpval;
+                if (enable_klapse == 1)
+                  klapse_pulse(0);
+                else
+                  set_rgb_brightness(klapse_red, klapse_green, klapse_blue);
+                return count;
+            }
         }
-        brightness_factor_auto_enable = tmpval;
+        else // if brightness_factor is 10, auto_enable could be within active range, or it could be off
+        {
+            brightness_factor_auto_enable = tmpval;
+            
+            if ((tmpval == 1) || (enable_klapse == 1)) // Force restart pulse, if it is to be used
+            {
+              flush_timer();
+              klapse_pulse(0);
+            }
+            else if (tmpval == 0) // Stop pulse anyways
+            {
+                flush_timer();
+                set_rgb_brightness(klapse_red, klapse_green, klapse_blue);
+            }
+        }
     }
 
     return count;
 }
 
-static ssize_t brightness_factor_auto_start_hour_show(struct device *dev,
-    struct device_attribute *attr, char *buf)
+static ssize_t brightness_factor_auto_start_hour_show(struct kobject *kobj,
+    struct kobj_attribute *attr, char *buf)
 {
   size_t count = 0;
 
-  count += sprintf(buf, "%u\n", brightness_factor_auto_start_hour);
+  count += snprintf(buf, PAGE_SIZE, "%u\n", brightness_factor_auto_start_hour);
 
   return count;
 }
 
-static ssize_t brightness_factor_auto_start_hour_dump(struct device *dev,
-    struct device_attribute *attr, const char *buf, size_t count)
+static ssize_t brightness_factor_auto_start_hour_dump(struct kobject *kobj,
+    struct kobj_attribute *attr, const char *buf, size_t count)
 {
     unsigned int tmpval = 0;
 
-    if (!sscanf(buf, "%u", &tmpval))
-      return -EINVAL;
+    if (kstrtouint(buf, 0, &tmpval) != 0)
+        return -EINVAL;
 
     if ((tmpval >= 0) && (tmpval < 24) && (tmpval != brightness_factor_auto_stop_hour))
     {
-        brightness_factor_auto_start_hour = tmpval;
-        if ((brightness_factor_auto_enable == 1) && hour_within_range(brightness_factor_auto_start_hour, brightness_factor_auto_stop_hour, tm.tm_hour))
-          set_rgb_brightness(K_RED, K_GREEN, K_BLUE);
+        if ((brightness_factor_auto_enable == 1) || (enable_klapse == 1))
+        {
+            flush_timer();
+            brightness_factor_auto_start_hour = tmpval;
+            klapse_pulse(0);
+        }
+        else
+            brightness_factor_auto_start_hour = tmpval;
     }
 
     return count;
 }
 
-static ssize_t brightness_factor_auto_stop_hour_show(struct device *dev,
-    struct device_attribute *attr, char *buf)
+static ssize_t brightness_factor_auto_stop_hour_show(struct kobject *kobj,
+    struct kobj_attribute *attr, char *buf)
 {
   size_t count = 0;
 
-  count += sprintf(buf, "%u\n", brightness_factor_auto_stop_hour);
+  count += snprintf(buf, PAGE_SIZE, "%u\n", brightness_factor_auto_stop_hour);
 
   return count;
 }
 
-static ssize_t brightness_factor_auto_stop_hour_dump(struct device *dev,
-    struct device_attribute *attr, const char *buf, size_t count)
+static ssize_t brightness_factor_auto_stop_hour_dump(struct kobject *kobj,
+    struct kobj_attribute *attr, const char *buf, size_t count)
 {
     unsigned int tmpval = 0;
 
-    if (!sscanf(buf, "%u", &tmpval))
-      return -EINVAL;
+    if (kstrtouint(buf, 0, &tmpval) != 0)
+        return -EINVAL;
 
     if ((tmpval >= 0) && (tmpval < 24) && (tmpval != brightness_factor_auto_start_hour))
     {
-        brightness_factor_auto_stop_hour = tmpval;
-        if ((brightness_factor_auto_enable == 1) && hour_within_range(brightness_factor_auto_start_hour, brightness_factor_auto_stop_hour, tm.tm_hour))
-          set_rgb_brightness(K_RED, K_GREEN, K_BLUE);
+        if ((brightness_factor_auto_enable == 1) || (enable_klapse == 1))
+        {
+            flush_timer();
+            brightness_factor_auto_stop_hour = tmpval;
+            klapse_pulse(0);
+        }
+        else
+            brightness_factor_auto_stop_hour = tmpval;
     }
 
     return count;
 }
 
-static ssize_t backlight_range_show(struct device *dev,
-    struct device_attribute *attr, char *buf)
+static ssize_t backlight_range_show(struct kobject *kobj,
+    struct kobj_attribute *attr, char *buf)
 {
   size_t count = 0;
 
-  count += sprintf(buf, "%u %u\n", backlight_lower, backlight_upper);
+  count += snprintf(buf, PAGE_SIZE, "%u %u\n", backlight_lower, backlight_upper);
 
   return count;
 }
 
-static ssize_t backlight_range_dump(struct device *dev,
-    struct device_attribute *attr, const char *buf, size_t count)
+static ssize_t backlight_range_dump(struct kobject *kobj,
+    struct kobj_attribute *attr, const char *buf, size_t count)
 {
     unsigned int tmp_l = 0, tmp_u = 0, tmp = 0;
 
@@ -646,73 +854,132 @@ static ssize_t backlight_range_dump(struct device *dev,
     return count;
 }
 
-static ssize_t pulse_freq_show(struct device *dev,
-    struct device_attribute *attr, char *buf)
+static ssize_t pulse_freq_show(struct kobject *kobj,
+    struct kobj_attribute *attr, char *buf)
 {
   size_t count = 0;
 
-  count += sprintf(buf, "%u\n", pulse_freq);
+  count += snprintf(buf, PAGE_SIZE, "%u\n", pulse_freq);
 
   return count;
 }
 
-static ssize_t pulse_freq_dump(struct device *dev,
-    struct device_attribute *attr, const char *buf, size_t count)
+static ssize_t pulse_freq_dump(struct kobject *kobj,
+    struct kobj_attribute *attr, const char *buf, size_t count)
 {
     unsigned int tmp = 0;
 
-    if (!sscanf(buf, "%u", &tmp))
-      return -EINVAL;     
+    if (kstrtouint(buf, 0, &tmp) != 0)
+        return -EINVAL;
 
     if ((tmp >= 1000) && (tmp <= 10*60000))
     {
         pulse_freq = tmp;
+        flush_timer();
+        klapse_pulse(0);
     }
 
     return count;
 }
 
-static ssize_t fadeback_minutes_show(struct device *dev,
-    struct device_attribute *attr, char *buf)
+static ssize_t fadeback_minutes_show(struct kobject *kobj,
+    struct kobj_attribute *attr, char *buf)
 {
   size_t count = 0;
 
-  count += sprintf(buf, "%u\n", fadeback_minutes);
+  count += snprintf(buf, PAGE_SIZE, "%u\n", fadeback_minutes);
 
   return count;
 }
 
-static ssize_t fadeback_minutes_dump(struct device *dev,
-    struct device_attribute *attr, const char *buf, size_t count)
+static ssize_t fadeback_minutes_dump(struct kobject *kobj,
+    struct kobj_attribute *attr, const char *buf, size_t count)
 {
     unsigned int tmp = 0;
 
-    if (!sscanf(buf, "%u", &tmp))
-      return -EINVAL;     
+    if (kstrtouint(buf, 0, &tmp) != 0)
+        return -EINVAL;
 
-    if ((tmp >= 2) && (tmp <= active_minutes))
+    if ((tmp >= 0) && (tmp <= active_minutes))
     {
-        fadeback_minutes = tmp;
+        if (enable_klapse == 1)
+        {
+            flush_timer();
+            fadeback_minutes = tmp;
+            klapse_pulse(0);
+        }
+        else
+            fadeback_minutes = tmp;
     }
 
     return count;
 }
 
 
-static DEVICE_ATTR(enable_klapse, 0644, enable_klapse_show, enable_klapse_dump);
-static DEVICE_ATTR(daytime_rgb, 0644, daytime_rgb_show, daytime_rgb_dump);
-static DEVICE_ATTR(target_rgb, 0644, target_rgb_show, target_rgb_dump);
-static DEVICE_ATTR(klapse_start_hour, 0644, klapse_start_hour_show, klapse_start_hour_dump);
-static DEVICE_ATTR(klapse_stop_hour, 0644, klapse_stop_hour_show, klapse_stop_hour_dump);
-static DEVICE_ATTR(klapse_scaling_rate, 0644, klapse_scaling_rate_show, klapse_scaling_rate_dump);
-static DEVICE_ATTR(brightness_factor, 0644, brightness_factor_show, brightness_factor_dump);
-static DEVICE_ATTR(brightness_factor_auto, 0644, brightness_factor_auto_enable_show, brightness_factor_auto_enable_dump);
-static DEVICE_ATTR(brightness_factor_auto_start_hour, 0644, brightness_factor_auto_start_hour_show, brightness_factor_auto_start_hour_dump);
-static DEVICE_ATTR(brightness_factor_auto_stop_hour, 0644, brightness_factor_auto_stop_hour_show, brightness_factor_auto_stop_hour_dump);
-static DEVICE_ATTR(backlight_range, 0644, backlight_range_show, backlight_range_dump);
-static DEVICE_ATTR(pulse_freq, 0644, pulse_freq_show, pulse_freq_dump);
-static DEVICE_ATTR(fadeback_minutes, 0644, fadeback_minutes_show, fadeback_minutes_dump);
-static DEVICE_ATTR(info, 0444, info_show, info_dump);
+static struct kobj_attribute enable_klapse_attribute =
+	__ATTR(enable_klapse, 0644, enable_klapse_show, enable_klapse_dump);
+static struct kobj_attribute daytime_r_attribute =
+	__ATTR(daytime_r, 0644, daytime_r_show, daytime_r_dump);
+static struct kobj_attribute daytime_g_attribute =
+	__ATTR(daytime_g, 0644, daytime_g_show, daytime_g_dump);
+static struct kobj_attribute daytime_b_attribute =
+	__ATTR(daytime_b, 0644, daytime_b_show, daytime_b_dump);
+static struct kobj_attribute target_r_attribute =
+	__ATTR(target_r, 0644, target_r_show, target_r_dump);
+static struct kobj_attribute target_g_attribute =
+	__ATTR(target_g, 0644, target_g_show, target_g_dump);
+static struct kobj_attribute target_b_attribute =
+	__ATTR(target_b, 0644, target_b_show, target_b_dump);
+static struct kobj_attribute klapse_start_hour_attribute =
+	__ATTR(klapse_start_hour, 0644, klapse_start_hour_show, klapse_start_hour_dump);
+static struct kobj_attribute klapse_stop_hour_attribute =
+	__ATTR(klapse_stop_hour, 0644, klapse_stop_hour_show, klapse_stop_hour_dump);
+static struct kobj_attribute klapse_scaling_rate_attribute =
+	__ATTR(klapse_scaling_rate, 0644, klapse_scaling_rate_show, klapse_scaling_rate_dump);
+static struct kobj_attribute brightness_factor_attribute =
+	__ATTR(brightness_factor, 0644, brightness_factor_show, brightness_factor_dump);
+static struct kobj_attribute brightness_factor_auto_attribute =
+	__ATTR(brightness_factor_auto, 0644, brightness_factor_auto_enable_show, brightness_factor_auto_enable_dump);
+static struct kobj_attribute brightness_factor_auto_start_hour_attribute =
+	__ATTR(brightness_factor_auto_start_hour, 0644, brightness_factor_auto_start_hour_show, brightness_factor_auto_start_hour_dump);
+static struct kobj_attribute brightness_factor_auto_stop_hour_attribute =
+	__ATTR(brightness_factor_auto_stop_hour, 0644, brightness_factor_auto_stop_hour_show, brightness_factor_auto_stop_hour_dump);
+static struct kobj_attribute backlight_range_attribute =
+	__ATTR(backlight_range, 0644, backlight_range_show, backlight_range_dump);
+static struct kobj_attribute pulse_freq_attribute =
+	__ATTR(pulse_freq, 0644, pulse_freq_show, pulse_freq_dump);
+static struct kobj_attribute fadeback_minutes_attribute =
+	__ATTR(fadeback_minutes, 0644, fadeback_minutes_show, fadeback_minutes_dump);
+static struct kobj_attribute info_attribute =
+	__ATTR(info, 0444, info_show, info_dump);
+
+static struct attribute *attrs[] = {
+	&enable_klapse_attribute.attr,
+	&daytime_r_attribute.attr,
+	&daytime_g_attribute.attr,
+	&daytime_b_attribute.attr,
+	&target_r_attribute.attr,
+	&target_g_attribute.attr,
+	&target_b_attribute.attr,
+	&klapse_start_hour_attribute.attr,
+	&klapse_stop_hour_attribute.attr,
+	&klapse_scaling_rate_attribute.attr,
+	&brightness_factor_attribute.attr,
+	&brightness_factor_auto_attribute.attr,
+	&brightness_factor_auto_start_hour_attribute.attr,
+	&brightness_factor_auto_stop_hour_attribute.attr,
+	&backlight_range_attribute.attr,
+	&pulse_freq_attribute.attr,
+	&fadeback_minutes_attribute.attr,
+	&info_attribute.attr,
+	NULL,
+};
+
+static struct attribute_group attr_group = {
+	.attrs = attrs,
+};
+
+static struct kobject *klapse_kobj;
 
 //INIT
 static void values_setup(void)
@@ -728,7 +995,7 @@ static void values_setup(void)
     target_b = (MAX_SCALE*59)/100;
     brightness_factor = 10;
     b_cache = brightness_factor;
-    klapse_scaling_rate = 30;
+    target_minute = 300;
     klapse_start_hour = 17;
     klapse_stop_hour = 7;
     brightness_factor_auto_start_hour = 23;
@@ -737,18 +1004,15 @@ static void values_setup(void)
     brightness_factor_auto_enable = 0;
     backlight_lower = LOWER_BL_LVL;
     backlight_upper = UPPER_BL_LVL;
-    last_bl = 1023;
-    pulse_freq = 60000;
-    fadeback_minutes = 30;
+    last_bl = MAX_BRIGHTNESS;
+    pulse_freq = 30000;
+    fadeback_minutes = 60;
     calc_active_minutes();
 
     do_gettimeofday(&time);
     local_time = (u32)(time.tv_sec - (sys_tz.tz_minuteswest * 60));
     rtc_time_to_tm(local_time, &tm);
 }
-
-struct kobject *klapse_kobj;
-EXPORT_SYMBOL_GPL(klapse_kobj);
 
 static int __init klapse_init(void)
 {
@@ -757,70 +1021,16 @@ static int __init klapse_init(void)
     
     values_setup();
 
-    klapse_kobj = kobject_create_and_add("klapse", NULL) ;
-    if (klapse_kobj == NULL) {
-      pr_warn("%s: klapse_kobj create_and_add failed\n", __func__);
-    }
+    klapse_kobj = kobject_create_and_add("klapse", NULL);
+    if (!klapse_kobj)
+        return -ENOMEM;
 
-    rc = sysfs_create_file(klapse_kobj, &dev_attr_info.attr);
-    if (rc) {
-      pr_warn("%s: sysfs_create_file failed for info\n", __func__);
-    }
-    rc = sysfs_create_file(klapse_kobj, &dev_attr_enable_klapse.attr);
-    if (rc) {
-      pr_warn("%s: sysfs_create_file failed for enable_klapse\n", __func__);
-    }
-    rc = sysfs_create_file(klapse_kobj, &dev_attr_daytime_rgb.attr);
-    if (rc) {
-      pr_warn("%s: sysfs_create_file failed for daytime_rgb\n", __func__);
-    }
-    rc = sysfs_create_file(klapse_kobj, &dev_attr_target_rgb.attr);
-    if (rc) {
-      pr_warn("%s: sysfs_create_file failed for target_rgb\n", __func__);
-    }
-    rc = sysfs_create_file(klapse_kobj, &dev_attr_klapse_start_hour.attr);
-    if (rc) {
-      pr_warn("%s: sysfs_create_file failed for klapse_start_hour\n", __func__);
-    }
-    rc = sysfs_create_file(klapse_kobj, &dev_attr_klapse_stop_hour.attr);
-    if (rc) {
-      pr_warn("%s: sysfs_create_file failed for klapse_stop_hour\n", __func__);
-    }
-    rc = sysfs_create_file(klapse_kobj, &dev_attr_klapse_scaling_rate.attr);
-    if (rc) {
-      pr_warn("%s: sysfs_create_file failed for klapse_scaling_rate\n", __func__);
-    }
-    rc = sysfs_create_file(klapse_kobj, &dev_attr_brightness_factor.attr);
-    if (rc) {
-      pr_warn("%s: sysfs_create_file failed for brightness_factor\n", __func__);
-    }
-    rc = sysfs_create_file(klapse_kobj, &dev_attr_brightness_factor_auto.attr);
-    if (rc) {
-      pr_warn("%s: sysfs_create_file failed for brightness_factor_auto\n", __func__);
-    }
-    rc = sysfs_create_file(klapse_kobj, &dev_attr_brightness_factor_auto_start_hour.attr);
-    if (rc) {
-      pr_warn("%s: sysfs_create_file failed for brightness_factor_auto_start_hour\n", __func__);
-    }
-    rc = sysfs_create_file(klapse_kobj, &dev_attr_brightness_factor_auto_stop_hour.attr);
-    if (rc) {
-      pr_warn("%s: sysfs_create_file failed for brightness_factor_auto_stop_hour\n", __func__);
-    }
-    rc = sysfs_create_file(klapse_kobj, &dev_attr_backlight_range.attr);
-    if (rc) {
-      pr_warn("%s: sysfs_create_file failed for backlight_range\n", __func__);
-    }
-    rc = sysfs_create_file(klapse_kobj, &dev_attr_pulse_freq.attr);
-    if (rc) {
-      pr_warn("%s: sysfs_create_file failed for pulse_freq\n", __func__);
-    }
-    rc = sysfs_create_file(klapse_kobj, &dev_attr_fadeback_minutes.attr);
-    if (rc) {
-      pr_warn("%s: sysfs_create_file failed for fadeback_minutes\n", __func__);
-    }
-
+    rc = sysfs_create_group(klapse_kobj, &attr_group);
+    if (rc)
+        pr_warn("%s: sysfs_create_group failed\n", __func__);
+    
     setup_timer(&pulse_timer, klapse_pulse, 0);
-
+    
     printk(KERN_INFO "KLapse init returning!!!.\n");
 
     return 0;
