@@ -340,6 +340,7 @@ irq_set_affinity_notifier(unsigned int irq, struct irq_affinity_notify *notify)
 
 	return 0;
 }
+
 EXPORT_SYMBOL_GPL(irq_set_affinity_notifier);
 
 #ifndef CONFIG_AUTO_IRQ_AFFINITY
