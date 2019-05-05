@@ -249,6 +249,58 @@ config CPU_BOOST
 
 	  If in doubt, say N.
 
+config DSBOOST
+	tristate "Dynamic SchedTune Boosting on events"
+	depends on DYNAMIC_STUNE_BOOST
+	help
+	  This driver attempts to improve responsiveness on mobile devices
+	  with Dynamic SchedTune Boosting support. Boosts are applied on
+	  user input, after user input unboosts, and on a sched_boost trigger.
+
+	  If in doubt, say N.
+
+if DSBOOST
+
+config INPUT_BOOST_DURATION
+	int "Input boost duration"
+	default "64"
+	help
+	  Default duration to boost on input.
+
+config COOLDOWN_BOOST_DURATION
+	int "Cooldown boost duration"
+	default "3000"
+	help
+	  Default duration to boost after input boost finishes.
+
+config INPUT_STUNE_BOOST
+	int "Input SchedTune boost level"
+	default "15"
+	help
+	  Default SchedTune boost level for the top-app cgroup.
+
+	  A value of 0 disables SchedTune boosting for this level.
+
+config COOLDOWN_STUNE_BOOST
+	int "Cooldown SchedTune boost level"
+	default "12"
+	help
+	  Default SchedTune boost level for the top-app cgroup after
+	  input boosting finishes.
+
+	  A value of 0 disables SchedTune boosting for this level.
+
+config SCHED_STUNE_BOOST
+	int "Sched SchedTune boost level"
+	default "12"
+	help
+	  Default SchedTune boost level for the top-app cgroup for
+	  sched_boost calls.
+
+	  A value of 0 disables SchedTune boosting for this level.
+
+endif
+
 config CPU_FREQ_GOV_SCHEDUTIL
 	bool "'schedutil' cpufreq policy governor"
 	depends on CPU_FREQ && SMP
