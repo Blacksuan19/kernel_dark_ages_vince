@@ -16,7 +16,6 @@
 #include <linux/slab.h>
 #include <linux/types.h>
 #include <linux/msm-bus.h>
-#include <trace/events/trace_msm_bus.h>
 
 struct node_vote_info {
 	int id;
@@ -212,24 +211,18 @@ static void match_rule(struct rule_update_path_info *inp_node,
 
 	list_for_each_entry(rule, &node->node_rules, link) {
 		for (i = 0; i < rule->num_src; i++) {
-			if (rule->src_info[i].id != inp_node->id)
-				continue;
-
-			if (check_rule(rule, inp_node)) {
-				trace_bus_rules_matches(
-				(node->cur_rule ?
-					node->cur_rule->rule_id : -1),
-				inp_node->id, inp_node->ab,
-				inp_node->ib, inp_node->clk);
-				if (rule->state ==
-					RULE_STATE_NOT_APPLIED)
-					rule->state_change = true;
-				rule->state = RULE_STATE_APPLIED;
-			} else {
-				if (rule->state ==
-					RULE_STATE_APPLIED)
-					rule->state_change = true;
-				rule->state = RULE_STATE_NOT_APPLIED;
+			if (rule->src_info[i].id == inp_node->id) {
+				if (check_rule(rule, inp_node)) {
+					if (rule->state ==
+						RULE_STATE_NOT_APPLIED)
+						rule->state_change = true;
+					rule->state = RULE_STATE_APPLIED;
+				} else {
+					if (rule->state ==
+						RULE_STATE_APPLIED)
+						rule->state_change = true;
+					rule->state = RULE_STATE_NOT_APPLIED;
+				}
 			}
 		}
 	}
