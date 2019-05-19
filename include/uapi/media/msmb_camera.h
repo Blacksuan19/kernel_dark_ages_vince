@@ -4,7 +4,6 @@
 #include <linux/videodev2.h>
 #include <linux/types.h>
 #include <linux/ioctl.h>
-#include <linux/media.h>
 
 #define MSM_CAM_LOGSYNC_FILE_NAME "logsync"
 #define MSM_CAM_LOGSYNC_FILE_BASEDIR "camera"
@@ -27,11 +26,11 @@
 #define MSM_CAM_V4L2_IOCTL_DAEMON_DISABLED \
 	_IOW('V', BASE_VIDIOC_PRIVATE + 35, struct msm_v4l2_event_data)
 
+#define QCAMERA_DEVICE_GROUP_ID	1
 #define QCAMERA_VNODE_GROUP_ID	2
 #define MSM_CAMERA_NAME			"msm_camera"
 #define MSM_CONFIGURATION_NAME	"msm_config"
 
-#define MSM_CAMERA_SUBDEV_BASE         (MEDIA_ENT_F_OLD_BASE + 0xF00)
 #define MSM_CAMERA_SUBDEV_CSIPHY       0
 #define MSM_CAMERA_SUBDEV_CSID         1
 #define MSM_CAMERA_SUBDEV_ISPIF        2
@@ -52,8 +51,6 @@
 #define MSM_CAMERA_SUBDEV_IR_LED       17
 #define MSM_CAMERA_SUBDEV_IR_CUT       18
 #define MSM_CAMERA_SUBDEV_EXT          19
-#define MSM_CAMERA_SUBDEV_TOF          20
-#define MSM_CAMERA_SUBDEV_LASER_LED    21
 #define MSM_MAX_CAMERA_SENSORS  5
 
 /* The below macro is defined to put an upper limit on maximum
@@ -61,8 +58,7 @@
  * large value for number of buffer due to data structure corruption
  * we return error to avoid integer overflow. Group processing
  * can have max of 9 groups of 8 bufs each. This value may be
- * configured in future
- */
+ * configured in future*/
 #define MSM_CAMERA_MAX_STREAM_BUF 72
 
 /* Max batch size of processing */
@@ -109,8 +105,8 @@
 #define MSM_CAMERA_PRIV_CMD_MAX  20
 
 /* data.status - success */
-#define MSM_CAMERA_CMD_SUCCESS      0x00000001
-#define MSM_CAMERA_BUF_MAP_SUCCESS  0x00000002
+#define MSM_CAMERA_CMD_SUCESS      0x00000001
+#define MSM_CAMERA_BUF_MAP_SUCESS  0x00000002
 
 /* data.status - error */
 #define MSM_CAMERA_ERR_EVT_BASE 0x00010000
@@ -120,8 +116,7 @@
 
 /* The msm_v4l2_event_data structure should match the
  * v4l2_event.u.data field.
- * should not exceed 16 elements
- */
+ * should not exceed 16 elements */
 struct msm_v4l2_event_data {
 	/*word 0*/
 	unsigned int command;

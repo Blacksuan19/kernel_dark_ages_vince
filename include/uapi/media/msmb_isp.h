@@ -2,7 +2,6 @@
 #define __UAPI_MSMB_ISP__
 
 #include <linux/videodev2.h>
-#include <media/msmb_camera.h>
 
 #define MAX_PLANES_PER_STREAM 3
 #define MAX_NUM_STREAM 7
@@ -18,7 +17,7 @@
 #define ISP1_BIT              (0x10000 << 2)
 #define ISP_META_CHANNEL_BIT  (0x10000 << 3)
 #define ISP_SCRATCH_BUF_BIT   (0x10000 << 4)
-#define ISP_PDAF_CHANNEL_BIT  (0x10000 << 5)
+#define ISP_PDAF_CHANNEL_BIT   (0x10000 << 5)
 #define ISP_OFFLINE_STATS_BIT (0x10000 << 5)
 #define ISP_SVHDR_IN_BIT      (0x10000 << 6) /* RDI hw stream for SVHDR */
 #define ISP_SVHDR_OUT_BIT     (0x10000 << 7) /* SVHDR output bufq stream*/
@@ -119,7 +118,7 @@ enum msm_isp_stats_type {
  * @skip_mode: skip pattern, if skip mode is range only then min/max is used
  * @min_frame_id: minimum frame id (valid only if skip_mode = RANGE)
  * @max_frame_id: maximum frame id (valid only if skip_mode = RANGE)
- */
+*/
 struct msm_isp_sw_framskip {
 	uint32_t stats_type_mask;
 	uint32_t stream_src_mask;
@@ -357,6 +356,11 @@ struct msm_vfe_axi_stream_release_cmd {
 	uint32_t stream_handle;
 };
 
+struct msm_vfe_update_fe_frame_id {
+	uint32_t frame_id;
+};
+
+
 enum msm_vfe_axi_stream_cmd {
 	STOP_STREAM,
 	START_STREAM,
@@ -433,6 +437,10 @@ struct msm_vfe_axi_reset_cmd {
 
 struct msm_vfe_axi_restart_cmd {
 	uint32_t enable_camif;
+};
+
+struct msm_vfe_restart_fe_cmd {
+	uint32_t restart_fe;
 };
 
 struct msm_vfe_axi_stream_update_cmd {
@@ -546,8 +554,7 @@ enum vfe_sd_type {
 };
 
 /* When you change the value below, check for the sof event_data size.
- * V4l2 limits payload to 64 bytes
- */
+ * V4l2 limits payload to 64 bytes */
 #define MS_NUM_SLAVE_MAX 1
 
 /* Usecases when 2 HW need to be related or synced */
@@ -570,14 +577,12 @@ struct msm_isp_set_dual_hw_ms_cmd {
 	enum msm_vfe_dual_hw_ms_type dual_hw_ms_type;
 	/* Primary intf is mostly associated with preview.
 	 * This primary intf SOF frame_id and timestamp is tracked
-	 * and used to calculate delta
-	 */
+	 * and used to calculate delta */
 	enum msm_vfe_input_src primary_intf;
 	/* input_src array indicates other input INTF that may be Master/Slave.
 	 * For these additional intf, frame_id and timestamp are not saved.
 	 * However, if these are slaves then they will still get their
-	 * frame_id from Master
-	 */
+	 * frame_id from Master */
 	enum msm_vfe_input_src input_src[VFE_SRC_MAX];
 	uint32_t sof_delta_threshold; /* In milliseconds. Sent for Master */
 };
@@ -598,16 +603,6 @@ struct msm_isp_buf_request {
 	uint8_t num_buf;
 	uint32_t handle;
 	enum msm_isp_buf_type buf_type;
-};
-
-struct msm_isp_buf_request_ver2 {
-	uint32_t session_id;
-	uint32_t stream_id;
-	uint8_t num_buf;
-	uint32_t handle;
-	enum msm_isp_buf_type buf_type;
-	enum smmu_attach_mode security_mode;
-	uint32_t reserved[4];
 };
 
 struct msm_isp_qbuf_plane {
@@ -718,7 +713,7 @@ enum msm_isp_event_idx {
 	ISP_BUF_FATAL_ERROR = 14,
 	ISP_EVENT_MAX         = 15,
 	ISP_WM_BUS_OVERFLOW = 16,
-	ISP_CAMIF_ERROR     = 17,
+	ISP_CAMIF_ERROR     = 17
 };
 
 #define ISP_EVENT_OFFSET          8
@@ -748,12 +743,12 @@ enum msm_isp_event_idx {
 #define ISP_EVENT_REG_UPDATE_MISSING (ISP_EVENT_BASE + ISP_REG_UPDATE_MISSING)
 #define ISP_EVENT_BUF_FATAL_ERROR (ISP_EVENT_BASE + ISP_BUF_FATAL_ERROR)
 #define ISP_EVENT_STREAM_UPDATE_DONE   (ISP_STREAM_EVENT_BASE)
+#define ISP_EVENT_CAMIF_ERROR     (ISP_EVENT_BASE + ISP_CAMIF_ERROR)
 #define ISP_EVENT_WM_BUS_OVERFLOW (ISP_EVENT_BASE + ISP_WM_BUS_OVERFLOW)
 
 /* The msm_v4l2_event_data structure should match the
  * v4l2_event.u.data field.
- * should not exceed 64 bytes
- */
+ * should not exceed 64 bytes */
 
 struct msm_isp_buf_event {
 	uint32_t session_id;
@@ -902,21 +897,6 @@ struct msm_isp_ahb_clk_cfg {
 	uint32_t reserved[2];
 };
 
-enum msm_vfe_dual_cam_sync_mode {
-	MSM_ISP_DUAL_CAM_ASYNC,
-	MSM_ISP_DUAL_CAM_SYNC,
-};
-
-struct msm_isp_dual_hw_master_slave_sync {
-	uint32_t sync_mode;
-	uint32_t reserved[2];
-};
-
-struct msm_vfe_dual_lpm_mode {
-	enum msm_vfe_axi_stream_src stream_src[VFE_AXI_SRC_MAX];
-	uint32_t num_src;
-	uint32_t lpm_mode;
-};
 #define V4L2_PIX_FMT_QBGGR8  v4l2_fourcc('Q', 'B', 'G', '8')
 #define V4L2_PIX_FMT_QGBRG8  v4l2_fourcc('Q', 'G', 'B', '8')
 #define V4L2_PIX_FMT_QGRBG8  v4l2_fourcc('Q', 'G', 'R', '8')
@@ -976,12 +956,12 @@ enum msm_isp_ioctl_cmd_code {
 	MSM_ISP_SET_DUAL_HW_MASTER_SLAVE,
 	MSM_ISP_MAP_BUF_START_FE,
 	MSM_ISP_UNMAP_BUF,
-	MSM_ISP_AHB_CLK_CFG,
-	MSM_ISP_DUAL_HW_MASTER_SLAVE_SYNC,
 	MSM_ISP_FETCH_ENG_MULTI_PASS_START,
 	MSM_ISP_MAP_BUF_START_MULTI_PASS_FE,
-	MSM_ISP_REQUEST_BUF_VER2,
-	MSM_ISP_DUAL_HW_LPM_MODE,
+	MSM_ISP_CFG_HW_STATE,
+	MSM_ISP_AHB_CLK_CFG,
+	MSM_ISP_UPDATE_FE_FRAME_ID,
+	MSM_ISP_RESTART_FE,
 	MSM_ISP32_REQUEST_STREAM,
 };
 
@@ -1069,6 +1049,10 @@ enum msm_isp_ioctl_cmd_code {
 	_IOWR('V', MSM_ISP_AXI_RESTART, \
 		struct msm_vfe_axi_restart_cmd)
 
+#define VIDIOC_MSM_ISP_RESTART_FE \
+	_IOWR('V', MSM_ISP_RESTART_FE,\
+		struct msm_vfe_restart_fe_cmd)
+
 #define VIDIOC_MSM_ISP_FETCH_ENG_START \
 	_IOWR('V', MSM_ISP_FETCH_ENG_START, \
 		struct msm_vfe_fetch_eng_start)
@@ -1085,16 +1069,13 @@ enum msm_isp_ioctl_cmd_code {
 	_IOWR('V', MSM_ISP_MAP_BUF_START_FE, \
 		struct msm_vfe_fetch_eng_start)
 
+#define VIDIOC_MSM_ISP_UPDATE_FE_FRAME_ID \
+	_IOWR('V', MSM_ISP_UPDATE_FE_FRAME_ID, \
+		struct msm_vfe_update_fe_frame_id)
+
 #define VIDIOC_MSM_ISP_UNMAP_BUF \
 	_IOWR('V', MSM_ISP_UNMAP_BUF, \
 		struct msm_isp_unmap_buf_req)
-
-#define VIDIOC_MSM_ISP_AHB_CLK_CFG \
-	_IOWR('V', MSM_ISP_AHB_CLK_CFG, struct msm_isp_ahb_clk_cfg)
-
-#define VIDIOC_MSM_ISP_DUAL_HW_MASTER_SLAVE_SYNC \
-	_IOWR('V', MSM_ISP_DUAL_HW_MASTER_SLAVE_SYNC, \
-	struct msm_isp_dual_hw_master_slave_sync)
 
 #define VIDIOC_MSM_ISP_FETCH_ENG_MULTI_PASS_START \
 	_IOWR('V', MSM_ISP_FETCH_ENG_MULTI_PASS_START, \
@@ -1104,13 +1085,14 @@ enum msm_isp_ioctl_cmd_code {
 	_IOWR('V', MSM_ISP_MAP_BUF_START_MULTI_PASS_FE, \
 		struct msm_vfe_fetch_eng_multi_pass_start)
 
-#define VIDIOC_MSM_ISP_REQUEST_BUF_VER2 \
-	_IOWR('V', MSM_ISP_REQUEST_BUF_VER2, struct msm_isp_buf_request_ver2)
+#define VIDIOC_MSM_ISP_CFG_HW_STATE \
+	_IOWR('V', MSM_ISP_CFG_HW_STATE, \
+		struct msm_vfe_axi_stream_cfg_cmd)
+
+#define VIDIOC_MSM_ISP_AHB_CLK_CFG \
+	_IOWR('V', MSM_ISP_AHB_CLK_CFG, struct msm_isp_ahb_clk_cfg)
+
 #define VIDIOC_MSM_ISP_BUF_DONE \
 	_IOWR('V', BASE_VIDIOC_PRIVATE+21, struct msm_isp32_event_data)
 
-#define VIDIOC_MSM_ISP_DUAL_HW_LPM_MODE \
-	_IOWR('V', MSM_ISP_DUAL_HW_LPM_MODE, \
-	struct msm_vfe_dual_lpm_mode)
-
-#endif /* __MSMB_ISP__ */
+#endif/* __MSMB_ISP__ */
