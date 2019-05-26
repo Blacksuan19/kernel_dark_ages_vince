@@ -1,4 +1,4 @@
-/* Copyright (c) 2017-2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2017-2019, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -107,15 +107,6 @@ static int32_t cam_flash_driver_cmd(struct cam_flash_ctrl *fctrl,
 				fctrl->bridge_intf.device_hdl,
 				fctrl->bridge_intf.link_hdl);
 			rc = -EINVAL;
-			goto release_mutex;
-		}
-
-		if (fctrl->bridge_intf.link_hdl != -1) {
-			CAM_ERR(CAM_SENSOR,
-				"Device [%d] still active on link 0x%x",
-				fctrl->flash_state,
-				fctrl->bridge_intf.link_hdl);
-			rc = -EAGAIN;
 			goto release_mutex;
 		}
 
@@ -376,6 +367,8 @@ static int cam_flash_init_subdev(struct cam_flash_ctrl *fctrl)
 {
 	int rc = 0;
 
+	strlcpy(fctrl->device_name, CAM_FLASH_NAME,
+		sizeof(fctrl->device_name));
 	fctrl->v4l2_dev_str.internal_ops =
 		&cam_flash_internal_ops;
 	fctrl->v4l2_dev_str.ops = &cam_flash_subdev_ops;
@@ -478,7 +471,6 @@ static int32_t cam_flash_platform_probe(struct platform_device *pdev)
 	}
 
 	fctrl->bridge_intf.device_hdl = -1;
-	fctrl->bridge_intf.link_hdl = -1;
 	fctrl->bridge_intf.ops.get_dev_info = cam_flash_publish_dev_info;
 	fctrl->bridge_intf.ops.link_setup = cam_flash_establish_link;
 	fctrl->bridge_intf.ops.apply_req = cam_flash_apply_request;
@@ -564,7 +556,6 @@ static int32_t cam_flash_i2c_driver_probe(struct i2c_client *client,
 	fctrl->func_tbl.flush_req = cam_flash_i2c_flush_request;
 
 	fctrl->bridge_intf.device_hdl = -1;
-	fctrl->bridge_intf.link_hdl = -1;
 	fctrl->bridge_intf.ops.get_dev_info = cam_flash_publish_dev_info;
 	fctrl->bridge_intf.ops.link_setup = cam_flash_establish_link;
 	fctrl->bridge_intf.ops.apply_req = cam_flash_apply_request;

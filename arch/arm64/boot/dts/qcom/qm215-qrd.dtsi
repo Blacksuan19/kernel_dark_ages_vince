@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2018-2019, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -13,6 +13,8 @@
 
 &blsp1_uart2 {
 	status = "ok";
+	pinctrl-names = "default";
+	pinctrl-0 = <&uart_console_active>;
 };
 
 #include <dt-bindings/clock/msm-clocks-8952.h>
@@ -23,6 +25,7 @@
 	qcom,chgr-led-support;
 	qcom,vddmax-mv = <4400>;
 	qcom,vddsafe-mv = <4400>;
+	qcom,batt-hot-percentage = <35>;
 };
 
 &pm8916_bms{

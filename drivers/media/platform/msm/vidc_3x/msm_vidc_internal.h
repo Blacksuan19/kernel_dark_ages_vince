@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2019, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -40,8 +40,8 @@
 #define MSM_VIDC_VERSION KERNEL_VERSION(0, 0, 1)
 #define MAX_DEBUGFS_NAME 50
 #define DEFAULT_TIMEOUT 3
-#define DEFAULT_HEIGHT 1088
-#define DEFAULT_WIDTH 1920
+#define DEFAULT_HEIGHT 144
+#define DEFAULT_WIDTH 176
 #define MIN_SUPPORTED_WIDTH 32
 #define MIN_SUPPORTED_HEIGHT 32
 #define DEFAULT_FPS 15
@@ -164,6 +164,7 @@ struct session_prop {
 	u32 height[MAX_PORT_NUM];
 	u32 fps;
 	u32 bitrate;
+	u32 operating_rate;
 };
 
 struct buf_queue {
@@ -230,6 +231,7 @@ enum msm_vidc_modes {
 	VIDC_TURBO = BIT(1),
 	VIDC_THUMBNAIL = BIT(2),
 	VIDC_LOW_POWER = BIT(3),
+	VIDC_REALTIME = BIT(4),
 };
 
 struct msm_vidc_core {

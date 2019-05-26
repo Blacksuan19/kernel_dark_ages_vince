@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2019, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -258,14 +258,9 @@ int msm_comm_ctrl_deinit(struct msm_vidc_inst *inst)
 	return 0;
 }
 
-static inline bool is_non_realtime_session(struct msm_vidc_inst *inst)
+static inline bool is_realtime_session(struct msm_vidc_inst *inst)
 {
-	int rc = 0;
-	struct v4l2_control ctrl = {
-		.id = V4L2_CID_MPEG_VIDC_VIDEO_PRIORITY
-	};
-	rc = msm_comm_g_ctrl(inst, &ctrl);
-	return (!rc && ctrl.value);
+	return !!(inst->flags & VIDC_REALTIME);
 }
 
 enum multi_stream msm_comm_get_stream_output_mode(struct msm_vidc_inst *inst)
@@ -297,17 +292,15 @@ static int msm_comm_get_mbs_per_frame(struct msm_vidc_inst *inst)
 
 static int msm_comm_get_mbs_per_sec(struct msm_vidc_inst *inst)
 {
-	int rc;
 	u32 fps;
-	struct v4l2_control ctrl;
 	int mb_per_frame;
+	u32 oper_rate;
 
 	mb_per_frame = msm_comm_get_mbs_per_frame(inst);
+	oper_rate = inst->prop.operating_rate;
 
-	ctrl.id = V4L2_CID_MPEG_VIDC_VIDEO_OPERATING_RATE;
-	rc = msm_comm_g_ctrl(inst, &ctrl);
-	if (!rc && ctrl.value) {
-		fps = (ctrl.value >> 16) ? ctrl.value >> 16 : 1;
+	if (oper_rate) {
+		fps = (oper_rate >> 16) ? oper_rate >> 16 : 1;
 		/*
 		 * Check if operating rate is less than fps.
 		 * If Yes, then use fps to scale the clocks
@@ -354,7 +347,7 @@ int msm_comm_get_inst_load(struct msm_vidc_inst *inst,
 	 * ----------------|----------------------|------------------------|
 	 */
 
-	if (is_non_realtime_session(inst) &&
+	if (is_realtime_session(inst) &&
 		(quirks & LOAD_CALC_IGNORE_NON_REALTIME_LOAD)) {
 		if (!inst->prop.fps) {
 			dprintk(VIDC_INFO, "instance:%pK fps = 0\n", inst);
@@ -535,7 +528,7 @@ static int msm_comm_vote_bus(struct msm_vidc_core *core)
 
 	list_for_each_entry(inst, &core->instances, list) {
 		int codec = 0, yuv = 0;
-		struct v4l2_control ctrl;
+		u32 oper_rate;
 
 		codec = inst->session_type == MSM_VIDC_DECODER ?
 			inst->fmts[OUTPUT_PORT].fourcc :
@@ -552,11 +545,11 @@ static int msm_comm_vote_bus(struct msm_vidc_core *core)
 		vote_data[i].height = max(inst->prop.height[CAPTURE_PORT],
 			inst->prop.height[OUTPUT_PORT]);
 
-		ctrl.id = V4L2_CID_MPEG_VIDC_VIDEO_OPERATING_RATE;
-		rc = msm_comm_g_ctrl(inst, &ctrl);
-		if (!rc && ctrl.value)
-			vote_data[i].fps = (ctrl.value >> 16) ?
-				ctrl.value >> 16 : 1;
+		oper_rate = inst->prop.operating_rate;
+
+		if (oper_rate)
+			vote_data[i].fps = (oper_rate >> 16) ?
+				oper_rate >> 16 : 1;
 		else
 			vote_data[i].fps = inst->prop.fps;
 
@@ -1646,11 +1639,11 @@ static void msm_comm_clean_notify_client(struct msm_vidc_core *core)
 	list_for_each_entry(inst, &core->instances, list) {
 		mutex_lock(&inst->lock);
 		inst->state = MSM_VIDC_CORE_INVALID;
-		mutex_unlock(&inst->lock);
 		dprintk(VIDC_WARN,
 			"%s Send sys error for inst %pK\n", __func__, inst);
 		msm_vidc_queue_v4l2_event(inst,
 				V4L2_EVENT_MSM_VIDC_SYS_ERROR);
+		mutex_unlock(&inst->lock);
 	}
 	mutex_unlock(&core->lock);
 }

@@ -1,4 +1,4 @@
-/* Copyright (c) 2017-2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2017-2019, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -285,36 +285,6 @@ int cam_context_handle_acquire_dev(struct cam_context *ctx,
 	return rc;
 }
 
-int cam_context_handle_acquire_hw(struct cam_context *ctx,
-	void *args)
-{
-	int rc;
-
-	if (!ctx->state_machine) {
-		CAM_ERR(CAM_CORE, "Context is not ready");
-		return -EINVAL;
-	}
-
-	if (!args) {
-		CAM_ERR(CAM_CORE, "Invalid acquire device hw command payload");
-		return -EINVAL;
-	}
-
-	mutex_lock(&ctx->ctx_mutex);
-	if (ctx->state_machine[ctx->state].ioctl_ops.acquire_hw) {
-		rc = ctx->state_machine[ctx->state].ioctl_ops.acquire_hw(
-			ctx, args);
-	} else {
-		CAM_ERR(CAM_CORE, "No acquire hw for dev %s, state %d",
-			ctx->dev_name, ctx->state);
-		rc = -EPROTO;
-	}
-
-	mutex_unlock(&ctx->ctx_mutex);
-
-	return rc;
-}
-
 int cam_context_handle_release_dev(struct cam_context *ctx,
 	struct cam_release_dev_cmd *cmd)
 {
@@ -337,35 +307,6 @@ int cam_context_handle_release_dev(struct cam_context *ctx,
 	} else {
 		CAM_ERR(CAM_CORE, "No release device in dev %d, state %d",
 			ctx->dev_hdl, ctx->state);
-		rc = -EPROTO;
-	}
-	mutex_unlock(&ctx->ctx_mutex);
-
-	return rc;
-}
-
-int cam_context_handle_release_hw(struct cam_context *ctx,
-	void *args)
-{
-	int rc;
-
-	if (!ctx->state_machine) {
-		CAM_ERR(CAM_CORE, "Context is not ready");
-		return -EINVAL;
-	}
-
-	if (!args) {
-		CAM_ERR(CAM_CORE, "Invalid release HW command payload");
-		return -EINVAL;
-	}
-
-	mutex_lock(&ctx->ctx_mutex);
-	if (ctx->state_machine[ctx->state].ioctl_ops.release_hw) {
-		rc = ctx->state_machine[ctx->state].ioctl_ops.release_hw(
-			ctx, args);
-	} else {
-		CAM_ERR(CAM_CORE, "No release hw for dev %s, state %d",
-			ctx->dev_name, ctx->state);
 		rc = -EPROTO;
 	}
 	mutex_unlock(&ctx->ctx_mutex);
@@ -513,7 +454,7 @@ int cam_context_init(struct cam_context *ctx,
 	mutex_init(&ctx->sync_mutex);
 	spin_lock_init(&ctx->lock);
 
-	ctx->dev_name = dev_name;
+	strlcpy(ctx->dev_name, dev_name, CAM_CTX_DEV_NAME_MAX_LENGTH);
 	ctx->dev_id = dev_id;
 	ctx->ctx_id = ctx_id;
 	ctx->ctx_crm_intf = NULL;
