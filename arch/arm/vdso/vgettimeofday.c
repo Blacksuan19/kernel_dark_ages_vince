@@ -25,9 +25,9 @@
 #include <linux/compiler.h>
 #include <linux/hrtimer.h>
 #include <linux/time.h>
+#include <asm/arch_timer.h>
 #include <asm/barrier.h>
 #include <asm/bug.h>
-#include <asm/cp15.h>
 #include <asm/page.h>
 #include <asm/unistd.h>
 
@@ -127,8 +127,7 @@ static notrace u64 get_ns(const struct vdso_data *vd)
 	u64 cycle_now;
 	u64 nsec;
 
-	isb();
-	cycle_now = read_sysreg(CNTVCT);
+	cycle_now = arch_counter_get_cntvct();
 
 	cycle_delta = (cycle_now - vd->cs_cycle_last) & vd->cs_mask;
 
