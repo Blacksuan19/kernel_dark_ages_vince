@@ -154,7 +154,7 @@ static struct led_classdev msm_pmic_flashlight_led = {
 int32_t msm_flashlight_create_classdev(struct platform_device *pdev,
 		void *data)
 {
-	int32_t i, rc = 0;
+	int32_t i = 0, rc = 0;
 	struct msm_flash_ctrl_t *fctrl =
 		(struct msm_flash_ctrl_t *)data;
 
