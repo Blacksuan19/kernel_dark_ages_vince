@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014, 2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -20,12 +20,12 @@
 #define MAX_SPI_SIZE 110
 #define SPI_DYNAMIC_ALLOC
 
-/*
- * Common SPI communication scheme
- * tx: <opcode>[addr][wait][write buffer]
- * rx: [read buffer]
- * Some inst require polling busy reg until it's done
- */
+/**
+  * Common SPI communication scheme
+  * tx: <opcode>[addr][wait][write buffer]
+  * rx: [read buffer]
+  * Some inst require polling busy reg until it's done
+  */
 struct msm_camera_spi_inst {
 	uint8_t opcode;		/* one-byte opcode */
 	uint8_t addr_len;	/* addr len in bytes */

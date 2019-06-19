@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2016, 2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2016 The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -56,7 +56,6 @@ static void vpe_mem_dump(const char * const name, const void * const addr,
 	int i;
 	u32 *p = (u32 *) addr;
 	u32 data;
-
 	VPE_DBG("%s: (%s) %pK %d\n", __func__, name, addr, size);
 	line_str[0] = '\0';
 	p_str = line_str;
@@ -121,7 +120,6 @@ static void msm_enqueue(struct msm_device_queue *queue,
 			struct list_head *entry)
 {
 	unsigned long flags;
-
 	spin_lock_irqsave(&queue->lock, flags);
 	queue->len++;
 	if (queue->len > queue->max) {
@@ -201,8 +199,10 @@ static unsigned long msm_vpe_queue_buffer_info(struct vpe_device *vpe_dev,
 
 	buff = kzalloc(
 		sizeof(struct msm_vpe_buffer_map_list_t), GFP_KERNEL);
-	if (!buff)
+	if (!buff) {
+		pr_err("error allocating memory\n");
 		return -EINVAL;
+	}
 
 	buff->map_info.buff_info = *buffer_info;
 	buff->map_info.dbuf = dma_buf_get(buffer_info->fd);
@@ -263,6 +263,8 @@ static void msm_vpe_dequeue_buffer_info(struct vpe_device *vpe_dev,
 	dma_buf_put(buff->map_info.dbuf);
 	list_del_init(&buff->entry);
 	kzfree(buff);
+
+	return;
 }
 
 static unsigned long msm_vpe_fetch_buffer_info(struct vpe_device *vpe_dev,
@@ -379,7 +381,6 @@ static int32_t msm_vpe_create_buff_queue(struct vpe_device *vpe_dev,
 					uint32_t num_buffq)
 {
 	struct msm_vpe_buff_queue_info_t *buff_queue;
-
 	buff_queue = kzalloc(
 		sizeof(struct msm_vpe_buff_queue_info_t) * num_buffq,
 		GFP_KERNEL);
@@ -392,9 +393,10 @@ static int32_t msm_vpe_create_buff_queue(struct vpe_device *vpe_dev,
 		pr_err("Buff queue not empty\n");
 		kzfree(buff_queue);
 		return -EINVAL;
+	} else {
+		vpe_dev->buff_queue = buff_queue;
+		vpe_dev->num_buffq = num_buffq;
 	}
-	vpe_dev->buff_queue = buff_queue;
-	vpe_dev->num_buffq = num_buffq;
 	return 0;
 }
 
@@ -415,6 +417,7 @@ static void msm_vpe_delete_buff_queue(struct vpe_device *vpe_dev)
 	kzfree(vpe_dev->buff_queue);
 	vpe_dev->buff_queue = NULL;
 	vpe_dev->num_buffq = 0;
+	return;
 }
 
 void vpe_release_ion_client(struct kref *ref)
@@ -652,7 +655,6 @@ static int vpe_close_node(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
 {
 	uint32_t i;
 	struct vpe_device *vpe_dev = v4l2_get_subdevdata(sd);
-
 	mutex_lock(&vpe_dev->mutex);
 	for (i = 0; i < MAX_ACTIVE_VPE_INSTANCE; i++) {
 		if (vpe_dev->vpe_subscribe_list[i].vfh == &fh->vfh) {
@@ -709,7 +711,7 @@ static int msm_vpe_notify_frame_done(struct vpe_device *vpe_dev)
 		frame_qcmd = msm_dequeue(queue, list_frame);
 		if (!frame_qcmd) {
 			pr_err("%s: %d frame_qcmd is NULL\n",
-				 __func__, __LINE__);
+				 __func__ , __LINE__);
 			return -EINVAL;
 		}
 		processed_frame = frame_qcmd->command;
@@ -726,7 +728,7 @@ static int msm_vpe_notify_frame_done(struct vpe_device *vpe_dev)
 		msm_enqueue(&vpe_dev->eventData_q, &event_qcmd->list_eventdata);
 
 		if (!processed_frame->output_buffer_info.processed_divert) {
-			memset(&buff_mgr_info, 0,
+			memset(&buff_mgr_info, 0 ,
 				sizeof(buff_mgr_info));
 			buff_mgr_info.session_id =
 				((processed_frame->identity >> 16) & 0xFFFF);
@@ -760,9 +762,9 @@ static void vpe_update_scaler_params(struct vpe_device *vpe_dev,
 	uint32_t src_ROI_width, src_ROI_height;
 
 	/*
-	 * phase_step_x, phase_step_y, phase_init_x and phase_init_y
-	 * are represented in fixed-point, unsigned 3.29 format
-	 */
+	* phase_step_x, phase_step_y, phase_init_x and phase_init_y
+	* are represented in fixed-point, unsigned 3.29 format
+	*/
 	uint32_t phase_step_x = 0;
 	uint32_t phase_step_y = 0;
 	uint32_t phase_init_x = 0;
@@ -818,7 +820,7 @@ static void vpe_update_scaler_params(struct vpe_device *vpe_dev,
 	/* calculate phase step for the x direction */
 
 	/*
-	 * if destination is only 1 pix wide, the value of
+	 * if destination is only 1 pixel wide, the value of
 	 * phase_step_x is unimportant. Assigning phase_step_x to src
 	 * ROI width as an arbitrary value.
 	 */
@@ -862,7 +864,7 @@ static void vpe_update_scaler_params(struct vpe_device *vpe_dev,
 	/* calculate phase step for the y direction */
 
 	/*
-	 * if destination is only 1 pix wide, the value of
+	 * if destination is only 1 pixel wide, the value of
 	 * phase_step_x is unimportant. Assigning phase_step_x to src
 	 * ROI width as an arbitrary value.
 	 */
@@ -1055,7 +1057,6 @@ static int vpe_reset(struct vpe_device *vpe_dev)
 static int vpe_update_scale_coef(struct vpe_device *vpe_dev, uint32_t *p)
 {
 	uint32_t i, offset;
-
 	offset = *p;
 
 	if (offset > VPE_SCALE_COEFF_MAX_N-VPE_SCALE_COEFF_NUM) {
@@ -1216,6 +1217,7 @@ static int msm_vpe_cfg(struct vpe_device *vpe_dev,
 
 	frame_qcmd = kzalloc(sizeof(struct msm_queue_cmd), GFP_KERNEL);
 	if (!frame_qcmd) {
+		pr_err("Insufficient memory. return\n");
 		rc = -ENOMEM;
 		goto err_put_buf;
 	}
@@ -1252,7 +1254,6 @@ static long msm_vpe_subdev_ioctl(struct v4l2_subdev *sd,
 	switch (cmd) {
 	case VIDIOC_MSM_VPE_TRANSACTION_SETUP: {
 		struct msm_vpe_transaction_setup_cfg *cfg;
-
 		VPE_DBG("VIDIOC_MSM_VPE_TRANSACTION_SETUP\n");
 		if (sizeof(*cfg) != ioctl_ptr->len) {
 			pr_err("%s: size mismatch cmd=%d, len=%zu, expected=%zu",
@@ -1264,6 +1265,7 @@ static long msm_vpe_subdev_ioctl(struct v4l2_subdev *sd,
 
 		cfg = kzalloc(ioctl_ptr->len, GFP_KERNEL);
 		if (!cfg) {
+			pr_err("%s:%d: malloc error\n", __func__, __LINE__);
 			mutex_unlock(&vpe_dev->mutex);
 			return -EINVAL;
 		}
@@ -1300,6 +1302,7 @@ static long msm_vpe_subdev_ioctl(struct v4l2_subdev *sd,
 
 		u_stream_buff_info = kzalloc(ioctl_ptr->len, GFP_KERNEL);
 		if (!u_stream_buff_info) {
+			pr_err("%s:%d: malloc error\n", __func__, __LINE__);
 			mutex_unlock(&vpe_dev->mutex);
 			return -EINVAL;
 		}
@@ -1398,23 +1401,22 @@ static long msm_vpe_subdev_ioctl(struct v4l2_subdev *sd,
 		struct msm_device_queue *queue = &vpe_dev->eventData_q;
 		struct msm_queue_cmd *event_qcmd;
 		struct msm_vpe_frame_info_t *process_frame;
-
 		VPE_DBG("VIDIOC_MSM_VPE_GET_EVENTPAYLOAD\n");
 		event_qcmd = msm_dequeue(queue, list_eventdata);
 		if (!event_qcmd) {
 			pr_err("%s: %d event_qcmd is NULL\n",
-				__func__, __LINE__);
+				__func__ , __LINE__);
 			return -EINVAL;
 		}
 		process_frame = event_qcmd->command;
 		VPE_DBG("fid %d\n", process_frame->frame_id);
 		if (copy_to_user((void __user *)ioctl_ptr->ioctl_ptr,
-			process_frame,
-			sizeof(struct msm_vpe_frame_info_t))) {
-			mutex_unlock(&vpe_dev->mutex);
-			kfree(process_frame);
-			kfree(event_qcmd);
-			return -EINVAL;
+				process_frame,
+				sizeof(struct msm_vpe_frame_info_t))) {
+					mutex_unlock(&vpe_dev->mutex);
+					kfree(process_frame);
+					kfree(event_qcmd);
+					return -EINVAL;
 		}
 
 		kfree(process_frame);
@@ -1474,7 +1476,6 @@ static long msm_vpe_subdev_do_ioctl(
 		struct vpe_device *vpe_dev = v4l2_get_subdevdata(sd);
 		struct msm_camera_v4l2_ioctl_t *ioctl_ptr = arg;
 		struct msm_vpe_frame_info_t inst_info;
-
 		memset(&inst_info, 0, sizeof(struct msm_vpe_frame_info_t));
 		for (i = 0; i < MAX_ACTIVE_VPE_INSTANCE; i++) {
 			if (vpe_dev->vpe_subscribe_list[i].vfh == vfh) {
@@ -1524,12 +1525,15 @@ static int vpe_probe(struct platform_device *pdev)
 	int rc = 0;
 
 	vpe_dev = kzalloc(sizeof(struct vpe_device), GFP_KERNEL);
-	if (!vpe_dev)
+	if (!vpe_dev) {
+		pr_err("not enough memory\n");
 		return -ENOMEM;
+	}
 
 	vpe_dev->vpe_clk = kzalloc(sizeof(struct clk *) *
 				ARRAY_SIZE(vpe_clk_info), GFP_KERNEL);
 	if (!vpe_dev->vpe_clk) {
+		pr_err("not enough memory\n");
 		rc = -ENOMEM;
 		goto err_free_vpe_dev;
 	}
@@ -1645,7 +1649,6 @@ static int vpe_device_remove(struct platform_device *dev)
 {
 	struct v4l2_subdev *sd = platform_get_drvdata(dev);
 	struct vpe_device  *vpe_dev;
-
 	if (!sd) {
 		pr_err("%s: Subdevice is NULL\n", __func__);
 		return 0;

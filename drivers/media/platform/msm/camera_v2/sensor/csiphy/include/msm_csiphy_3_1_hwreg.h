@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, 2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -15,7 +15,7 @@
 
 #include <sensor/csiphy/msm_csiphy.h>
 
-static struct csiphy_reg_parms_t csiphy_v3_1 = {
+struct csiphy_reg_parms_t csiphy_v3_1 = {
 	/*MIPI CSI PHY registers*/
 	0x0,
 	0x4,

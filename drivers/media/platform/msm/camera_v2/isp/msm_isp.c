@@ -55,6 +55,9 @@ MODULE_DEVICE_TABLE(of, msm_vfe_dt_match);
 #define OVERFLOW_BUFFER_LENGTH 64
 static char stat_line[OVERFLOW_LENGTH];
 
+struct msm_isp_statistics stats;
+struct msm_isp_ub_info ub_info;
+
 static int msm_isp_enable_debugfs(struct vfe_device *vfe_dev,
 	  struct msm_isp_bw_req_info *isp_req_hist);
 
@@ -110,8 +113,8 @@ static int vfe_debugfs_statistics_open(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static ssize_t vfe_debugfs_statistics_read(struct file *t_file,
-	char __user *t_char, size_t t_size_t, loff_t *t_loff_t)
+static ssize_t vfe_debugfs_statistics_read(struct file *t_file, char *t_char,
+	size_t t_size_t, loff_t *t_loff_t)
 {
 	int i;
 	uint64_t *ptr;
@@ -135,12 +138,11 @@ static ssize_t vfe_debugfs_statistics_read(struct file *t_file,
 }
 
 static ssize_t vfe_debugfs_statistics_write(struct file *t_file,
-	const char __user *t_char, size_t t_size_t, loff_t *t_loff_t)
+	const char *t_char, size_t t_size_t, loff_t *t_loff_t)
 {
 	struct vfe_device *vfe_dev = (struct vfe_device *)
 		t_file->private_data;
 	struct msm_isp_statistics *stats = vfe_dev->stats;
-
 	memset(stats, 0, sizeof(struct msm_isp_statistics));
 
 	return sizeof(struct msm_isp_statistics);
@@ -152,7 +154,7 @@ static int bw_history_open(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static ssize_t bw_history_read(struct file *t_file, char __user *t_char,
+static ssize_t bw_history_read(struct file *t_file, char *t_char,
 	size_t t_size_t, loff_t *t_loff_t)
 {
 	int i;
@@ -197,7 +199,7 @@ static ssize_t bw_history_read(struct file *t_file, char __user *t_char,
 }
 
 static ssize_t bw_history_write(struct file *t_file,
-	const char __user *t_char, size_t t_size_t, loff_t *t_loff_t)
+	const char *t_char, size_t t_size_t, loff_t *t_loff_t)
 {
 	struct msm_isp_bw_req_info *isp_req_hist =
 		(struct msm_isp_bw_req_info *) t_file->private_data;
@@ -213,7 +215,7 @@ static int ub_info_open(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static ssize_t ub_info_read(struct file *t_file, char __user *t_char,
+static ssize_t ub_info_read(struct file *t_file, char *t_char,
 	size_t t_size_t, loff_t *t_loff_t)
 {
 	int i;
@@ -244,7 +246,7 @@ static ssize_t ub_info_read(struct file *t_file, char __user *t_char,
 }
 
 static ssize_t ub_info_write(struct file *t_file,
-	const char __user *t_char, size_t t_size_t, loff_t *t_loff_t)
+	const char *t_char, size_t t_size_t, loff_t *t_loff_t)
 {
 	struct vfe_device *vfe_dev =
 		(struct vfe_device *) t_file->private_data;
@@ -283,15 +285,15 @@ static int msm_isp_enable_debugfs(struct vfe_device *vfe_dev,
 	debugfs_base = debugfs_create_dir(dirname, NULL);
 	if (!debugfs_base)
 		return -ENOMEM;
-	if (!debugfs_create_file("stats", 0644, debugfs_base,
+	if (!debugfs_create_file("stats", S_IRUGO | S_IWUSR, debugfs_base,
 		vfe_dev, &vfe_debugfs_error))
 		return -ENOMEM;
 
-	if (!debugfs_create_file("bw_req_history", 0644,
+	if (!debugfs_create_file("bw_req_history", S_IRUGO | S_IWUSR,
 		debugfs_base, isp_req_hist, &bw_history_ops))
 		return -ENOMEM;
 
-	if (!debugfs_create_file("ub_info", 0644,
+	if (!debugfs_create_file("ub_info", S_IRUGO | S_IWUSR,
 		debugfs_base, vfe_dev, &ub_info_ops))
 		return -ENOMEM;
 
@@ -344,7 +346,6 @@ void msm_isp_update_last_overflow_ab_ib(struct vfe_device *vfe_dev)
 static long msm_isp_dqevent(struct file *file, struct v4l2_fh *vfh, void *arg)
 {
 	long rc;
-
 	if (is_compat_task()) {
 		struct msm_isp_event_data32 *event_data32;
 		struct msm_isp_event_data  *event_data;
@@ -554,24 +555,9 @@ static int vfe_probe(struct platform_device *pdev)
 	}
 
 	vfe_parent_dev->common_sd->common_data = &vfe_common_data;
-	mutex_init(&vfe_common_data.vfe_common_mutex);
+	memset(&vfe_common_data, 0, sizeof(vfe_common_data));
 	spin_lock_init(&vfe_common_data.common_dev_data_lock);
-	spin_lock_init(&vfe_common_data.vfe_irq_dump.
-			common_dev_irq_dump_lock);
-	spin_lock_init(&vfe_common_data.vfe_irq_dump.
-			common_dev_tasklet_dump_lock);
-	for (i = 0; i < (VFE_AXI_SRC_MAX * MAX_VFE); i++)
-		spin_lock_init(&(vfe_common_data.streams[i].lock));
-	for (i = 0; i < (MSM_ISP_STATS_MAX * MAX_VFE); i++)
-		spin_lock_init(&(vfe_common_data.stats_streams[i].lock));
-
-	for (i = 0; i <= MAX_VFE; i++) {
-		INIT_LIST_HEAD(&vfe_common_data.tasklets[i].tasklet_q);
-		tasklet_init(&vfe_common_data.tasklets[i].tasklet,
-			msm_isp_do_tasklet,
-			(unsigned long)(&vfe_common_data.tasklets[i]));
-		spin_lock_init(&vfe_common_data.tasklets[i].tasklet_lock);
-	}
+	spin_lock_init(&vfe_common_data.common_dev_axi_lock);
 
 	of_property_read_u32(pdev->dev.of_node,
 		"num_child", &vfe_parent_dev->num_hw_sd);
@@ -621,17 +607,20 @@ int vfe_hw_probe(struct platform_device *pdev)
 
 	vfe_dev = kzalloc(sizeof(struct vfe_device), GFP_KERNEL);
 	if (!vfe_dev) {
+		pr_err("%s: no enough memory\n", __func__);
 		rc = -ENOMEM;
 		goto end;
 	}
 	vfe_dev->stats = kzalloc(sizeof(struct msm_isp_statistics), GFP_KERNEL);
 	if (!vfe_dev->stats) {
+		pr_err("%s: no enough memory\n", __func__);
 		rc = -ENOMEM;
 		goto probe_fail1;
 	}
 
 	vfe_dev->ub_info = kzalloc(sizeof(struct msm_isp_ub_info), GFP_KERNEL);
 	if (!vfe_dev->ub_info) {
+		pr_err("%s: no enough memory\n", __func__);
 		rc = -ENOMEM;
 		goto probe_fail2;
 	}
@@ -649,12 +638,6 @@ int vfe_hw_probe(struct platform_device *pdev)
 		}
 		vfe_dev->hw_info =
 			(struct msm_vfe_hardware_info *) match_dev->data;
-		/* Cx ipeak support */
-		if (of_find_property(pdev->dev.of_node,
-			"qcom,vfe-cx-ipeak", NULL)) {
-			vfe_dev->vfe_cx_ipeak = cx_ipeak_register(
-				pdev->dev.of_node, "qcom,vfe-cx-ipeak");
-		}
 	} else {
 		vfe_dev->hw_info = (struct msm_vfe_hardware_info *)
 			platform_get_device_id(pdev)->driver_data;
@@ -676,6 +659,10 @@ int vfe_hw_probe(struct platform_device *pdev)
 		goto probe_fail3;
 	}
 
+	INIT_LIST_HEAD(&vfe_dev->tasklet_q);
+	tasklet_init(&vfe_dev->vfe_tasklet,
+		msm_isp_do_tasklet, (unsigned long)vfe_dev);
+
 	v4l2_subdev_init(&vfe_dev->subdev.sd, &msm_vfe_v4l2_subdev_ops);
 	vfe_dev->subdev.sd.internal_ops =
 		&msm_vfe_subdev_internal_ops;
@@ -688,14 +675,15 @@ int vfe_hw_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, &vfe_dev->subdev.sd);
 	mutex_init(&vfe_dev->realtime_mutex);
 	mutex_init(&vfe_dev->core_mutex);
+	spin_lock_init(&vfe_dev->tasklet_lock);
 	spin_lock_init(&vfe_dev->shared_data_lock);
 	spin_lock_init(&vfe_dev->reg_update_lock);
 	spin_lock_init(&req_history_lock);
 	spin_lock_init(&vfe_dev->reset_completion_lock);
 	spin_lock_init(&vfe_dev->halt_completion_lock);
-	media_entity_pads_init(&vfe_dev->subdev.sd.entity, 0, NULL);
+	media_entity_init(&vfe_dev->subdev.sd.entity, 0, NULL, 0);
+	vfe_dev->subdev.sd.entity.type = MEDIA_ENT_T_V4L2_SUBDEV;
 	vfe_dev->subdev.sd.entity.group_id = MSM_CAMERA_SUBDEV_VFE;
-	//vfe_dev->subdev.sd.entity.group_id = MSM_CAMERA_SUBDEV_VFE;
 	vfe_dev->subdev.sd.entity.name = pdev->name;
 	vfe_dev->subdev.close_seq = MSM_SD_CLOSE_1ST_CATEGORY | 0x2;
 	rc = msm_sd_register(&vfe_dev->subdev);
@@ -725,6 +713,8 @@ int vfe_hw_probe(struct platform_device *pdev)
 		goto probe_fail3;
 	}
 	msm_isp_enable_debugfs(vfe_dev, msm_isp_bw_request_history);
+	vfe_dev->buf_mgr->num_iommu_secure_ctx =
+		vfe_dev->hw_info->num_iommu_secure_ctx;
 	vfe_dev->buf_mgr->init_done = 1;
 	vfe_dev->vfe_open_cnt = 0;
 	/*Allocate a page in kernel and map it to camera user process*/

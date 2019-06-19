@@ -1,5 +1,4 @@
-/* Copyright (c) 2011-2014, 2016, 2018, The Linux Foundation.
- * All rights reserved.
+/* Copyright (c) 2011-2014, 2016, The Linux Foundatation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -22,7 +21,6 @@
 static int msm_i2c_mux_config(struct i2c_mux_device *mux_device, uint8_t *mode)
 {
 	uint32_t val;
-
 	val = msm_camera_io_r(mux_device->ctl_base);
 	if (*mode == MODE_DUAL) {
 		msm_camera_io_w(val | 0x3, mux_device->ctl_base);
@@ -41,7 +39,6 @@ static int msm_i2c_mux_config(struct i2c_mux_device *mux_device, uint8_t *mode)
 static int msm_i2c_mux_init(struct i2c_mux_device *mux_device)
 {
 	int rc = 0, val = 0;
-
 	if (mux_device->use_count == 0) {
 		val = msm_camera_io_r(mux_device->rw_base);
 		msm_camera_io_w((val | 0x200), mux_device->rw_base);
@@ -53,7 +50,6 @@ static int msm_i2c_mux_init(struct i2c_mux_device *mux_device)
 static int msm_i2c_mux_release(struct i2c_mux_device *mux_device)
 {
 	int val = 0;
-
 	mux_device->use_count--;
 	if (mux_device->use_count == 0) {
 		val = msm_camera_io_r(mux_device->rw_base);
@@ -67,7 +63,6 @@ static long msm_i2c_mux_subdev_ioctl(struct v4l2_subdev *sd,
 {
 	struct i2c_mux_device *mux_device;
 	int rc = 0;
-
 	mux_device = v4l2_get_subdevdata(sd);
 	if (mux_device == NULL) {
 		rc = -ENOMEM;
@@ -103,7 +98,6 @@ static int i2c_mux_probe(struct platform_device *pdev)
 {
 	struct i2c_mux_device *mux_device;
 	int rc = 0;
-
 	CDBG("%s: device id = %d\n", __func__, pdev->id);
 	mux_device = kzalloc(sizeof(struct i2c_mux_device), GFP_KERNEL);
 	if (!mux_device) {

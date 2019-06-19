@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -24,7 +24,6 @@
 #include <linux/module.h>
 #include <linux/of_platform.h>
 #include <linux/msm-bus.h>
-#include <linux/clk/msm-clk.h>
 #include "cam_soc_api.h"
 
 struct msm_cam_bus_pscale_data {
@@ -37,7 +36,7 @@ struct msm_cam_bus_pscale_data {
 	struct mutex lock;
 };
 
-static struct msm_cam_bus_pscale_data g_cv[CAM_BUS_CLIENT_MAX];
+struct msm_cam_bus_pscale_data g_cv[CAM_BUS_CLIENT_MAX];
 
 
 /* Get all clocks from DT */
@@ -170,11 +169,8 @@ static int msm_camera_get_clk_info_internal(struct device *dev,
 	return rc;
 
 err4:
-	if (i > 0) {
-		do {
-			devm_clk_put(dev, (*clk_ptr)[--i]);
-		} while (i);
-	}
+	for (--i; i >= 0; i--)
+		devm_clk_put(dev, (*clk_ptr)[i]);
 err3:
 	devm_kfree(dev, rates);
 err2:
@@ -227,7 +223,7 @@ int msm_camera_get_clk_info_and_rates(
 			size_t *num_clk)
 {
 	int rc = 0, tmp_var, cnt, tmp;
-	int32_t i = 0, j = 0;
+	uint32_t i = 0, j = 0;
 	struct device_node *of_node;
 	uint32_t **rates;
 	struct clk **clks;
@@ -282,10 +278,10 @@ int msm_camera_get_clk_info_and_rates(
 	for (i = 0; i < *num_set; i++) {
 		rates[i] = devm_kcalloc(&pdev->dev, *num_clk,
 			sizeof(uint32_t), GFP_KERNEL);
-		if (!rates[i] && (i > 0)) {
+		if (!rates[i]) {
 			rc = -ENOMEM;
-			for (j = i - 1; j >= 0; j--)
-				devm_kfree(&pdev->dev, rates[j]);
+			for (--i; i >= 0; i--)
+				devm_kfree(&pdev->dev, rates[i]);
 			goto err3;
 		}
 	}
@@ -331,11 +327,8 @@ int msm_camera_get_clk_info_and_rates(
 	return rc;
 
 err5:
-	if (i > 0) {
-		do {
-			devm_clk_put(&pdev->dev, clks[--i]);
-		} while (i);
-	}
+	for (--i; i >= 0; i--)
+		devm_clk_put(&pdev->dev, clks[i]);
 err4:
 	for (i = 0; i < *num_set; i++)
 		devm_kfree(&pdev->dev, rates[i]);
@@ -382,17 +375,18 @@ int msm_camera_clk_enable(struct device *dev,
 				if (clk_rate == 0) {
 					clk_rate =
 						  clk_round_rate(clk_ptr[i], 0);
-					if (clk_rate <= 0) {
+					if (clk_rate < 0) {
 						pr_err("%s round rate failed\n",
 							  clk_info[i].clk_name);
 						goto cam_clk_set_err;
 					}
-				}
-				rc = clk_set_rate(clk_ptr[i], clk_rate);
-				if (rc < 0) {
-					pr_err("%s set rate failed\n",
-						clk_info[i].clk_name);
-					goto cam_clk_set_err;
+					rc = clk_set_rate(clk_ptr[i],
+								clk_rate);
+					if (rc < 0) {
+						pr_err("%s set rate failed\n",
+							  clk_info[i].clk_name);
+						goto cam_clk_set_err;
+					}
 				}
 			}
 			rc = clk_prepare_enable(clk_ptr[i]);
@@ -459,17 +453,6 @@ long msm_camera_clk_set_rate(struct device *dev,
 	return rate;
 }
 EXPORT_SYMBOL(msm_camera_clk_set_rate);
-
-int msm_camera_set_clk_flags(struct clk *clk, unsigned long flags)
-{
-	if (!clk)
-		return -EINVAL;
-
-	CDBG("clk : %pK, flags : %ld\n", clk, flags);
-
-	return clk_set_flags(clk, flags);
-}
-EXPORT_SYMBOL(msm_camera_set_clk_flags);
 
 /* release memory allocated for clocks */
 static int msm_camera_put_clk_info_internal(struct device *dev,
@@ -546,28 +529,6 @@ int msm_camera_put_clk_info_and_rates(struct platform_device *pdev,
 	return 0;
 }
 EXPORT_SYMBOL(msm_camera_put_clk_info_and_rates);
-
-/* Get reset info from DT */
-int msm_camera_get_reset_info(struct platform_device *pdev,
-		struct reset_control **micro_iface_reset)
-{
-	if (!pdev || !micro_iface_reset)
-		return -EINVAL;
-
-	if (of_property_match_string(pdev->dev.of_node, "reset-names",
-				"micro_iface_reset")) {
-		pr_err("err: Reset property not found\n");
-		return -EINVAL;
-	}
-
-	*micro_iface_reset = devm_reset_control_get
-				(&pdev->dev, "micro_iface_reset");
-	if (IS_ERR(*micro_iface_reset))
-		return PTR_ERR(*micro_iface_reset);
-
-	return 0;
-}
-EXPORT_SYMBOL(msm_camera_get_reset_info);
 
 /* Get regulators from DT */
 int msm_camera_get_regulator_info(struct platform_device *pdev,
@@ -691,50 +652,6 @@ error:
 }
 EXPORT_SYMBOL(msm_camera_regulator_enable);
 
-/* set regulator mode */
-int msm_camera_regulator_set_mode(struct msm_cam_regulator *vdd_info,
-				int cnt, bool mode)
-{
-	int i;
-	int rc;
-	struct msm_cam_regulator *tmp = vdd_info;
-
-	if (!tmp) {
-		pr_err("Invalid params");
-		return -EINVAL;
-	}
-	CDBG("cnt : %d\n", cnt);
-
-	for (i = 0; i < cnt; i++) {
-		if (tmp && !IS_ERR_OR_NULL(tmp->vdd)) {
-			CDBG("name : %s, enable : %d\n", tmp->name, mode);
-			if (mode) {
-				rc = regulator_set_mode(tmp->vdd,
-					REGULATOR_MODE_NORMAL);
-				if (rc < 0) {
-					pr_err("regulator enable failed %d\n",
-						i);
-					goto error;
-				}
-			} else {
-				rc = regulator_set_mode(tmp->vdd,
-					REGULATOR_MODE_NORMAL);
-				if (rc < 0)
-					pr_err("regulator disable failed %d\n",
-						i);
-					goto error;
-			}
-		}
-		tmp++;
-	}
-
-	return 0;
-error:
-	return rc;
-}
-EXPORT_SYMBOL(msm_camera_regulator_set_mode);
-
-
 /* Put regulators regulators */
 void msm_camera_put_regulators(struct platform_device *pdev,
 	struct msm_cam_regulator **vdd_info, int cnt)
@@ -856,7 +773,7 @@ void __iomem *msm_camera_get_reg_base(struct platform_device *pdev,
 		char *device_name, int reserve_mem)
 {
 	struct resource *mem;
-	void __iomem *base;
+	void *base;
 
 	if (!pdev || !device_name) {
 		pr_err("Invalid params\n");

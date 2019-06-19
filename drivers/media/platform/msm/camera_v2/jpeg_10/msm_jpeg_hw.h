@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2015, 2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -39,18 +39,18 @@ struct msm_jpeg_hw_pingpong {
 };
 
 int msm_jpeg_hw_pingpong_update(struct msm_jpeg_hw_pingpong *pingpong_hw,
-	struct msm_jpeg_hw_buf *buf, void *base);
+	struct msm_jpeg_hw_buf *buf, void *);
 int msm_jpegdma_hw_pingpong_update(struct msm_jpeg_hw_pingpong *pingpong_hw,
-	struct msm_jpeg_hw_buf *buf, void *base);
+	struct msm_jpeg_hw_buf *buf, void *);
 void *msm_jpeg_hw_pingpong_irq(struct msm_jpeg_hw_pingpong *pingpong_hw);
 void *msm_jpeg_hw_pingpong_active_buffer(struct msm_jpeg_hw_pingpong
 	*pingpong_hw);
 
-void msm_jpeg_hw_irq_clear(uint32_t mask, uint32_t data, void *base);
-void msm_jpegdma_hw_irq_clear(uint32_t mask, uint32_t data, void *base);
-int msm_jpeg_hw_irq_get_status(void *base);
-int msm_jpegdma_hw_irq_get_status(void *base);
-long msm_jpeg_hw_encode_output_size(void *base);
+void msm_jpeg_hw_irq_clear(uint32_t, uint32_t, void *);
+void msm_jpegdma_hw_irq_clear(uint32_t, uint32_t, void *);
+int msm_jpeg_hw_irq_get_status(void *);
+int msm_jpegdma_hw_irq_get_status(void *);
+long msm_jpeg_hw_encode_output_size(void *);
 #define MSM_JPEG_HW_MASK_COMP_FRAMEDONE \
 		MSM_JPEG_HW_IRQ_STATUS_FRAMEDONE_MASK
 #define MSM_JPEG_HW_MASK_COMP_FE \
@@ -104,36 +104,36 @@ long msm_jpeg_hw_encode_output_size(void *base);
 
 
 void msm_jpeg_hw_fe_buffer_update(struct msm_jpeg_hw_buf *p_input,
-	uint8_t pingpong_index, void *base);
+	uint8_t pingpong_index, void *);
 void msm_jpeg_hw_we_buffer_update(struct msm_jpeg_hw_buf *p_input,
-	uint8_t pingpong_index, void *base);
+	uint8_t pingpong_index, void *);
 void msm_jpegdma_hw_fe_buffer_update(struct msm_jpeg_hw_buf *p_input,
-	uint8_t pingpong_index, void *base);
+	uint8_t pingpong_index, void *);
 void msm_jpegdma_hw_we_buffer_update(struct msm_jpeg_hw_buf *p_input,
-	uint8_t pingpong_index, void *base);
+	uint8_t pingpong_index, void *);
 
 
 void msm_jpeg_hw_we_buffer_cfg(uint8_t is_realtime);
 
-void msm_jpeg_hw_fe_mmu_prefetch(struct msm_jpeg_hw_buf *buf, void *base,
+void msm_jpeg_hw_fe_mmu_prefetch(struct msm_jpeg_hw_buf *buf, void *,
 	uint8_t decode_flag);
-void msm_jpeg_hw_we_mmu_prefetch(struct msm_jpeg_hw_buf *buf, void *base,
+void msm_jpeg_hw_we_mmu_prefetch(struct msm_jpeg_hw_buf *buf, void *,
 	uint8_t decode_flag);
-void msm_jpegdma_hw_fe_mmu_prefetch(struct msm_jpeg_hw_buf *buf, void *base);
-void msm_jpegdma_hw_we_mmu_prefetch(struct msm_jpeg_hw_buf *buf, void *base);
+void msm_jpegdma_hw_fe_mmu_prefetch(struct msm_jpeg_hw_buf *buf, void *);
+void msm_jpegdma_hw_we_mmu_prefetch(struct msm_jpeg_hw_buf *buf, void *);
 
-void msm_jpeg_hw_fe_start(void *base);
+void msm_jpeg_hw_fe_start(void *);
 void msm_jpeg_hw_clk_cfg(void);
 
 void msm_jpeg_hw_reset(void *base, int size);
 void msm_jpeg_hw_irq_cfg(void);
 
-uint32_t msm_jpeg_hw_read(struct msm_jpeg_hw_cmd *hw_cmd_p, void *base);
-void msm_jpeg_hw_write(struct msm_jpeg_hw_cmd *hw_cmd_p, void *base);
-int msm_jpeg_hw_wait(struct msm_jpeg_hw_cmd *hw_cmd_p, int m_us, void *base);
-void msm_jpeg_hw_delay(struct msm_jpeg_hw_cmd *hw_cmd_p, int m_us);
-int msm_jpeg_hw_exec_cmds(struct msm_jpeg_hw_cmd *hw_cmd_p,
-	uint32_t m_cmds, uint32_t max_size, void *base);
+uint32_t msm_jpeg_hw_read(struct msm_jpeg_hw_cmd *, void *);
+void msm_jpeg_hw_write(struct msm_jpeg_hw_cmd *, void *);
+int msm_jpeg_hw_wait(struct msm_jpeg_hw_cmd *, int, void *);
+void msm_jpeg_hw_delay(struct msm_jpeg_hw_cmd *, int);
+int msm_jpeg_hw_exec_cmds(struct msm_jpeg_hw_cmd *, uint32_t ,
+	uint32_t , void *);
 void msm_jpeg_hw_region_dump(int size);
 void msm_jpeg_io_dump(void *base, int size);
 void msm_jpeg_decode_status(void *base);

@@ -101,7 +101,7 @@ config MSM_ISP_V1
         ---help---
           Enable support for Image Signal Processing interface module.
           This module acts as a crossbar between CSID and VFE. Output
-          of any CID of CSID can be routed to of pix or raw
+          of any CID of CSID can be routed to of of pixel or raw
           data interface in VFE.
 
 config MSM_ISPIF
@@ -110,7 +110,7 @@ config MSM_ISPIF
         ---help---
           Enable support for Image Signal Processing interface module.
           This module acts as a crossbar between CSID and VFE. Output
-          of any CID of CSID can be routed to of pix or raw
+          of any CID of CSID can be routed to of of pixel or raw
           data interface in VFE.
 
 config MSM_ISPIF_V1
@@ -119,7 +119,7 @@ config MSM_ISPIF_V1
         ---help---
           Enable support for Image Signal Processing interface module.
           This module acts as a crossbar between CSID and VFE. Output
-          of any CID of MSM_CSI22_HEADER can be routed to of pix
+          of any CID of MSM_CSI22_HEADER can be routed to of pixel
           or raw data interface in VFE.
 
 config MSM_ISPIF_V2
@@ -128,7 +128,7 @@ config MSM_ISPIF_V2
         ---help---
           Enable support for Image Signal Processing interface module.
           This module acts as a crossbar between CSID and VFE. Output
-          of any CID of CSID can be routed to of pix
+          of any CID of CSID can be routed to of pixel
           or raw data interface in VFE.
 
 config IMX134
@@ -222,7 +222,7 @@ config MSM_V4L2_VIDEO_OVERLAY_DEVICE
 
 config MSMB_JPEG
 	tristate "QTI MSM Jpeg Encoder Engine support"
-        depends on MSMB_CAMERA && (ARCH_MSM8974 || ARCH_MSM8226 || ARCH_APQ8084 || ARCH_MSM8916 || ARCH_QCOM)
+        depends on MSMB_CAMERA && (ARCH_MSM8974 || ARCH_MSM8226 || ARCH_APQ8084 || ARCH_MSM8916 || ARCH_MSM8953 || ARCH_MSM)
 	---help---
 	  Enable support for Jpeg Encoder/Decoder
 	  Engine for 8974.
@@ -242,20 +242,14 @@ config MSM_FD
 	 tristate "QTI MSM FD face detection engine support"
 	 depends on MSMB_CAMERA
 	 ---help---
-	    Enables support for the MSM FD face detection engine
-            Engine for 8996, 8998.
-            This module serves as the driver for
-            detection of face ROI in a luma frame.
+	    Enables support for the MSM FD face detection engine.
 
 config MSM_JPEGDMA
 	tristate "QTI MSM Jpeg dma"
         depends on MSMB_CAMERA
         select V4L2_MEM2MEM_DEV
 	---help---
-	  Enable support for Jpeg dma engine
-          Engine for 8996, 8998.
-          This module serves as the driver for
-          downscale and data transfer functionality.
+	  Enable support for Jpeg dma engine.
 
 config MSM_SEC_CCI_TA_NAME
 	string "Name of TA to handle Secure CCI transactions"

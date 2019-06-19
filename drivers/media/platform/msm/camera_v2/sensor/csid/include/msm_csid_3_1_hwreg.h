@@ -1,5 +1,4 @@
-/* Copyright (c) 2014-2015, 2018, The Linux Foundation.
- * All rights reserved.
+ /* Copyright (c) 2014-2015  The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -16,9 +15,9 @@
 
 #include <sensor/csid/msm_csid.h>
 
-static uint8_t csid_lane_assign_v3_1[PHY_LANE_MAX] = {0, 1, 2, 3, 4};
+uint8_t csid_lane_assign_v3_1[PHY_LANE_MAX] = {0, 1, 2, 3, 4};
 
-static struct csid_reg_parms_t csid_v3_1 = {
+struct csid_reg_parms_t csid_v3_1 = {
 	/* MIPI	CSID registers */
 	0x0,
 	0x4,

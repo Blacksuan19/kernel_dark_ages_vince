@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2016, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -17,8 +17,7 @@
 #include "msm_sd.h"
 
 /* Buffer type could be userspace / HAL.
- * Userspase could provide native or scratch buffer.
- */
+ * Userspase could provide native or scratch buffer. */
 #define BUF_SRC(id) ( \
 		(id & ISP_SCRATCH_BUF_BIT) ? MSM_ISP_BUFFER_SRC_SCRATCH : \
 		(id & ISP_NATIVE_BUF_BIT) ? MSM_ISP_BUFFER_SRC_NATIVE : \
@@ -26,7 +25,7 @@
 
 /*
  * This mask can be set dynamically if there are more than 2 VFE
- * and 2 of those are used
+ *.and 2 of those are used
  */
 #define ISP_SHARE_BUF_MASK 0x3
 #define ISP_NUM_BUF_MASK 2
@@ -99,8 +98,6 @@ struct msm_isp_buffer {
 	struct timeval *tv;
 	/* Indicates whether buffer is used as ping ot pong buffer */
 	uint32_t pingpong_bit;
-	/* Indicates buffer is reconfig due to drop frame */
-	uint32_t is_drop_reconfig;
 
 	/*Native buffer*/
 	struct list_head list;
@@ -109,7 +106,7 @@ struct msm_isp_buffer {
 	struct msm_isp_buffer_debug_t buf_debug;
 
 	/*Vb2 buffer data*/
-	struct vb2_v4l2_buffer *vb2_v4l2_buf;
+	struct vb2_buffer *vb2_buf;
 };
 
 struct msm_isp_bufq {
@@ -120,14 +117,14 @@ struct msm_isp_bufq {
 	enum msm_isp_buf_type buf_type;
 	struct msm_isp_buffer *bufs;
 	spinlock_t bufq_lock;
+	uint8_t put_buf_mask[ISP_NUM_BUF_MASK];
 	/*Native buffer queue*/
 	struct list_head head;
-	enum smmu_attach_mode security_mode;
 };
 
 struct msm_isp_buf_ops {
 	int (*request_buf)(struct msm_isp_buf_mgr *buf_mgr,
-		struct msm_isp_buf_request_ver2 *buf_request);
+		struct msm_isp_buf_request *buf_request);
 
 	int (*enqueue_buf)(struct msm_isp_buf_mgr *buf_mgr,
 		struct msm_isp_qbuf_info *info);
@@ -160,7 +157,7 @@ struct msm_isp_buf_ops {
 	int (*put_buf)(struct msm_isp_buf_mgr *buf_mgr,
 		uint32_t bufq_handle, uint32_t buf_index);
 
-	int (*flush_buf)(struct msm_isp_buf_mgr *buf_mgr,
+	int (*flush_buf)(struct msm_isp_buf_mgr *buf_mgr, uint32_t id,
 	uint32_t bufq_handle, enum msm_isp_buffer_flush_t flush_type,
 	struct timeval *tv, uint32_t frame_id);
 
@@ -177,9 +174,9 @@ struct msm_isp_buf_ops {
 		unsigned long fault_addr);
 	struct msm_isp_bufq * (*get_bufq)(struct msm_isp_buf_mgr *buf_mgr,
 		uint32_t bufq_handle);
-	int (*buf_divert)(struct msm_isp_buf_mgr *buf_mgr,
-			uint32_t bufq_handle, uint32_t buf_index,
-			struct timeval *tv, uint32_t frame_id);
+	int (*update_put_buf_cnt)(struct msm_isp_buf_mgr *buf_mgr,
+	uint32_t id, uint32_t bufq_handle, int32_t buf_index,
+	struct timeval *tv, uint32_t frame_id, uint32_t pingpong_bit);
 };
 
 struct msm_isp_buf_mgr {
@@ -195,20 +192,21 @@ struct msm_isp_buf_mgr {
 
 	struct msm_sd_req_vb2_q *vb2_ops;
 
+	/*IOMMU driver*/
+	int iommu_hdl;
 
 	/*Add secure mode*/
 	int secure_enable;
 
+	int num_iommu_ctx;
+	int num_iommu_secure_ctx;
 	int attach_ref_cnt;
 	enum msm_isp_buf_mgr_state attach_state;
 	struct device *isp_dev;
 	struct mutex lock;
 	/* Scratch buffer */
 	dma_addr_t scratch_buf_addr;
-	dma_addr_t scratch_buf_stats_addr;
 	uint32_t scratch_buf_range;
-	int iommu_hdl;
-	struct ion_handle *sc_handle;
 };
 
 int msm_isp_create_isp_buf_mgr(struct msm_isp_buf_mgr *buf_mgr,
