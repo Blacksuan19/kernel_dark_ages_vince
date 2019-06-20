@@ -156,4 +156,11 @@ config ENABLE_PM_TP_SUSPEND_RESUME
 	---help---
 	  Say Y here if you want to know whether it is running in ffbm mode.
 
+config KLAPSE
+    bool CONFIG_KLAPSE
+    depends on FB_MSM_MDSS
+    default n
+    help
+        A simple rgb dynamic lapsing module similar to LineageOS' livedisplay
+
 endif
