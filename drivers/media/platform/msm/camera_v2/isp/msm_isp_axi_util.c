@@ -3551,7 +3551,15 @@ static int msm_isp_request_frame(struct vfe_device *vfe_dev,
 	frame_src = SRC_TO_INTF(stream_info->stream_src);
 	pingpong_status = vfe_dev->hw_info->
 		vfe_ops.axi_ops.get_pingpong_status(vfe_dev);
-  
+
+	/* As MCT is still processing it, need to drop the additional requests*/
+	if (vfe_dev->isp_page->drop_reconfig &&
+		frame_src == VFE_PIX_0) {
+		pr_err("%s: MCT has not yet delayed %d drop request %d\n",
+			__func__, vfe_dev->isp_page->drop_reconfig, frame_id);
+		goto error;
+	}
+
 	/*
 	 * If PIX stream is active then RDI path uses SOF frame ID of PIX
 	 * In case of standalone RDI streaming, SOF are used from
