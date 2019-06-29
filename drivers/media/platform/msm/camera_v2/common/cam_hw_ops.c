@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2016, 2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -50,7 +50,7 @@ struct cam_ahb_client_data {
 
 static struct cam_ahb_client_data data;
 
-static int get_vector_index(char *name)
+int get_vector_index(char *name)
 {
 	int i = 0, rc = -1;
 
@@ -213,7 +213,7 @@ err1:
 }
 EXPORT_SYMBOL(cam_ahb_clk_init);
 
-static int cam_consolidate_ahb_vote(enum cam_ahb_clk_client id,
+int cam_consolidate_ahb_vote(enum cam_ahb_clk_client id,
 	enum cam_ahb_clk_vote vote)
 {
 	int i = 0;
@@ -235,12 +235,18 @@ static int cam_consolidate_ahb_vote(enum cam_ahb_clk_client id,
 	}
 
 	CDBG("dbg: max vote : %u\n", max);
-	if (max != data.ahb_clk_state) {
-		msm_bus_scale_client_update_request(data.ahb_client,
-			max);
-		data.ahb_clk_state = max;
-		CDBG("dbg: state : %u, vector : %d\n",
-			data.ahb_clk_state, max);
+	if (max >= 0) {
+		if (max != data.ahb_clk_state) {
+			msm_bus_scale_client_update_request(data.ahb_client,
+				max);
+			data.ahb_clk_state = max;
+			CDBG("dbg: state : %u, vector : %d\n",
+				data.ahb_clk_state, max);
+		}
+	} else {
+		pr_err("err: no bus vector found\n");
+		mutex_unlock(&data.lock);
+		return -EINVAL;
 	}
 	mutex_unlock(&data.lock);
 	return 0;

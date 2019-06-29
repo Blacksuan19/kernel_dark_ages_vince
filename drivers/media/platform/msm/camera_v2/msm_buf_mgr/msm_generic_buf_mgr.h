@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2016, 2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2016, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -26,7 +26,7 @@
 
 struct msm_get_bufs {
 	struct list_head entry;
-	struct vb2_v4l2_buffer *vb2_v4l2_buf;
+	struct vb2_buffer *vb2_buf;
 	uint32_t session_id;
 	uint32_t stream_id;
 	uint32_t index;

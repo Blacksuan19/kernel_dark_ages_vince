@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2016, 2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2016, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -112,8 +112,7 @@ static inline void msm_ispif_cfg_pack_mode(struct ispif_device *ispif,
 {
 	uint32_t pack_addr[2];
 
-	if (WARN_ON(!ispif))
-		return;
+	BUG_ON(!ispif);
 
 	switch (intftype) {
 	case RDI0:

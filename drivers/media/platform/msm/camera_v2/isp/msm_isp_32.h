@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2017, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -19,12 +19,13 @@
 #include <linux/io.h>
 #include <linux/list.h>
 #include <linux/delay.h>
+#include <linux/avtimer_kernel.h>
 #include <media/v4l2-subdev.h>
 #include <media/msmb_isp.h>
 #include <linux/msm-bus.h>
 #include <linux/msm-bus-board.h>
 
-#include "msm_buf_mgr.h"
+#include "msm_buf_mgr_32.h"
 
 #define VFE40_8974V1_VERSION 0x10000018
 #define VFE40_8974V2_VERSION 0x1001001A
@@ -254,7 +255,6 @@ struct msm_vfe_axi_hardware_info {
 	uint8_t num_rdi_master;
 	uint8_t num_comp_mask;
 	uint32_t min_wm_ub;
-	uint32_t scratch_buf_range;
 };
 
 enum msm_vfe_axi_state {

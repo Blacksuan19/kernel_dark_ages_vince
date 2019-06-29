@@ -1,5 +1,4 @@
-/* Copyright (c) 2011-2014, 2016, 2018, The Linux Foundation.
- * All rights reserved.
+/* Copyright (c) 2011-2014, 2016, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -23,7 +22,7 @@ struct i2c_mux_device {
 	void __iomem *ctl_base;
 	void __iomem *rw_base;
 	struct mutex mutex;
-	unsigned int use_count;
+	unsigned use_count;
 };
 
 struct i2c_mux_cfg_params {

@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2016, 2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2016, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -25,7 +25,30 @@
 #endif
 
 #define ALT_VECTOR_IDX(x) {x = 3 - x; }
+#define MAX_ISP_PING_PONG_DUMP_SIZE 20
+struct ping_pong_state {
+	uint32_t vfe_id;
+	uint32_t irq_status0;
+	uint32_t irq_status1;
+	uint32_t ping_pong_status;
+	uint32_t core;
+	struct msm_isp_timestamp ts;
+};
+struct dual_vfe_state {
+	struct ping_pong_state current_vfe_irq;
+	struct ping_pong_state other_vfe;
+};
+struct dump_ping_pong_state {
+	struct dual_vfe_state arr[MAX_ISP_PING_PONG_DUMP_SIZE];
+	uint32_t first;
+	uint32_t fill_count;
+	struct vfe_device *vfe_dev;
+};
 
+void msm_isp_dump_ping_pong_mismatch(void);
+void msm_isp_get_status(struct vfe_device *vfe_dev,
+	uint32_t *irq_status0, uint32_t *irq_status1);
+void msm_isp_dump_taskelet_debug(void);
 uint32_t msm_isp_get_framedrop_period(
 	enum msm_vfe_frame_skip_pattern frame_skip_pattern);
 void msm_isp_reset_burst_count_and_frame_drop(
@@ -70,19 +93,12 @@ void msm_isp_fetch_engine_done_notify(struct vfe_device *vfe_dev,
 	struct msm_vfe_fetch_engine_info *fetch_engine_info);
 void msm_isp_print_fourcc_error(const char *origin, uint32_t fourcc_format);
 void msm_isp_flush_tasklet(struct vfe_device *vfe_dev);
+void msm_isp_save_framedrop_values(struct vfe_device *vfe_dev,
+	enum msm_vfe_input_src frame_src);
 void msm_isp_get_timestamp(struct msm_isp_timestamp *time_stamp,
 	struct vfe_device *vfe_dev);
-void msm_isp_dump_ping_pong_mismatch(struct vfe_device *vfe_dev);
-int msm_isp_process_overflow_irq(
+void msm_isp_process_overflow_irq(
 	struct vfe_device *vfe_dev,
 	uint32_t *irq_status0, uint32_t *irq_status1,
-	uint8_t force_overflow);
-void msm_isp_prepare_irq_debug_info(struct vfe_device *vfe_dev,
-	uint32_t irq_status0, uint32_t irq_status1);
-void msm_isp_prepare_tasklet_debug_info(struct vfe_device *vfe_dev,
-	uint32_t irq_status0, uint32_t irq_status1,
-	struct msm_isp_timestamp ts);
-void msm_isp_irq_debug_dump(struct vfe_device *vfe_dev);
-void msm_isp_tasklet_debug_dump(struct vfe_device *vfe_dev);
-int msm_isp_cfg_input(struct vfe_device *vfe_dev, void *arg);
+	uint32_t force_overflow);
 #endif /* __MSM_ISP_UTIL_H__ */

@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2015, 2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2015,The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -22,7 +22,6 @@ int msm_jpeg_core_reset(struct msm_jpeg_device *pgmn_dev, uint8_t op_mode,
 	unsigned long flags;
 	int rc = 0;
 	int tm = 500; /*500ms*/
-
 	JPEG_DBG("%s:%d] reset", __func__, __LINE__);
 	memset(&pgmn_dev->fe_pingpong_buf, 0,
 		sizeof(pgmn_dev->fe_pingpong_buf));
@@ -59,7 +58,6 @@ int msm_jpeg_core_reset(struct msm_jpeg_device *pgmn_dev, uint8_t op_mode,
 void msm_jpeg_core_release(struct msm_jpeg_device *pgmn_dev)
 {
 	int i = 0;
-
 	for (i = 0; i < 2; i++) {
 		if (pgmn_dev->we_pingpong_buf.buf_status[i] &&
 			pgmn_dev->release_buf)
@@ -86,8 +84,7 @@ int msm_jpeg_core_fe_buf_update(struct msm_jpeg_device *pgmn_dev,
 	struct msm_jpeg_core_buf *buf)
 {
 	int rc = 0;
-
-	if (buf->cbcr_len == 0)
+	if (0 == buf->cbcr_len)
 		buf->cbcr_buffer_addr = 0x0;
 
 	JPEG_DBG("%s:%d] 0x%08x %d 0x%08x %d\n", __func__, __LINE__,
@@ -112,7 +109,7 @@ int msm_jpeg_core_fe_buf_update(struct msm_jpeg_device *pgmn_dev,
 	return rc;
 }
 
-static void *msm_jpeg_core_fe_pingpong_irq(int jpeg_irq_status,
+void *msm_jpeg_core_fe_pingpong_irq(int jpeg_irq_status,
 	struct msm_jpeg_device *pgmn_dev)
 {
 	return msm_jpeg_hw_pingpong_irq(&pgmn_dev->fe_pingpong_buf);
@@ -147,7 +144,6 @@ int msm_jpeg_core_we_buf_reset(struct msm_jpeg_device *pgmn_dev,
 	struct msm_jpeg_hw_buf *buf)
 {
 	int i = 0;
-
 	for (i = 0; i < 2; i++) {
 		if (pgmn_dev->we_pingpong_buf.buf[i].y_buffer_addr
 			== buf->y_buffer_addr)
@@ -156,7 +152,7 @@ int msm_jpeg_core_we_buf_reset(struct msm_jpeg_device *pgmn_dev,
 	return 0;
 }
 
-static void *msm_jpeg_core_we_pingpong_irq(int jpeg_irq_status,
+void *msm_jpeg_core_we_pingpong_irq(int jpeg_irq_status,
 	struct msm_jpeg_device *pgmn_dev)
 {
 	JPEG_DBG("%s:%d]\n", __func__, __LINE__);
@@ -164,7 +160,7 @@ static void *msm_jpeg_core_we_pingpong_irq(int jpeg_irq_status,
 	return msm_jpeg_hw_pingpong_irq(&pgmn_dev->we_pingpong_buf);
 }
 
-static void *msm_jpeg_core_framedone_irq(int jpeg_irq_status,
+void *msm_jpeg_core_framedone_irq(int jpeg_irq_status,
 	struct msm_jpeg_device *pgmn_dev)
 {
 	struct msm_jpeg_hw_buf *buf_p;
@@ -183,7 +179,7 @@ static void *msm_jpeg_core_framedone_irq(int jpeg_irq_status,
 	return buf_p;
 }
 
-static void *msm_jpeg_core_reset_ack_irq(int jpeg_irq_status,
+void *msm_jpeg_core_reset_ack_irq(int jpeg_irq_status,
 	struct msm_jpeg_device *pgmn_dev)
 {
 	/* @todo return the status back to msm_jpeg_core_reset */
@@ -191,7 +187,7 @@ static void *msm_jpeg_core_reset_ack_irq(int jpeg_irq_status,
 	return NULL;
 }
 
-static void *msm_jpeg_core_err_irq(int jpeg_irq_status,
+void *msm_jpeg_core_err_irq(int jpeg_irq_status,
 	struct msm_jpeg_device *pgmn_dev)
 {
 	JPEG_PR_ERR("%s: Error %x\n", __func__, jpeg_irq_status);
@@ -200,11 +196,10 @@ static void *msm_jpeg_core_err_irq(int jpeg_irq_status,
 
 static int (*msm_jpeg_irq_handler)(int, void *, void *);
 
-static void msm_jpeg_core_return_buffers(struct msm_jpeg_device *pgmn_dev,
+void msm_jpeg_core_return_buffers(struct msm_jpeg_device *pgmn_dev,
 	 int jpeg_irq_status)
 {
 	void *data = NULL;
-
 	data = msm_jpeg_core_fe_pingpong_irq(jpeg_irq_status,
 		pgmn_dev);
 	if (msm_jpeg_irq_handler)
@@ -292,6 +287,7 @@ irqreturn_t msm_jpeg_core_irq(int irq_num, void *context)
 			__LINE__);
 			msm_jpeg_hw_irq_clear(JPEG_IRQ_CLEAR_BMSK,
 			JPEG_IRQ_CLEAR_ALL, pgmn_dev->base);
+			return IRQ_HANDLED;
 		} else {
 			if (pgmn_dev->decode_flag)
 				msm_jpeg_decode_status(pgmn_dev->base);

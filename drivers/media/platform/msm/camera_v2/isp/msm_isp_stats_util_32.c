@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2017, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -39,8 +39,7 @@ static int msm_isp_stats_cfg_ping_pong_address(struct vfe_device *vfe_dev,
 
 	pingpong_bit = (~(pingpong_status >> stats_pingpong_offset) & 0x1);
 	rc = vfe_dev->buf_mgr->ops->get_buf(vfe_dev->buf_mgr,
-			vfe_dev->pdev->id, bufq_handle,
-			MSM_ISP_INVALID_BUF_INDEX, &buf);
+			vfe_dev->pdev->id, bufq_handle, &buf);
 	if (rc < 0) {
 		vfe_dev->error_info.stats_framedrop_count[stats_idx]++;
 		return rc;
