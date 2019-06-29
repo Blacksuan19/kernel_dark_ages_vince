@@ -367,9 +367,8 @@ config FINGERPRINT_BOOST
 	help
 	  Boosts available CPUs to max frequency on fingerprint sensor input.
 
+
 if X86
-menu "x86 CPU frequency scaling drivers"
-depends on X86
 source "drivers/cpufreq/Kconfig.x86"
 endif
 
