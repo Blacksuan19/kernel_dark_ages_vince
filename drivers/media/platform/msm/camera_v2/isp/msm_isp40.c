@@ -1530,7 +1530,6 @@ static void msm_vfe40_update_camif_state(struct vfe_device *vfe_dev,
 			pr_err("%s: camif disable failed %x\n",
 				__func__, poll_val);
 		vfe_dev->axi_data.src_info[VFE_PIX_0].active = 0;
-		vfe_dev->axi_data.src_info[VFE_PIX_0].flag = 0;
 		/* testgen OFF*/
 		if (vfe_dev->axi_data.src_info[VFE_PIX_0].input_mux == TESTGEN)
 			msm_camera_io_w(1 << 1, vfe_dev->vfe_base + 0x93C);
