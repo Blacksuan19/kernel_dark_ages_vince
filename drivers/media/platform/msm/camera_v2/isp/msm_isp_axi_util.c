@@ -116,6 +116,8 @@ void msm_isp_axi_destroy_stream(
 		axi_data->stream_info[stream_idx].stream_handle = 0;
 	} else {
 		pr_err("%s: stream does not exist\n", __func__);
+		memset(&axi_data->stream_info[stream_idx].request_queue_cmd,
+			0, sizeof(axi_data->stream_info[stream_idx].request_queue_cmd));
 	}
 }
 
