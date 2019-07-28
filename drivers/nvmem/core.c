@@ -202,6 +202,50 @@ err:
 	return rval;
 }
 
+/*
+ * nvmem_setup_compat() - Create an additional binary entry in
+ * drivers sys directory, to be backwards compatible with the older
+ * drivers/misc/eeprom drivers.
+ */
+static int nvmem_setup_compat(struct nvmem_device *nvmem,
+			      const struct nvmem_config *config)
+{
+	int rval;
+
+	if (!config->base_dev)
+		return -EINVAL;
+
+	if (nvmem->read_only) {
+		if (config->root_only)
+			nvmem->eeprom = bin_attr_ro_root_nvmem;
+		else
+			nvmem->eeprom = bin_attr_ro_nvmem;
+	} else {
+		if (config->root_only)
+			nvmem->eeprom = bin_attr_rw_root_nvmem;
+		else
+			nvmem->eeprom = bin_attr_rw_nvmem;
+	}
+	nvmem->eeprom.attr.name = "eeprom";
+	nvmem->eeprom.size = nvmem->size;
+#ifdef CONFIG_DEBUG_LOCK_ALLOC
+	nvmem->eeprom.attr.key = &eeprom_lock_key;
+#endif
+	nvmem->eeprom.private = &nvmem->dev;
+	nvmem->base_dev = config->base_dev;
+
+	rval = device_create_bin_file(nvmem->base_dev, &nvmem->eeprom);
+	if (rval) {
+		dev_err(&nvmem->dev,
+			"Failed to create eeprom binary file %d\n", rval);
+		return rval;
+	}
+
+	nvmem->flags |= FLAG_COMPAT;
+
+	return 0;
+}
+
 /**
  * nvmem_register() - Register a nvmem device for given nvmem_config.
  * Also creates an binary entry in /sys/bus/nvmem/devices/dev-name/nvmem
