@@ -83,6 +83,7 @@ struct mixer_build {
 	unsigned char *buffer;
 	unsigned int buflen;
 	DECLARE_BITMAP(unitbitmap, MAX_ID_ELEMS);
+	DECLARE_BITMAP(termbitmap, MAX_ID_ELEMS);
 	struct usb_audio_term oterm;
 	const struct usbmix_name_map *map;
 	const struct usbmix_selector_map *selector_map;
@@ -722,15 +723,24 @@ static int get_term_name(struct mixer_build *state, struct usb_audio_term *iterm
  * parse the source unit recursively until it reaches to a terminal
  * or a branched unit.
  */
-static int check_input_term(struct mixer_build *state, int id,
+static int __check_input_term(struct mixer_build *state, int id,
 			    struct usb_audio_term *term)
 {
 	int err;
 	void *p1;
+	unsigned char *hdr;
 
 	memset(term, 0, sizeof(*term));
-	while ((p1 = find_audio_control_unit(state, id)) != NULL) {
-		unsigned char *hdr = p1;
+	for (;;) {
+		/* a loop in the terminal chain? */
+		if (test_and_set_bit(id, state->termbitmap))
+			return -EINVAL;
+
+		p1 = find_audio_control_unit(state, id);
+		if (!p1)
+			break;
+
+		hdr = p1;
 		term->id = id;
 		switch (hdr[2]) {
 		case UAC_INPUT_TERMINAL:
@@ -745,7 +755,7 @@ static int check_input_term(struct mixer_build *state, int id,
 
 				/* call recursively to verify that the
 				 * referenced clock entity is valid */
-				err = check_input_term(state, d->bCSourceID, term);
+				err = __check_input_term(state, d->bCSourceID, term);
 				if (err < 0)
 					return err;
 
@@ -792,41 +802,15 @@ static int check_input_term(struct mixer_build *state, int id,
 			return 0;
 		}
 		case UAC_SELECTOR_UNIT:
-		/* UAC3_MIXER_UNIT_V3 */
-		case UAC2_CLOCK_SELECTOR:
-		/* UAC3_CLOCK_SOURCE */ {
-			if (state->mixer->protocol == UAC_VERSION_3
-				&& hdr[2] == UAC3_CLOCK_SOURCE) {
-				struct uac3_clock_source_descriptor *d = p1;
-
-				term->type = d->bDescriptorSubtype << 16;
-				term->id = id;
-				term->name = d->wClockSourceStr;
-			} else if (state->mixer->protocol == UAC_VERSION_3
-					&& hdr[2] == UAC3_MIXER_UNIT_V3) {
-				struct uac3_mixer_unit_descriptor *d = p1;
-
-				term->type = d->bDescriptorSubtype << 16;
-				if (d->wClusterDescrID == CLUSTER_ID_MONO) {
-					term->channels = NUM_CHANNELS_MONO;
-					term->chconfig = BADD_CH_CONFIG_MONO;
-				} else {
-					term->channels = NUM_CHANNELS_STEREO;
-					term->chconfig = BADD_CH_CONFIG_STEREO;
-				}
-				term->name = d->wMixerDescrStr;
-			} else {
-				struct uac_selector_unit_descriptor *d = p1;
-				/* call recursively to retrieve channel info */
-				err = check_input_term(state,
-							d->baSourceID[0], term);
-				if (err < 0)
-					return err;
-				/* virtual type */
-				term->type = d->bDescriptorSubtype << 16;
-				term->id = id;
-				term->name = uac_selector_unit_iSelector(d);
-			}
+		case UAC2_CLOCK_SELECTOR: {
+			struct uac_selector_unit_descriptor *d = p1;
+			/* call recursively to retrieve the channel info */
+			err = __check_input_term(state, d->baSourceID[0], term);
+			if (err < 0)
+				return err;
+			term->type = d->bDescriptorSubtype << 16; /* virtual type */
+			term->id = id;
+			term->name = uac_selector_unit_iSelector(d);
 			return 0;
 		}
 		case UAC1_PROCESSING_UNIT:
@@ -880,6 +864,15 @@ static int check_input_term(struct mixer_build *state, int id,
 		}
 	}
 	return -ENODEV;
+}
+
+
+static int check_input_term(struct mixer_build *state, int id,
+			    struct usb_audio_term *term)
+{
+	memset(term, 0, sizeof(*term));
+	memset(state->termbitmap, 0, sizeof(state->termbitmap));
+	return __check_input_term(state, id, term);
 }
 
 /*
