@@ -319,6 +319,5 @@ static inline bool cpu_mitigations_auto_nosmt(void)
 {
 	return cpu_mitigations == CPU_MITIGATIONS_AUTO_NOSMT;
 }
-extern bool cpu_mitigations_off(void);
-extern bool cpu_mitigations_auto_nosmt(void);
+
 #endif /* _LINUX_CPU_H_ */
