@@ -488,7 +488,7 @@ rescan:
 	/* add partitions */
 	for (p = 1; p < state->limit; p++) {
 		sector_t size, from;
-		struct partition_meta_info *info = NULL;
+		struct partition_meta_info *info = NULL __attribute__((unused));
 
 		size = state->parts[p].size;
 		if (!size)
