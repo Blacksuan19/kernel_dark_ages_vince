@@ -426,7 +426,7 @@ int ext4_bio_write_page(struct ext4_io_submit *io,
 {
 	struct page *data_page = NULL;
 	struct inode *inode = page->mapping->host;
-	unsigned block_start, blocksize;
+	unsigned block_start, blocksize __attribute__((unused));
 	struct buffer_head *bh, *head;
 	int ret = 0;
 	int nr_submitted = 0;

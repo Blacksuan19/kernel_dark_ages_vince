@@ -1270,7 +1270,7 @@ static int ext4_da_reserve_space(struct inode *inode, ext4_lblk_t lblock)
 {
 	struct ext4_sb_info *sbi = EXT4_SB(inode->i_sb);
 	struct ext4_inode_info *ei = EXT4_I(inode);
-	unsigned int md_needed;
+	unsigned int md_needed __attribute__((unused));
 	int ret;
 
 	/*
