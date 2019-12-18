@@ -1933,7 +1933,7 @@ ftrace_trace_userstack(struct ring_buffer *buffer, unsigned long flags, int pc)
 	struct ftrace_event_call *call = &event_user_stack;
 	struct ring_buffer_event *event;
 	struct userstack_entry *entry;
-	struct stack_trace trace;
+	struct stack_trace trace __attribute__((unused));
 
 	if (!(trace_flags & TRACE_ITER_USERSTACKTRACE))
 		return;

@@ -646,7 +646,7 @@ static int alarm_clock_get(clockid_t which_clock, struct timespec *tp)
 static int alarm_timer_create(struct k_itimer *new_timer)
 {
 	enum  alarmtimer_type type;
-	struct alarm_base *base;
+	struct alarm_base *base __attribute__((unused));
 
 	if (!alarmtimer_get_rtcdev())
 		return -ENOTSUPP;

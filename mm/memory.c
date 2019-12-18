@@ -906,7 +906,7 @@ static int copy_pte_range(struct mm_struct *dst_mm, struct mm_struct *src_mm,
 		   pmd_t *dst_pmd, pmd_t *src_pmd, struct vm_area_struct *vma,
 		   unsigned long addr, unsigned long end)
 {
-	pte_t *orig_src_pte, *orig_dst_pte;
+	pte_t *orig_src_pte, *orig_dst_pte __attribute__((unused));
 	pte_t *src_pte, *dst_pte;
 	spinlock_t *src_ptl, *dst_ptl;
 	int progress = 0;

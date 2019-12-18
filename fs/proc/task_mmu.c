@@ -1137,7 +1137,7 @@ static int pagemap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
 	struct vm_area_struct *vma;
 	struct pagemapread *pm = walk->private;
 	spinlock_t *ptl;
-	pte_t *pte, *orig_pte;
+	pte_t *pte, *orig_pte __attribute__((unused));
 	int err = 0;
 
 	/* find the first VMA at or above 'addr' */

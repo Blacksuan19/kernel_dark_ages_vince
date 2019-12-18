@@ -819,7 +819,7 @@ int page_referenced(struct page *page,
 		    struct mem_cgroup *memcg,
 		    unsigned long *vm_flags)
 {
-	int ret;
+	int ret __attribute__((unused));
 	int we_locked = 0;
 	struct page_referenced_arg pra = {
 		.mapcount = page_mapcount(page),
