@@ -635,7 +635,7 @@ static inline int fault_in_multipages_writeable(char __user *uaddr, int size)
 static inline int fault_in_multipages_readable(const char __user *uaddr,
 					       int size)
 {
-	volatile char c;
+	volatile char c __attribute__ ((unused));
 	const char __user *end = uaddr + size - 1;
 
 	if (unlikely(size == 0))
