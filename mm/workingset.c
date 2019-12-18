@@ -169,7 +169,7 @@ static void unpack_shadow(void *shadow,
 	unsigned long eviction;
 	unsigned long refault;
 	unsigned long mask;
-	int zid, nid;
+	int zid __attribute__((unused)) , nid __attribute__((unused));
 
 	entry >>= RADIX_TREE_EXCEPTIONAL_SHIFT;
 	zid = entry & ((1UL << ZONES_SHIFT) - 1);
