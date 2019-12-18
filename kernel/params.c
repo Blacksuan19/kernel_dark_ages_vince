@@ -850,7 +850,7 @@ static void __init version_sysfs_builtin(void)
 {
 	const struct module_version_attribute **p;
 	struct module_kobject *mk;
-	int err;
+	int err __attribute__((unused));
 
 	for (p = __start___modver; p < __stop___modver; p++) {
 		const struct module_version_attribute *vattr = *p;
