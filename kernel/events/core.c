@@ -1641,7 +1641,7 @@ static void __ref perf_remove_from_context(struct perf_event *event,
 		.event = event,
 		.detach_group = detach_group,
 	};
-	int ret;
+	int ret __attribute__((unused));
 
 	lockdep_assert_held(&ctx->mutex);
 

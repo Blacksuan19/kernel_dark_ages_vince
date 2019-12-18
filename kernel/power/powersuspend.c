@@ -58,7 +58,7 @@ void register_power_suspend(struct power_suspend *handler)
 
 	mutex_lock(&power_suspend_lock);
 	list_for_each(pos, &power_suspend_handlers) {
-		struct power_suspend *p;
+		struct power_suspend *p __attribute__((unused));
 		p = list_entry(pos, struct power_suspend, link);
 	}
 	list_add_tail(&handler->link, pos);
