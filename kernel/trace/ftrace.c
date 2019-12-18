@@ -3383,7 +3383,7 @@ static int ftrace_probe_registered;
 
 static void __enable_ftrace_function_probe(struct ftrace_ops_hash *old_hash)
 {
-	int ret;
+	int ret __attribute__((unused));
 	int i;
 
 	if (ftrace_probe_registered) {
