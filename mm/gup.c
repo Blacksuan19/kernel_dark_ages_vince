@@ -719,7 +719,7 @@ struct page *get_dump_page(unsigned long addr)
 static int gup_pte_range(pmd_t pmd, unsigned long addr, unsigned long end,
 			 int write, struct page **pages, int *nr)
 {
-	pte_t *ptep, *ptem;
+	pte_t *ptep, *ptem __attribute__((unused));
 	int ret = 0;
 
 	ptem = ptep = pte_offset_map(&pmd, addr);
