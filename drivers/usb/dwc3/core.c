@@ -1316,28 +1316,6 @@ static int dwc3_probe(struct platform_device *pdev)
 	pm_runtime_enable(dev);
 	pm_runtime_forbid(dev);
 
-	ret = dwc3_alloc_event_buffers(dwc, DWC3_EVENT_BUFFERS_SIZE);
-	if (ret) {
-		dev_err(dwc->dev, "failed to allocate event buffers\n");
-		ret = -ENOMEM;
-		goto err2;
-	}
-
-	ret = dwc3_get_dr_mode(dwc);
-	if (ret)
-		goto err3;
-
-	ret = dwc3_alloc_scratch_buffers(dwc);
-	if (ret)
-		goto err3;
-
-	ret = dwc3_core_init(dwc);
-	if (ret) {
-		if (ret != -EPROBE_DEFER)
-			dev_err(dev, "failed to initialize core: %d\n", ret);
-		goto err4;
-	}
-
 	/* Check the maximum_speed parameter */
 	switch (dwc->maximum_speed) {
 	case USB_SPEED_LOW:
