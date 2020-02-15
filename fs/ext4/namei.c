@@ -1415,6 +1415,7 @@ restart:
 		/*
 		 * We deal with the read-ahead logic here.
 		 */
+		cond_resched();
 		if (ra_ptr >= ra_max) {
 			/* Refill the readahead buffer */
 			ra_ptr = 0;
