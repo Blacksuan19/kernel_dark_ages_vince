@@ -265,27 +265,21 @@ class Builder():
         steps.append(ExecStep(['make', 'O=%s' % dest_dir,
             self.confname], env=self.make_env))
 
-        if not all_options.updateconfigs:
-            # Build targets can be dependent upon the completion of
-            # previous build targets, so build them one at a time.
-            cmd_line = ['make',
-                'INSTALL_HDR_PATH=%s' % hdri_dir,
-                'INSTALL_MOD_PATH=%s' % modi_dir,
-                'O=%s' % dest_dir]
-            build_targets = []
-            for c in make_command:
-                if re.match(r'^-{1,2}\w', c):
-                    cmd_line.append(c)
-                else:
-                    build_targets.append(c)
-            for t in build_targets:
-                steps.append(ExecStep(cmd_line + [t], env=self.make_env))
-
-        # Copy the defconfig back.
-        if all_options.configs or all_options.updateconfigs:
-            steps.append(ExecStep(['make', 'O=%s' % dest_dir,
-                'savedefconfig'], env=self.make_env))
-            steps.append(CopyfileStep(savedefconfig, defconfig))
+        # Build targets can be dependent upon the completion of
+        # previous build targets, so build them one at a time.
+        cmd_line = ['make',
+            'INSTALL_HDR_PATH=%s' % hdri_dir,
+            'INSTALL_MOD_PATH=%s' % modi_dir,
+            'O=%s' % dest_dir,
+            'REAL_CC=%s' % clang_bin]
+        build_targets = []
+        for c in make_command:
+            if re.match(r'^-{1,2}\w', c):
+                cmd_line.append(c)
+            else:
+                build_targets.append(c)
+        for t in build_targets:
+            steps.append(ExecStep(cmd_line + [t], env=self.make_env))
 
         return steps
 
@@ -297,28 +291,13 @@ def update_config(file, str):
 def scan_configs():
     """Get the full list of defconfigs appropriate for this tree."""
     names = []
-    arch_pats = (
-        r'[fm]sm[0-9]*_defconfig',
-        r'apq*_defconfig',
-        r'qsd*_defconfig',
-        r'mpq*_defconfig',
-        r'sdm[0-9]*_defconfig',
-        r'sdx*_defconfig',
-        )
-    arch64_pats = (
-        r'msm*_defconfig',
-        r'sdm[0-9]*_defconfig',
-        r'sdx*_defconfig',
-        )
-    for p in arch_pats:
-        for n in glob.glob('arch/arm/configs/' + p):
-            name = os.path.basename(n)[:-10]
-            names.append(Builder(name, n))
-    if 'CROSS_COMPILE64' in os.environ:
-        for p in arch64_pats:
-            for n in glob.glob('arch/arm64/configs/' + p):
-                name = os.path.basename(n)[:-10] + "-64"
-                names.append(Builder(name, n))
+    for defconfig in glob.glob('arch/arm*/configs/vendor/*_defconfig'):
+        target = os.path.basename(defconfig)[:-10]
+        name = target + "-llvm"
+        if 'arch/arm64' in defconfig:
+            name = name + "-64"
+        names.append(Builder(name, defconfig))
+
     return names
 
 def build_many(targets):

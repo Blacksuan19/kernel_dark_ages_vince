@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2020, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -28,6 +28,7 @@
 #include <linux/msm_ep_pcie.h>
 #include <linux/ipa_mhi.h>
 #include <linux/vmalloc.h>
+#include <soc/qcom/boot_stats.h>
 
 #include "mhi.h"
 #include "mhi_hwio.h"
@@ -457,6 +458,8 @@ static void mhi_hwc_cb(void *priv, enum ipa_mhi_event_type event,
 		}
 
 		mhi_update_state_info(MHI_DEV_UEVENT_CTRL, MHI_STATE_CONNECTED);
+		mhi_log(MHI_MSG_CRITICAL, "Device in M0 State\n");
+		place_marker("MHI - Device in M0 State\n");
 
 		ep_pcie_mask_irq_event(mhi_ctx->phandle,
 				EP_PCIE_INT_EVT_MHI_A7, true);

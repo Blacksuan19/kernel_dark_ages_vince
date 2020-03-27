@@ -115,6 +115,21 @@ static int send_uevent(struct bg_event *pce)
 	return kobject_uevent_env(&dev_ret->kobj, KOBJ_CHANGE, envp);
 }
 
+static void bgcom_load_twm_bg_work(struct work_struct *work)
+{
+	if (dev->pil_h) {
+		pr_err("bg-wear is already loaded\n");
+		subsystem_put(dev->pil_h);
+		dev->pil_h = NULL;
+		bg_soft_reset();
+	} else {
+		dev->pil_h = subsystem_get_with_fwname("bg-wear",
+							"bg-twm-wear");
+		if (!dev->pil_h)
+			pr_err("failed to load bg-twm-wear\n");
+	}
+}
+
 static int bgdaemon_configure_regulators(bool state)
 {
 	int retval;
@@ -272,7 +287,7 @@ static int bgchar_read_cmd(struct bg_ui_data *fui_obj_msg,
 static int bgchar_write_cmd(struct bg_ui_data *fui_obj_msg, int type)
 {
 	void              *write_buf;
-	int               ret;
+	int               ret = -EINVAL;
 	void __user       *write     = (void *)
 			(uintptr_t)fui_obj_msg->write;
 
@@ -379,6 +394,37 @@ static long bg_com_ioctl(struct file *filp,
 		break;
 	case BG_TWM_EXIT:
 		twm_exit = true;
+		ret = 0;
+		break;
+	case BG_APP_RUNNING:
+		bg_app_running = true;
+		ret = 0;
+		break;
+	case BG_WEAR_LOAD:
+		ret = 0;
+		if (dev->pil_h) {
+			pr_err("bg-wear is already loaded\n");
+			ret = -EFAULT;
+			break;
+		}
+
+		dev->pil_h = subsystem_get_with_fwname("bg-wear", "bg-wear");
+		if (!dev->pil_h) {
+			pr_err("failed to load bg-wear\n");
+			ret = -EFAULT;
+		}
+		break;
+	case BG_WEAR_TWM_LOAD:
+		dev->pending_bg_twm_wear_load = true;
+		queue_work(dev->bgdaemon_wq, &dev->bgdaemon_load_twm_bg_work);
+		ret = 0;
+		break;
+	case BG_WEAR_UNLOAD:
+		if (dev->pil_h) {
+			subsystem_put(dev->pil_h);
+			dev->pil_h = NULL;
+			bg_soft_reset();
+		}
 		ret = 0;
 		break;
 	default:
