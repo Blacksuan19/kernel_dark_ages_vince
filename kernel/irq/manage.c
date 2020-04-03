@@ -342,7 +342,7 @@ irq_set_affinity_notifier(unsigned int irq, struct irq_affinity_notify *notify)
 			kref_put(&old_notify->kref, old_notify->release);
 		}
 		kref_put(&old_notify->kref, old_notify->release);
-
+    }
 	return 0;
 }
 
