@@ -433,14 +433,6 @@ struct ipa_api_controller {
 	int (*ipa_is_vlan_mode)(enum ipa_vlan_ifaces iface, bool *res);
 
 	bool (*ipa_pm_is_used)(void);
-
-	bool (*ipa_get_lan_rx_napi)(void);
-
-	void (*ipa_register_client_callback)(
-		int (*client_cb)(bool is_lock),
-		bool (*teth_port_state)(void), enum ipa_client_type client);
-
-	void (*ipa_deregister_client_callback)(enum ipa_client_type client);
 };
 
 #ifdef CONFIG_IPA

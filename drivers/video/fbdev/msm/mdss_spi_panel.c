@@ -1,4 +1,4 @@
-/* Copyright (c) 2017-2018,2020, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2017-2018, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -163,14 +163,12 @@ static int mdss_spi_panel_power_on(struct mdss_panel_data *pdata)
 
 	ctrl_pdata = container_of(pdata, struct spi_panel_data,
 				panel_data);
-	if (!mdp3_res->secure_reg_on) {
-		ret = msm_mdss_enable_vreg(
-			ctrl_pdata->panel_power_data.vreg_config,
-			ctrl_pdata->panel_power_data.num_vreg, 1);
-		if (ret) {
-			pr_err("%s: failed to enable vregs for %s\n",
-				__func__, "PANEL_PM");
-		}
+	ret = msm_mdss_enable_vreg(
+		ctrl_pdata->panel_power_data.vreg_config,
+		ctrl_pdata->panel_power_data.num_vreg, 1);
+	if (ret) {
+		pr_err("%s: failed to enable vregs for %s\n",
+			__func__, "PANEL_PM");
 	}
 
 	/*
@@ -215,14 +213,12 @@ static int mdss_spi_panel_power_off(struct mdss_panel_data *pdata)
 	if (mdss_spi_panel_pinctrl_set_state(ctrl_pdata, false))
 		pr_warn("reset disable: pinctrl not enabled\n");
 
-	if (!mdp3_res->secure_reg_on) {
-		ret = msm_mdss_enable_vreg(
-			ctrl_pdata->panel_power_data.vreg_config,
-			ctrl_pdata->panel_power_data.num_vreg, 0);
-		if (ret)
-			pr_err("%s: failed to disable vregs for %s\n",
-				__func__, "PANEL_PM");
-	}
+	ret = msm_mdss_enable_vreg(
+		ctrl_pdata->panel_power_data.vreg_config,
+		ctrl_pdata->panel_power_data.num_vreg, 0);
+	if (ret)
+		pr_err("%s: failed to disable vregs for %s\n",
+			__func__, "PANEL_PM");
 
 end:
 	return ret;
@@ -1171,8 +1167,7 @@ static void mdss_spi_panel_bklt_pwm(struct spi_panel_data *ctrl, int level)
 static void mdss_spi_panel_bl_ctrl(struct mdss_panel_data *pdata,
 							u32 bl_level)
 {
-    /* Allow panel backlight update if secure UI is enabled */
-	if (bl_level && !mdp3_res->secure_update_bl) {
+	if (bl_level) {
 		mdp3_res->bklt_level = bl_level;
 		mdp3_res->bklt_update = true;
 	} else {

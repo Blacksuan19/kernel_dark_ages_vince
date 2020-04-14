@@ -7,7 +7,6 @@
 #include <linux/types.h>
 #endif
 #include <linux/fb.h>
-#include <stdbool.h>
 
 #define MSMFB_IOCTL_MAGIC 'm'
 #define MSMFB_GRP_DISP          _IOW(MSMFB_IOCTL_MAGIC, 1, unsigned int)
@@ -1276,8 +1275,6 @@ enum {
 	metadata_op_get_caps,
 	metadata_op_crc,
 	metadata_op_get_ion_fd,
-	metadata_op_secure_bl_set,
-	metadata_op_secure_reg,
 	metadata_op_max
 };
 
@@ -1312,8 +1309,6 @@ struct msmfb_metadata {
 		struct mdss_hw_caps caps;
 		uint8_t secure_en;
 		int fbmem_ionfd;
-		bool sec_bl_update_en;
-		bool sec_reg_on;
 	} data;
 };
 

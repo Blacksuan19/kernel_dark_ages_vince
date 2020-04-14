@@ -2,7 +2,7 @@
  * Core MDSS framebuffer driver.
  *
  * Copyright (C) 2007 Google Incorporated
- * Copyright (c) 2008-2020, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2008-2018, The Linux Foundation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -1912,14 +1912,13 @@ void mdss_fb_set_backlight(struct msm_fb_data_type *mfd, u32 bkl_lvl)
 	bool twm_en = false;
 
 	if ((((mdss_fb_is_power_off(mfd) && mfd->dcm_state != DCM_ENTER)
-		|| !mfd->allow_bl_update) && !IS_CALIB_MODE_BL(mfd) &&
-		!mfd->allow_secure_bl_update) ||
+		|| !mfd->allow_bl_update) && !IS_CALIB_MODE_BL(mfd)) ||
 		mfd->panel_info->cont_splash_enabled) {
 		mfd->unset_bl_level = bkl_lvl;
 		return;
 	} else if (mdss_fb_is_power_on(mfd) && mfd->panel_info->panel_dead) {
 		mfd->unset_bl_level = mfd->bl_level;
-	} else if (!mfd->allow_secure_bl_update) {
+	} else {
 		mfd->unset_bl_level = U32_MAX;
 	}
 
@@ -1931,9 +1930,6 @@ void mdss_fb_set_backlight(struct msm_fb_data_type *mfd, u32 bkl_lvl)
 							&ad_bl_notify_needed);
 		if (!IS_CALIB_MODE_BL(mfd))
 			mdss_fb_scale_bl(mfd, &temp);
-
-		if (!temp && !mfd->allow_secure_bl_update && mfd->bl_level)
-			mfd->unset_bl_level =  mfd->bl_level;
 		/*
 		 * Even though backlight has been scaled, want to show that
 		 * backlight has been set to bkl_lvl to those that read from
@@ -2118,8 +2114,7 @@ static int mdss_fb_blank_blank(struct msm_fb_data_type *mfd,
 		mfd->allow_bl_update = true;
 		mdss_fb_set_backlight(mfd, 0);
 		mfd->allow_bl_update = false;
-		if (current_bl)
-			mfd->unset_bl_level = current_bl;
+		mfd->unset_bl_level = current_bl;
 		mutex_unlock(&mfd->bl_lock);
 	}
 	mfd->panel_power_state = req_power_state;
@@ -2164,8 +2159,6 @@ static int mdss_fb_blank_unblank(struct msm_fb_data_type *mfd)
 		pr_debug("No change in power state\n");
 		return 0;
 	}
-
-	mfd->allow_secure_bl_update = false;
 
 	if (mfd->mdp.on_fnc) {
 		struct mdss_panel_info *panel_info = mfd->panel_info;
@@ -3534,7 +3527,6 @@ static int mdss_fb_pan_display_ex(struct fb_info *info,
 	mfd->msm_fb_backup.info = *info;
 	mfd->msm_fb_backup.disp_commit = *disp_commit;
 
-	atomic_inc(&mfd->mdp_sync_pt_data.commit_cnt);
 	atomic_inc(&mfd->commits_pending);
 	atomic_inc(&mfd->kickoff_pending);
 	wake_up_all(&mfd->commit_wait_q);
@@ -4635,7 +4627,7 @@ static int mdss_fb_handle_buf_sync_ioctl(struct msm_sync_pt_data *sync_pt_data,
 	if (IS_ERR_OR_NULL(retire_fence)) {
 		val += sync_pt_data->retire_threshold;
 		retire_fence = mdss_fb_sync_get_fence(
-			sync_pt_data->timeline_retire, "mdp-retire", val);
+			sync_pt_data->timeline, "mdp-retire", val);
 	}
 
 	if (IS_ERR_OR_NULL(retire_fence)) {
