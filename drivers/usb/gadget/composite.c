@@ -995,12 +995,7 @@ static int set_config(struct usb_composite_dev *cdev,
 	}
 
 done:
-	if (power <= USB_SELF_POWER_VBUS_MAX_DRAW)
-		usb_gadget_set_selfpowered(gadget);
-	else
-		usb_gadget_clear_selfpowered(gadget);
-
-	usb_gadget_vbus_draw(gadget, power);
+	usb_gadget_vbus_draw(gadget, USB_VBUS_DRAW(gadget->speed));
 	if (result >= 0 && cdev->delayed_status)
 		result = USB_GADGET_DELAYED_STATUS;
 	return result;
@@ -2477,7 +2472,6 @@ void composite_suspend(struct usb_gadget *gadget)
 	cdev->suspended = 1;
 	spin_unlock_irqrestore(&cdev->lock, flags);
 
-	usb_gadget_set_selfpowered(gadget);
 	usb_gadget_vbus_draw(gadget, 2);
 }
 
@@ -2519,21 +2513,9 @@ void composite_resume(struct usb_gadget *gadget)
 				f->resume(f);
 		}
 	    usb_gadget_vbus_draw(gadget, USB_VBUS_DRAW(gadget->speed));
-    }
-
-		maxpower = cdev->config->MaxPower ?
-			cdev->config->MaxPower : CONFIG_USB_GADGET_VBUS_DRAW;
-		if (gadget->speed < USB_SPEED_SUPER)
-			maxpower = min(maxpower, 500U);
-		else
-			maxpower = min(maxpower, 900U);
-
-		if (maxpower > USB_SELF_POWER_VBUS_MAX_DRAW)
-			usb_gadget_clear_selfpowered(gadget);
-
-		usb_gadget_vbus_draw(gadget, maxpower);
 	}
 
+	spin_unlock_irqrestore(&cdev->lock, flags);
 	cdev->suspended = 0;
 }
 
