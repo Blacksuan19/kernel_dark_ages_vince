@@ -6,7 +6,7 @@ steps:
 - name: cooked
   image: najahi/oven:latest
   environment:
-    token:
+    BOT_API_KEY:
       from_secret: BOT_API_KEY
   commands:
   - wget https://raw.githubusercontent.com/Blacksuan19/Scripts/master/dark_ages_ci.sh
