@@ -1,0 +1,13 @@
+kind: pipeline
+type: docker
+name: build
+
+steps:
+- name: cooked
+  image: najahi/oven:latest
+  environment:
+    token:
+      from_secret: BOT_API_KEY
+  commands:
+  - wget https://raw.githubusercontent.com/Blacksuan19/Scripts/master/dark_ages_ci.sh
+  - bash dark_ages_ci.sh vince
