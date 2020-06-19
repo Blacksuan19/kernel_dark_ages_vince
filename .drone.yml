@@ -8,6 +8,10 @@ steps:
   environment:
     BOT_API_KEY:
       from_secret: BOT_API_KEY
+    DRONE_SRVER:
+      from_secret: DRONE_SRVER
+    DRONE_TOKEN:
+      from_secret: DRONE_TOKEN
   commands:
   - wget https://raw.githubusercontent.com/Blacksuan19/Scripts/master/dark_ages_ci.sh
   - bash dark_ages_ci.sh vince
