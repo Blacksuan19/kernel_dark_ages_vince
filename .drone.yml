@@ -8,8 +8,8 @@ steps:
   environment:
     BOT_API_KEY:
       from_secret: BOT_API_KEY
-    DRONE_SRVER:
-      from_secret: DRONE_SRVER
+    DRONE_SERVER:
+      from_secret: DRONE_SERVER
     DRONE_TOKEN:
       from_secret: DRONE_TOKEN
   commands:
