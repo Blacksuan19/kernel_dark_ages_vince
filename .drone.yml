@@ -12,6 +12,7 @@ steps:
       from_secret: DRONE_SERVER
     DRONE_TOKEN:
       from_secret: DRONE_TOKEN
+
   commands:
   - wget https://raw.githubusercontent.com/Blacksuan19/Scripts/master/dark_ages_ci.sh
   - bash dark_ages_ci.sh vince
