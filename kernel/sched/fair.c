@@ -9802,8 +9802,8 @@ static struct sched_group *find_busiest_group(struct lb_env *env)
 		cpu_busiest = group_first_cpu(sds.busiest);
 
 		 /* TODO: don't assume same energy cpus are in same domain */
-		energy_local = cpu_max_power_cost(cpu_local);
-		energy_busiest = cpu_max_power_cost(cpu_busiest);
+		energy_local = capacity_orig_of(cpu_local);
+		energy_busiest = capacity_orig_of(cpu_busiest);
 		if (energy_local > energy_busiest) {
 			goto out_balanced;
 		} else if (energy_local == energy_busiest) {
