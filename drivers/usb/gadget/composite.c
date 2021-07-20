@@ -614,7 +614,7 @@ static u8 encode_bMaxPower(enum usb_device_speed speed,
 {
 	unsigned int val = CONFIG_USB_GADGET_VBUS_DRAW;
 
-	if (c->MaxPower)
+	if (c->MaxPower || (c->bmAttributes & USB_CONFIG_ATT_SELFPOWER))
 		val = c->MaxPower;
 	else
 		val = CONFIG_USB_GADGET_VBUS_DRAW;
@@ -1038,6 +1038,16 @@ static int set_config(struct usb_composite_dev *cdev,
 		}
 	}
 
+	/* when we return, be sure our power usage is valid */
+	if (c->MaxPower || (c->bmAttributes & USB_CONFIG_ATT_SELFPOWER))
+		power = c->MaxPower;
+	else
+		power = CONFIG_USB_GADGET_VBUS_DRAW;
+
+	if (gadget->speed < USB_SPEED_SUPER)
+		power = min(power, 500U);
+	else
+		power = min(power, 900U);
 done:
 	usb_gadget_vbus_draw(gadget, USB_VBUS_DRAW(gadget->speed));
 	if (result >= 0 && cdev->delayed_status)
