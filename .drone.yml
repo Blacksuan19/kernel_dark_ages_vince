@@ -14,7 +14,5 @@ steps:
       from_secret: DRONE_TOKEN
 
   commands:
-  - apt update
-  - apt install -y libssl-dev
   - wget https://raw.githubusercontent.com/Blacksuan19/Scripts/master/dark_ages_ci.sh
   - bash dark_ages_ci.sh vince
