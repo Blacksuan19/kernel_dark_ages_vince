@@ -4,7 +4,7 @@ name: build
 
 steps:
 - name: cooked
-  image: najahi/oven:latest
+  image: anggit86/dev:latest
   environment:
     BOT_API_KEY:
       from_secret: BOT_API_KEY
